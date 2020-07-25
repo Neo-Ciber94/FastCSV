@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# CS8618: El campo que acepta valores NULL está sin inicializar. Considere la posibilidad de declararlo como que acepta valores NULL.
+dotnet_diagnostic.CS8618.severity = error
