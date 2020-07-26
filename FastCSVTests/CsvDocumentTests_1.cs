@@ -311,6 +311,27 @@ namespace FastCsvTests
         }
 
         [Test]
+        public void WithFormatTest()
+        {
+            var document = new CsvDocument<Person>(new Person[]
+            {
+                new Person {Name = "Akari", Age = 20},
+                new Person {Name = "Kyoko", Age = 21},
+                new Person {Name = "Yui", Age = 22},
+                new Person {Name = "Chinatsu", Age = 19}
+            });
+
+            var copy = document.WithFormat(new CsvFormat(';', '"'));
+
+            Assert.AreEqual(
+                "Name;Age\r\n" +
+                "Akari;20\r\n" +
+                "Kyoko;21\r\n" +
+                "Yui;22\r\n" +
+                "Chinatsu;19\r\n", copy.ToString());
+        }
+
+        [Test]
         public void ToStringTest()
         {
             var document = new CsvDocument<Person>(new Person[]

@@ -204,6 +204,17 @@ namespace FastCSV.Tests
             Assert.AreEqual(0, document.Count);
         }
 
+        [Test]
+        public void WithFormatTest()
+        {
+            var document = new CsvDocument(new string[] { "name", "age" });
+            document.Write("Light", 18);
+            document.Write("Misa", 20);
+
+            var copy = document.WithFormat(new CsvFormat(';', '"'));
+            Assert.AreEqual("name;age\r\nLight;18\r\nMisa;20\r\n", copy.ToString());
+        }
+
         [Test()]
         public void ToStringTest()
         {

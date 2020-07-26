@@ -43,6 +43,11 @@ namespace FastCSV
 
         private CsvDocument(List<CsvRecord> records, CsvHeader header, CsvFormat format, bool flexible)
         {
+            if (header.Format != format)
+            {
+                throw new ArgumentException("Header format differs from the given format");
+            }
+
             _records = records;
             Header = header;
             Format = format;
@@ -310,6 +315,16 @@ namespace FastCSV
         public void Clear()
         {
             _records.Clear();
+        }
+
+        /// <summary>
+        /// Creates a copy of this document with the specified csv format.
+        /// </summary>
+        /// <param name="format">The format.</param>
+        /// <returns>A copy using the specified format.</returns>
+        public CsvDocument WithFormat(CsvFormat format)
+        {
+            return new CsvDocument(_records.ToList(), Header.WithFormat(format), format, IsFlexible);
         }
 
         /// <summary>

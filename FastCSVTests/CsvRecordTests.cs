@@ -83,6 +83,15 @@ namespace FastCSV.Tests
             Assert.AreEqual(CsvFormat.Default.WithStyle(QuoteStyle.Always), record2.Format);
         }
 
+        [Test()]
+        public void WithFormatTest()
+        {
+            var record = new CsvRecord(null, new string[] { "Violet", "16" });
+            var record2 = record.WithFormat(new CsvFormat(';', '"'));
+
+            Assert.AreEqual(new CsvFormat(';', '"'), record2.Format);
+        }
+
         [Test]
         public void ToDictionaryTest()
         {

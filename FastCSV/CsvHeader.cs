@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using FastCSV.Utils;
 
 namespace FastCSV
@@ -105,6 +106,50 @@ namespace FastCSV
         public int IndexOf(string value)
         {
             return Array.IndexOf(_values, value);
+        }
+
+        /// <summary>
+        /// Gets a copy of this header using the specified delimiter.
+        /// </summary>
+        /// <param name="delimiter">The delimiter.</param>
+        /// <returns>A copy of this header with the specified delimiter.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public CsvHeader WithDelimiter(char delimiter)
+        {
+            return WithFormat(Format.WithDelimiter(delimiter));
+        }
+
+        /// <summary>
+        /// Gets a copy of this header using the specified quote.
+        /// </summary>
+        /// <param name="quote">The quote.</param>
+        /// <returns>A copy of this header with the specified quote.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public CsvHeader WithQuote(char quote)
+        {
+            return WithFormat(Format.WithQuote(quote));
+        }
+
+        /// <summary>
+        /// Gets a copy of this header using the specified style.
+        /// </summary>
+        /// <param name="style">The style.</param>
+        /// <returns>A copy of this header with the specified style.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public CsvHeader WithStyle(QuoteStyle style)
+        {
+            return WithFormat(Format.WithStyle(style));
+        }
+
+        /// <summary>
+        /// Gets a copy of this header using the specified format.
+        /// </summary>
+        /// <param name="format">The format.</param>
+        /// <returns>A copy of this header with the specified format.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public CsvHeader WithFormat(CsvFormat format)
+        {
+            return new CsvHeader(_values, format);
         }
 
         public string ToString(CsvFormat format)

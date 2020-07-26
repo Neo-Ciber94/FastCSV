@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using FastCSV.Utils;
 
 namespace FastCSV
@@ -156,9 +157,10 @@ namespace FastCSV
         /// </summary>
         /// <param name="delimiter">The delimiter.</param>
         /// <returns>A copy of this record with the specified delimiter.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public CsvRecord WithDelimiter(char delimiter)
         {
-            return new CsvRecord(Header, _values, Format.WithDelimiter(delimiter));
+            return WithFormat(Format.WithDelimiter(delimiter));
         }
 
         /// <summary>
@@ -166,9 +168,10 @@ namespace FastCSV
         /// </summary>
         /// <param name="quote">The quote.</param>
         /// <returns>A copy of this record with the specified quote.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public CsvRecord WithQuote(char quote)
         {
-            return new CsvRecord(Header, _values, Format.WithQuote(quote));
+            return WithFormat(Format.WithQuote(quote));
         }
 
         /// <summary>
@@ -176,9 +179,21 @@ namespace FastCSV
         /// </summary>
         /// <param name="style">The style.</param>
         /// <returns>A copy of this record with the specified style.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public CsvRecord WithStyle(QuoteStyle style)
         {
-            return new CsvRecord(Header, _values, Format.WithStyle(style));
+            return WithFormat(Format.WithStyle(style));
+        }
+
+        /// <summary>
+        /// Gets a copy of this record using the specified format.
+        /// </summary>
+        /// <param name="format">The format.</param>
+        /// <returns>A copy of this record with the specified format.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public CsvRecord WithFormat(CsvFormat format)
+        {
+            return new CsvRecord(Header?.WithFormat(format), _values, format);
         }
 
         /// <summary>
