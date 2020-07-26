@@ -39,7 +39,7 @@ namespace FastCSV.Utils
         /// Returns the specified instance to the cache.
         /// </summary>
         /// <param name="stringBuilder">The string builder.</param>
-        public static void Release(ref StringBuilder? stringBuilder)
+        public static void Release(ref StringBuilder stringBuilder)
         {
             if (stringBuilder != null && stringBuilder.Capacity <= MaxCapacity)
             {
@@ -54,7 +54,7 @@ namespace FastCSV.Utils
         /// </summary>
         /// <param name="stringBuilder">The string builder.</param>
         /// <returns>The string created by the builder.</returns>
-        public static string ToStringAndRelease(ref StringBuilder? stringBuilder)
+        public static string ToStringAndRelease(ref StringBuilder stringBuilder)
         {
             string result = stringBuilder!.ToString();
             Release(ref stringBuilder);

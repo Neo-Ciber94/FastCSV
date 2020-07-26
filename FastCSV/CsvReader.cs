@@ -182,14 +182,14 @@ namespace FastCSV
 
             List<string>? values = CsvUtility.ReadRecord(_reader!, Format);
 
-            if(Format.IgnoreWhitespace && (values == null || values.Count == 0))
+            if (Format.IgnoreWhitespace && (values == null || values.Count == 0))
             {
                 return null;
             }
 
             _recordNumber += 1;
 
-            if(values == null)
+            if (values == null)
             {
                 return new CsvRecord(Header, Array.Empty<string>(), Format);
             }
@@ -203,7 +203,7 @@ namespace FastCSV
         /// <returns>The next record or null is there is not more records</returns>
         public async Task<CsvRecord?> ReadAsync()
         {
-            return await Task.Run(Read);
+            return await Task.Run(() => Read());
         }
 
         /// <summary>

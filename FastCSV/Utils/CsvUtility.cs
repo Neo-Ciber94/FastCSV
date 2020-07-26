@@ -14,13 +14,17 @@ namespace FastCSV.Utils
     {
         public static List<string>? ReadRecord(StreamReader reader, CsvFormat format)
         {
+            return ReadRecord(new StringBuilder(), reader, format);
+        }
+
+        public static List<string>? ReadRecord(StringBuilder stringBuilder, StreamReader reader, CsvFormat format)
+        {
             if (reader.EndOfStream)
             {
                 return null;
             }
 
             List<string> records = new List<string>();
-            StringBuilder stringBuilder = new StringBuilder();
             char delimiter = format.Delimiter;
             char quote = format.Quote;
             QuoteStyle style = format.Style;
@@ -157,6 +161,11 @@ namespace FastCSV.Utils
 
         public static string ToCsvString(IEnumerable<string> values, CsvFormat format)
         {
+            return ToCsvString(new StringBuilder(), values, format);
+        }
+
+        public static string ToCsvString(StringBuilder stringBuilder, IEnumerable<string> values, CsvFormat format)
+        {
             if (values.Count() == 0)
             {
                 return string.Empty;
@@ -168,7 +177,6 @@ namespace FastCSV.Utils
                 return string.Concat(format.Quote, s, format.Quote);
             }
 
-            StringBuilder stringBuilder = new StringBuilder();
             IEnumerator<string> enumerator = values.GetEnumerator();
             QuoteStyle style = format.Style;
 
