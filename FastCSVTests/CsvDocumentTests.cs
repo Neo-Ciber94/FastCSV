@@ -40,6 +40,36 @@ namespace FastCSV.Tests
             Assert.AreEqual(0, document.Count);
         }
 
+        [Test]
+        public void FromCsvTest()
+        {
+            var csv = "Name,Age\r\n" +
+                    "Kara,20\r\n" +
+                    "Markus,25\r\n";
+
+            var document = CsvDocument.FromCsv(csv);
+
+            Assert.AreEqual(2, document.Count);
+            Assert.AreEqual(CsvHeader.FromValues("Name", "Age"), document.Header);
+            Assert.AreEqual(new CsvRecord(document.Header, new string[] { "Kara", "20" }), document[0]);
+            Assert.AreEqual(new CsvRecord(document.Header, new string[] { "Markus", "25" }), document[1]);
+        }
+
+        [Test]
+        public void FromCsvTest1()
+        {
+            var csv = "Name,Age\r\n" +
+                    "Kara,20\r\n" +
+                    "Markus,25,RK-200\r\n";
+
+            var document = CsvDocument.FromCsv(csv, flexible: true);
+
+            Assert.AreEqual(2, document.Count);
+            Assert.AreEqual(CsvHeader.FromValues("Name", "Age"), document.Header);
+            Assert.AreEqual(new CsvRecord(document.Header, new string[] { "Kara", "20" }), document[0]);
+            Assert.AreEqual(new CsvRecord(document.Header, new string[] { "Markus", "25", "RK-200" }), document[1]);
+        }
+
         [Test()]
         public void WriteTest()
         {

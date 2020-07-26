@@ -1,9 +1,7 @@
 ﻿using NUnit.Framework;
-using FastCSV;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using FastCSV.Csv;
 
 namespace FastCSV.Tests
 {

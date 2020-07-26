@@ -135,7 +135,7 @@ namespace FastCSV
                     throw new InvalidOperationException("Header is not set");
                 }
 
-                int index = Header.IndexOf(key);
+                int index = Header.IndexOf(key);              
 
                 return index >= 0 ? this[index] : throw new KeyNotFoundException($"Cannot find a value for the corresponding key: {key}");
             }
