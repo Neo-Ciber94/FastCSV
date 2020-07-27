@@ -57,6 +57,28 @@ namespace FastCSV
         }
 
         /// <summary>
+        /// Creates a csv header for the specified type.
+        /// </summary>
+        /// <typeparam name="T">Type used to create the header</typeparam>
+        /// <returns>The header using the names of the public fields and properties of the specified type.</returns>
+        public static CsvHeader FromType<T>()
+        {
+            return FromType<T>(CsvFormat.Default);
+        }
+
+        /// <summary>
+        /// Creates a csv header for the specified type.
+        /// </summary>
+        /// <typeparam name="T">Type used to create the header</typeparam>
+        /// <param name="format">The format.</param>
+        /// <returns>The header using the names of the public fields and properties of the specified type.</returns>
+        public static CsvHeader FromType<T>(CsvFormat format)
+        {
+            var values = CsvUtility.GetHeader<T>();
+            return new CsvHeader(values, format);
+        }
+
+        /// <summary>
         /// Gets the number of fields in the header.
         /// </summary>
         /// <value>

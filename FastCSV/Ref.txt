@@ -1,0 +1,5 @@
+﻿- More config for CsvWriter and CsvReader:
+	* LetterCase: UpperCase, LowerCase, None
+
+- More config for CsvDocument<T>
+	* Custom field names

@@ -403,141 +403,145 @@ namespace FastCsvTests
 
             Assert.IsFalse(enumerator.MoveNext());
         }
-    }
 
-    public class Person : IEquatable<Person>
-    {
-        public string Name { get; set; }
-        public int Age { get; set; }
+        /*
+         * TEST UTILITY CLASSES
+         */
 
-        public override bool Equals(object obj)
+        public class Person : IEquatable<Person>
         {
-            return Equals(obj as Person);
-        }
+            public string Name { get; set; }
+            public int Age { get; set; }
 
-        public bool Equals(Person other)
-        {
-            return other != null &&
-                   Name == other.Name &&
-                   Age == other.Age;
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Name, Age);
-        }
-
-        public static bool operator ==(Person left, Person right)
-        {
-            return EqualityComparer<Person>.Default.Equals(left, right);
-        }
-
-        public static bool operator !=(Person left, Person right)
-        {
-            return !(left == right);
-        }
-    }
-
-    public class Employee : IEquatable<Employee>
-    {
-        public Employee(string name, int age, PhoneNumber number)
-        {
-            Name = name;
-            Age = age;
-            PhoneNumber = number;
-        }
-
-        public string Name { get; set; }
-
-        public int Age { get; set; }
-
-        public PhoneNumber? PhoneNumber { get; set; }
-
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as Employee);
-        }
-
-        public bool Equals(Employee other)
-        {
-            return other != null &&
-                   Name == other.Name &&
-                   Age == other.Age &&
-                   EqualityComparer<PhoneNumber?>.Default.Equals(PhoneNumber, other.PhoneNumber);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Name, Age, PhoneNumber);
-        }
-
-        public static bool operator ==(Employee left, Employee right)
-        {
-            return EqualityComparer<Employee>.Default.Equals(left, right);
-        }
-
-        public static bool operator !=(Employee left, Employee right)
-        {
-            return !(left == right);
-        }
-    }
-
-    public struct PhoneNumber : IEquatable<PhoneNumber>
-    {
-        private readonly byte[] _number;
-
-        public PhoneNumber(byte a, byte b, byte c, byte d, byte e, byte f, byte g)
-        {
-            _number = new byte[7] { a, b, c, d, e, f, g };
-        }
-
-        public PhoneNumber(byte[] number)
-        {
-            if(number.Length != 7)
+            public override bool Equals(object obj)
             {
-                throw new ArgumentException("Expected length 7 phone number");
+                return Equals(obj as Person);
             }
 
-            _number = number;
+            public bool Equals(Person other)
+            {
+                return other != null &&
+                       Name == other.Name &&
+                       Age == other.Age;
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(Name, Age);
+            }
+
+            public static bool operator ==(Person left, Person right)
+            {
+                return EqualityComparer<Person>.Default.Equals(left, right);
+            }
+
+            public static bool operator !=(Person left, Person right)
+            {
+                return !(left == right);
+            }
         }
 
-        public override bool Equals(object obj)
+        public class Employee : IEquatable<Employee>
         {
-            return obj is PhoneNumber number && Equals(number);
+            public Employee(string name, int age, PhoneNumber number)
+            {
+                Name = name;
+                Age = age;
+                PhoneNumber = number;
+            }
+
+            public string Name { get; set; }
+
+            public int Age { get; set; }
+
+            public PhoneNumber? PhoneNumber { get; set; }
+
+            public override bool Equals(object obj)
+            {
+                return Equals(obj as Employee);
+            }
+
+            public bool Equals(Employee other)
+            {
+                return other != null &&
+                       Name == other.Name &&
+                       Age == other.Age &&
+                       EqualityComparer<PhoneNumber?>.Default.Equals(PhoneNumber, other.PhoneNumber);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(Name, Age, PhoneNumber);
+            }
+
+            public static bool operator ==(Employee left, Employee right)
+            {
+                return EqualityComparer<Employee>.Default.Equals(left, right);
+            }
+
+            public static bool operator !=(Employee left, Employee right)
+            {
+                return !(left == right);
+            }
         }
 
-        public bool Equals(PhoneNumber other)
+        public struct PhoneNumber : IEquatable<PhoneNumber>
         {
-            return _number.SequenceEqual(other._number);
-        }
+            private readonly byte[] _number;
 
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(_number);
-        }
+            public PhoneNumber(byte a, byte b, byte c, byte d, byte e, byte f, byte g)
+            {
+                _number = new byte[7] { a, b, c, d, e, f, g };
+            }
 
-        public override string ToString()
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.Append(_number[0]);
-            sb.Append(_number[1]);
-            sb.Append(_number[2]);
-            sb.Append('-');
-            sb.Append(_number[3]);
-            sb.Append(_number[4]);
-            sb.Append(_number[5]);
-            sb.Append(_number[6]);
-            return sb.ToString();
-        }
+            public PhoneNumber(byte[] number)
+            {
+                if (number.Length != 7)
+                {
+                    throw new ArgumentException("Expected length 7 phone number");
+                }
 
-        public static bool operator ==(PhoneNumber left, PhoneNumber right)
-        {
-            return left.Equals(right);
-        }
+                _number = number;
+            }
 
-        public static bool operator !=(PhoneNumber left, PhoneNumber right)
-        {
-            return !(left == right);
+            public override bool Equals(object obj)
+            {
+                return obj is PhoneNumber number && Equals(number);
+            }
+
+            public bool Equals(PhoneNumber other)
+            {
+                return _number.SequenceEqual(other._number);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(_number);
+            }
+
+            public override string ToString()
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.Append(_number[0]);
+                sb.Append(_number[1]);
+                sb.Append(_number[2]);
+                sb.Append('-');
+                sb.Append(_number[3]);
+                sb.Append(_number[4]);
+                sb.Append(_number[5]);
+                sb.Append(_number[6]);
+                return sb.ToString();
+            }
+
+            public static bool operator ==(PhoneNumber left, PhoneNumber right)
+            {
+                return left.Equals(right);
+            }
+
+            public static bool operator !=(PhoneNumber left, PhoneNumber right)
+            {
+                return !(left == right);
+            }
         }
     }
 }

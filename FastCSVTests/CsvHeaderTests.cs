@@ -61,6 +61,34 @@ namespace FastCSV.Tests
             });
         }
 
+        public class Person1
+        {
+            public string Name { get; set; }
+            public int Age { get; set; }
+        }
+
+        public class Person2
+        {
+            [CsvFieldName("first_name")]
+            public string Name { get; set; }
+            [CsvFieldName("age")]
+            public int Age { get; set; }
+        }
+
+        [Test()]
+        public void FromTypeTest()
+        {
+            var header = CsvHeader.FromType<Person1>();
+            Assert.AreEqual(CsvHeader.FromValues("Name", "Age"), header);
+        }
+
+        [Test()]
+        public void FromTypeWithAliasTest()
+        {
+            var header = CsvHeader.FromType<Person2>();
+            Assert.AreEqual(CsvHeader.FromValues("first_name", "age"), header);
+        }
+
         [Test()]
         public void IndexOfTest()
         {

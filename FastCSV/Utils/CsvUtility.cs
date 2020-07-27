@@ -308,11 +308,8 @@ namespace FastCSV.Utils
             }
             else
             {
-                var fields = type.GetFields()
-                    .Where(f => f.IsPublic && !f.IsStatic);
-
-                var props = type.GetProperties()
-                    .Where(p => p.CanRead);
+                var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
+                var props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
 
                 if (!fields.Any() && !props.Any())
                 {
@@ -351,11 +348,8 @@ namespace FastCSV.Utils
             }
             else
             {
-                var fields = type.GetFields()
-                    .Where(f => f.IsPublic && !f.IsStatic);
-
-                var props = type.GetProperties()
-                    .Where(p => p.CanRead);
+                var fields = GetFields(type, BindingFlags.Public | BindingFlags.Instance);
+                var props = GetProperties(type, BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
 
                 if (!fields.Any() && !props.Any())
                 {
@@ -364,12 +358,12 @@ namespace FastCSV.Utils
 
                 foreach (var f in fields)
                 {
-                    result.Add(f.Name);
+                    result.Add(f.GetAliasOrName());
                 }
 
                 foreach (var p in props)
                 {
-                    result.Add(p.Name);
+                    result.Add(p.GetAliasOrName());
                 }
             }
 
@@ -397,11 +391,8 @@ namespace FastCSV.Utils
             }
             else
             {
-                var fields = type.GetFields()
-                    .Where(f => f.IsPublic && !f.IsStatic);
-
-                var props = type.GetProperties()
-                    .Where(p => p.CanRead);
+                var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
+                var props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
 
                 if (!fields.Any() && !props.Any())
                 {
@@ -713,6 +704,79 @@ namespace FastCSV.Utils
             }
 
             return memory;
+        }
+
+        //private static CsvFieldInfo? GetField(Type type, string name, BindingFlags flags)
+        //{
+        //    return GetFields(type, flags).SingleOrDefault(f => f.Field.Name == name);
+        //}
+
+        //private static CsvPropertyInfo? GetProperty(Type type, string name, BindingFlags flags)
+        //{
+        //    return GetProperties(type, flags).SingleOrDefault(p => p.Property.Name == name);
+        //}
+
+        private static IEnumerable<CsvFieldInfo> GetFields(Type type, BindingFlags flags)
+        {
+            var result = new List<CsvFieldInfo>();
+            var fields = type.GetFields(flags);
+
+            foreach(var field in fields)
+            {
+                CsvFieldNameAttribute? attribute = field.GetCustomAttribute<CsvFieldNameAttribute>();
+
+                result.Add(new CsvFieldInfo
+                {
+                    Field = field,
+                    Alias = attribute?.Name
+                });
+            }
+
+            return result;
+        }
+
+        private static IEnumerable<CsvPropertyInfo> GetProperties(Type type, BindingFlags flags)
+        {
+            var result = new List<CsvPropertyInfo>();
+            var props = type.GetProperties(flags);
+
+            foreach (var property in props)
+            {
+                CsvFieldNameAttribute? attribute = property.GetCustomAttribute<CsvFieldNameAttribute>();
+
+                result.Add(new CsvPropertyInfo
+                {
+                    Property = property,
+                    Alias = attribute?.Name
+                });
+            }
+
+            return result;
+        }
+    }
+
+    internal struct CsvFieldInfo
+    {
+        public FieldInfo Field { get; set; }
+
+        public string? Alias { get; set; }
+
+
+        public string GetAliasOrName()
+        {
+            return Alias ?? Field.Name;
+        }
+    }
+
+    internal struct CsvPropertyInfo
+    {
+        public PropertyInfo Property { get; set; }
+
+        public string? Alias { get; set; }
+
+        public string GetAliasOrName()
+        {
+            return Alias ?? Property.Name;
         }
     }
 }
