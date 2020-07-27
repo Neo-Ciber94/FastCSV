@@ -1,46 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using FastCSV;
+using FastCSV.Utils;
 using NUnit.Framework;
 
 namespace FastCsvTests
 {
-    public class Person : IEquatable<Person>
-    {
-        public string Name { get; set; }
-        public int Age { get; set; }
-
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as Person);
-        }
-
-        public bool Equals(Person other)
-        {
-            return other != null &&
-                   Name == other.Name &&
-                   Age == other.Age;
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Name, Age);
-        }
-
-        public static bool operator ==(Person left, Person right)
-        {
-            return EqualityComparer<Person>.Default.Equals(left, right);
-        }
-
-        public static bool operator !=(Person left, Person right)
-        {
-            return !(left == right);
-        }
-    }
-
     [TestFixture()]
     public class CsvDocumentTests1
     {
@@ -102,6 +71,46 @@ namespace FastCsvTests
             Assert.AreEqual(new CsvFormat(';', '\"'), document.Format);
         }
 
+        [Test()]
+        public void FromCsvTest()
+        {
+            string csv = "Name,Age\r\n" +
+                    "Red,23\r\n" +
+                    "Blue,24\r\n";
+
+            var document = CsvDocument<Person>.FromCsv(csv);
+
+            Assert.AreEqual(2, document.Count);
+            Assert.AreEqual(new Person { Name = "Red", Age = 23 }, document.GetValue(0));
+            Assert.AreEqual(new Person { Name = "Blue", Age = 24 }, document.GetValue(1));
+        }
+
+        [Test()]
+        public void FromCsvTest1()
+        {
+            string csv = "Name,Age,PhoneNumber\r\n" +
+                "Red,23,200-1200\r\n" +
+                "Blue,24,233-5565\r\n";
+
+            var document = CsvDocument<Employee>.FromCsv(csv, (string key, string value) => {
+                if(key == "PhoneNumber")
+                {
+                    var number = value.Replace("-", string.Empty)
+                        .ToCharArray()
+                        .Select(e => (byte)char.GetNumericValue(e))
+                        .ToArray();
+
+                    return ParseResult.Ok(new PhoneNumber(number));
+                }
+
+                return ParseResult.Failed;
+            });
+
+            Assert.AreEqual(2, document.Count);
+            Assert.AreEqual(new Employee("Red", 23, new PhoneNumber(2, 0, 0, 1, 2, 0, 0)), document.GetValue(0));
+            Assert.AreEqual(new Employee("Blue", 24, new PhoneNumber(2, 3, 3, 5, 5, 6, 5)), document.GetValue(1));
+        }
+
         [Test]
         public void WriteTest()
         {
@@ -152,7 +161,7 @@ namespace FastCsvTests
         public void RemoveAtTest()
         {
             var document = new CsvDocument<Person>(new Person[]
-            { 
+            {
                 new Person {Name = "Akari", Age = 20},
                 new Person {Name = "Kyoko", Age = 21},
                 new Person {Name = "Yui", Age = 22},
@@ -393,6 +402,142 @@ namespace FastCsvTests
             Assert.AreEqual(CsvRecord.From(new { Name = "Yui", Age = 22 }), enumerator.Current);
 
             Assert.IsFalse(enumerator.MoveNext());
+        }
+    }
+
+    public class Person : IEquatable<Person>
+    {
+        public string Name { get; set; }
+        public int Age { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Person);
+        }
+
+        public bool Equals(Person other)
+        {
+            return other != null &&
+                   Name == other.Name &&
+                   Age == other.Age;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Name, Age);
+        }
+
+        public static bool operator ==(Person left, Person right)
+        {
+            return EqualityComparer<Person>.Default.Equals(left, right);
+        }
+
+        public static bool operator !=(Person left, Person right)
+        {
+            return !(left == right);
+        }
+    }
+
+    public class Employee : IEquatable<Employee>
+    {
+        public Employee(string name, int age, PhoneNumber number)
+        {
+            Name = name;
+            Age = age;
+            PhoneNumber = number;
+        }
+
+        public string Name { get; set; }
+
+        public int Age { get; set; }
+
+        public PhoneNumber? PhoneNumber { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Employee);
+        }
+
+        public bool Equals(Employee other)
+        {
+            return other != null &&
+                   Name == other.Name &&
+                   Age == other.Age &&
+                   EqualityComparer<PhoneNumber?>.Default.Equals(PhoneNumber, other.PhoneNumber);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Name, Age, PhoneNumber);
+        }
+
+        public static bool operator ==(Employee left, Employee right)
+        {
+            return EqualityComparer<Employee>.Default.Equals(left, right);
+        }
+
+        public static bool operator !=(Employee left, Employee right)
+        {
+            return !(left == right);
+        }
+    }
+
+    public struct PhoneNumber : IEquatable<PhoneNumber>
+    {
+        private readonly byte[] _number;
+
+        public PhoneNumber(byte a, byte b, byte c, byte d, byte e, byte f, byte g)
+        {
+            _number = new byte[7] { a, b, c, d, e, f, g };
+        }
+
+        public PhoneNumber(byte[] number)
+        {
+            if(number.Length != 7)
+            {
+                throw new ArgumentException("Expected length 7 phone number");
+            }
+
+            _number = number;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is PhoneNumber number && Equals(number);
+        }
+
+        public bool Equals(PhoneNumber other)
+        {
+            return _number.SequenceEqual(other._number);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(_number);
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(_number[0]);
+            sb.Append(_number[1]);
+            sb.Append(_number[2]);
+            sb.Append('-');
+            sb.Append(_number[3]);
+            sb.Append(_number[4]);
+            sb.Append(_number[5]);
+            sb.Append(_number[6]);
+            return sb.ToString();
+        }
+
+        public static bool operator ==(PhoneNumber left, PhoneNumber right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(PhoneNumber left, PhoneNumber right)
+        {
+            return !(left == right);
         }
     }
 }

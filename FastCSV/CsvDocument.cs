@@ -100,13 +100,7 @@ namespace FastCSV
                 throw new ArgumentException("CSV is empty");
             }
 
-            using MemoryStream memory = new MemoryStream(csv.Length);
-            using (StreamWriter writer = new StreamWriter(memory, leaveOpen: true))
-            {
-                writer.Write(csv);
-                writer.Flush();
-                memory.Position = 0;
-            }
+            using MemoryStream memory = CsvUtility.ToStream(csv);
 
             using (CsvReader reader = new CsvReader(new StreamReader(memory), format))
             {

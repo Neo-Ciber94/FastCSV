@@ -110,7 +110,7 @@ namespace FastCSV.Tests
             document.Write("Light", 18);
             document.Write("Misa", 20);
 
-            document.WriteAt(0, new string[] { "Ryuu", "999" });
+            document.WriteAt(0, new string[] { "Ryuk", "999" });
 
             Assert.IsFalse(document.IsEmpty);
             Assert.AreEqual(3, document.Count);
@@ -123,7 +123,7 @@ namespace FastCSV.Tests
             document.Write("Light", 18);
             document.Write("Misa", 20);
 
-            document.WriteAtWith(0, new { Name = "Ryuu", Age = 999 });
+            document.WriteAtWith(0, new { Name = "Ryuk", Age = 999 });
 
             Assert.IsFalse(document.IsEmpty);
             Assert.AreEqual(3, document.Count);
