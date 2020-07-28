@@ -245,6 +245,15 @@ namespace FastCSV
         }
 
         /// <summary>
+        /// Writes the content of this instance to a file.
+        /// </summary>
+        /// <param name="path">The file path.</param>
+        public void WriteContentsToFile(string path)
+        {
+            CsvWriter.WriteFile(Header, _records, path);
+        }
+
+        /// <summary>
         /// Gets the csv string of this document using the specified format.
         /// </summary>
         /// <param name="format">The format.</param>

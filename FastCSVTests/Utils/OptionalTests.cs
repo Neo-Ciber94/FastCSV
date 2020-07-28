@@ -4,7 +4,7 @@ using System.Linq;
 using FastCSV.Utils;
 using NUnit.Framework;
 
-namespace FastCsvTests.Utils
+namespace FastCSV.Tests.Utils
 {
     public class OptionalTests
     {

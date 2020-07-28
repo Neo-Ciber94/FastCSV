@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Threading.Tasks;
+using FastCSV.Tests;
 
 namespace FastCSV.Tests
 {
@@ -67,6 +68,55 @@ namespace FastCSV.Tests
             using var streamReader = new StreamReader(memory);
 
             Assert.AreEqual("name,age\r\nKenny,40\r\nLevi,30\r\n", streamReader.ReadToEnd());
+        }
+
+        [Test]
+        public void WriteFileTest()
+        {
+            var header = CsvHeader.FromValues("Name", "Age");
+            var records = new CsvRecord[]
+            {
+                new CsvRecord(header, new string[]{"Karl", "26"}),
+                new CsvRecord(header, new string[]{"Elena", "17"})
+            };
+
+            using (var tempFile = new TempFile())
+            {
+                CsvWriter.WriteFile(header, records, tempFile.FullName);
+
+                using (var reader = new StreamReader(tempFile.FullName))
+                {
+                    string data = reader.ReadToEnd();
+                    Assert.AreEqual(
+                        "Name,Age\r\n" +
+                        "Karl,26\r\n" +
+                        "Elena,17\r\n", data);
+                }
+            }
+        }
+
+        [Test]
+        public void WriteFileTest1()
+        {
+            var list = new Person[]
+            {
+                new Person{ Name="Karl", Age = 26},
+                new Person{ Name="Elena", Age = 17 }
+            };
+
+            using (var tempFile = new TempFile())
+            {
+                CsvWriter.WriteFile(list, tempFile.FullName);
+
+                using (var reader = new StreamReader(tempFile.FullName))
+                {
+                    string data = reader.ReadToEnd();
+                    Assert.AreEqual(
+                        "Name,Age\r\n" +
+                        "Karl,26\r\n" +
+                        "Elena,17\r\n", data);
+                }
+            }
         }
 
         [Test()]
@@ -221,6 +271,12 @@ namespace FastCSV.Tests
             {
                 writer.Write("Eren", 16);
             });
+        }
+
+        class Person
+        {
+            public string Name { get; set; }
+            public int Age { get; set; }
         }
     }
 }

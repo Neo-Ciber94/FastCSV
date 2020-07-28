@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using FastCSV.Tests;
 using NUnit.Framework;
 
 namespace FastCSV.Tests
@@ -213,6 +215,22 @@ namespace FastCSV.Tests
 
             var copy = document.WithFormat(new CsvFormat(';', '"'));
             Assert.AreEqual("name;age\r\nLight;18\r\nMisa;20\r\n", copy.ToString());
+        }
+
+        [Test]
+        public void WriteContentsToFileTest()
+        {
+            var document = new CsvDocument(new string[] { "name", "age" });
+            document.Write("Light", 18);
+            document.Write("Misa", 20);
+
+            using(var tempFile = new TempFile())
+            {
+                document.WriteContentsToFile(tempFile.FullName);
+
+                using var reader = new StreamReader(tempFile.FullName);
+                Assert.AreEqual("name,age\r\nLight,18\r\nMisa,20\r\n", reader.ReadToEnd());
+            }
         }
 
         [Test()]

@@ -235,6 +235,9 @@ namespace FastCSV.Utils
             IEnumerator<string> enumerator = values.GetEnumerator();
             QuoteStyle style = format.Style;
 
+            // Clears the content of the provided StringBuilder
+            stringBuilder.Clear();
+
             if (enumerator.MoveNext())
             {
                 while (true)
@@ -422,7 +425,7 @@ namespace FastCSV.Utils
 
         public static T CreateInstance<T>(Dictionary<string, string> data, ParserDelegate? parser)
         {
-            (object? result, bool isInitializated) = (null, false);
+            Optional<object> result = default;
             Type type = typeof(T);
 
             foreach (var pair in data)
@@ -431,28 +434,26 @@ namespace FastCSV.Utils
 
                 if (field != null)
                 {
-                    if (result == null)
+                    if (!result.HasValue)
                     {
-                        result = FormatterServices.GetUninitializedObject(type);
-                        isInitializated = true;
+                        result = Optional.Some(FormatterServices.GetUninitializedObject(type));
                     }
 
                     object? obj = ParseValue(field.FieldType, field.Name, pair.Key, pair.Value);
-                    field.SetValue(result, obj);
+                    field.SetValue(result.Value, obj);
                 }
 
                 PropertyInfo? prop = GetProperty(type, pair.Key, BindingFlags.Public | BindingFlags.Instance)?.Property;
 
                 if (prop != null)
                 {
-                    if (result == null)
+                    if (!result.HasValue)
                     {
-                        result = FormatterServices.GetUninitializedObject(type);
-                        isInitializated = true;
+                        result = Optional.Some(FormatterServices.GetUninitializedObject(type));
                     }
 
                     object? obj = ParseValue(prop.PropertyType, prop.Name, pair.Key, pair.Value);
-                    prop.SetValue(result, obj);
+                    prop.SetValue(result.Value, obj);
                 }
 
                 if(field == null && prop == null)
@@ -461,12 +462,12 @@ namespace FastCSV.Utils
                 }
             }
 
-            if (!isInitializated)
+            if (!result.HasValue)
             {
                 throw new InvalidOperationException($"Unable to initializated an object of type {typeof(T)}");
             }
 
-            return (T)result!;
+            return (T)result.Value;
 
             // Helper method
             object? ParseValue(Type type, string fieldOrPropertyName, string key, string value)

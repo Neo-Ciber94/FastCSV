@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -8,7 +9,7 @@ using FastCSV;
 using FastCSV.Utils;
 using NUnit.Framework;
 
-namespace FastCsvTests
+namespace FastCSV.Tests
 {
     [TestFixture()]
     public class CsvDocumentTests1
@@ -341,6 +342,31 @@ namespace FastCsvTests
         }
 
         [Test]
+        public void WriteContentsToFileTest()
+        {
+            var document = new CsvDocument<Person>(new Person[]
+            {
+                new Person {Name = "Akari", Age = 20},
+                new Person {Name = "Kyoko", Age = 21},
+                new Person {Name = "Yui", Age = 22},
+                new Person {Name = "Chinatsu", Age = 19}
+            });
+
+            using (var tempFile = new TempFile())
+            {
+                document.WriteContentsToFile(tempFile.FullName);
+
+                using var reader = new StreamReader(tempFile.FullName);
+                Assert.AreEqual(
+                   "Name,Age\r\n" +
+                   "Akari,20\r\n" +
+                   "Kyoko,21\r\n" +
+                   "Yui,22\r\n" +
+                   "Chinatsu,19\r\n", reader.ReadToEnd());
+            }
+        }
+
+        [Test]
         public void ToStringTest()
         {
             var document = new CsvDocument<Person>(new Person[]
@@ -358,7 +384,6 @@ namespace FastCsvTests
                 "Yui,22\r\n" +
                 "Chinatsu,19\r\n", document.ToString());
         }
-
 
         [Test]
         public void ToStringTest1()
@@ -408,7 +433,7 @@ namespace FastCsvTests
          * TEST UTILITY CLASSES
          */
 
-        public class Person : IEquatable<Person>
+        class Person : IEquatable<Person>
         {
             public string Name { get; set; }
             public int Age { get; set; }
@@ -441,7 +466,7 @@ namespace FastCsvTests
             }
         }
 
-        public class Employee : IEquatable<Employee>
+        class Employee : IEquatable<Employee>
         {
             public Employee(string name, int age, PhoneNumber number)
             {
@@ -485,7 +510,7 @@ namespace FastCsvTests
             }
         }
 
-        public struct PhoneNumber : IEquatable<PhoneNumber>
+        struct PhoneNumber : IEquatable<PhoneNumber>
         {
             private readonly byte[] _number;
 

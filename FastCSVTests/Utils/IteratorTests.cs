@@ -3,7 +3,7 @@ using FastCSV.Utils;
 using System.Collections.Generic;
 using System;
 
-namespace FastCsvTests.Utils
+namespace FastCSV.Tests.Utils
 {
     public class IteratorTests
     {

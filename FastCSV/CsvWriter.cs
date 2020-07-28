@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using FastCSV.Utils;
 
@@ -120,6 +121,73 @@ namespace FastCSV
         {
             StreamWriter writer = new StreamWriter(stream);
             return new CsvWriter(writer, format, flexible);
+        }
+
+        /// <summary>
+        /// Writes the given data to a csv file.
+        /// </summary>
+        /// <typeparam name="T">Type of the data to write.</typeparam>
+        /// <param name="values">The values.</param>
+        /// <param name="path">The file path.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteFile<T>(IEnumerable<T> values, string path)
+        {
+            WriteFile(values, CsvFormat.Default, path);
+        }
+
+        /// <summary>
+        /// Writes the given data to a csv file.
+        /// </summary>
+        /// <typeparam name="T">Type of the data to write.</typeparam>
+        /// <param name="values">The values.</param>
+        /// <param name="format">The format.</param>
+        /// <param name="path">The file path.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteFile<T>(IEnumerable<T> values, CsvFormat format, string path)
+        {
+            CsvHeader header = CsvHeader.FromType<T>(format);
+            IEnumerable<CsvRecord> records = values.Select(e => CsvRecord.From(e, format));
+
+            WriteFile(header, records, path);
+        }
+
+        /// <summary>
+        /// Writes the given data to a csv file.
+        /// </summary>
+        /// <param name="header">The header.</param>
+        /// <param name="records">The records.</param>
+        /// <param name="path">The file path.</param>
+        /// <exception cref="ArgumentException">
+        /// If the provided header (if any) is different from the records header.
+        /// or
+        /// If the format not match the records format.
+        /// </exception>
+        public static void WriteFile(CsvHeader? header, IEnumerable<CsvRecord> records, string path)
+        {
+            using StreamWriter writer = new StreamWriter(path);
+            CsvFormat format = header?.Format ?? CsvFormat.Default;
+
+            if (header != null)
+            {
+                writer.WriteLine(header);
+            }
+
+            foreach (CsvRecord record in records)
+            {
+                if (header != null && header != record.Header)
+                {
+                    throw new ArgumentException($"Header mismatch, expected {header} but was {record.Header}");
+                }
+
+                if (format != record.Format)
+                {
+                    throw new ArgumentException("Invalid csv format in record: " + record);
+                }
+
+                writer.WriteLine(record);
+            }
+
+            writer.Flush();
         }
 
         /// <summary>
