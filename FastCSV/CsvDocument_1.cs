@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using FastCSV.Utils;
 using System.Runtime.CompilerServices;
+using System.IO;
 
 namespace FastCSV
 {
@@ -15,7 +16,7 @@ namespace FastCSV
     /// </summary>
     /// <typeparam name="T">Type of the csv values.</typeparam>
     /// <seealso cref="FastCSV.ICsvDocument" />
-    public class CsvDocument<T> : ICsvDocument
+    public partial class CsvDocument<T> : ICsvDocument
     {
         private readonly List<TypedCsvRecord<T>> _records = new List<TypedCsvRecord<T>>();
 
@@ -66,90 +67,6 @@ namespace FastCSV
             _records = records;
             Header = header;
             Format = format;
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvDocument{T}"/> from the given csv data.
-        /// <para>
-        /// The specified type must have public fields and/or setters to initialize the instance and those fields
-        /// must be of a valid type like primitives, <see cref="string"/>, <see cref="BigInteger"/>, <see cref="TimeSpan"/>,
-        /// <see cref="DateTime"/>, <see cref="DateTimeOffset"/>, <see cref="Guid"/>, <see cref="Enum"/>, <see cref="IPAddress"/>,
-        /// or <see cref="Version"/>.
-        /// </para>
-        /// </summary>
-        /// <param name="csv">The CSV.</param>
-        /// <returns>A csv document from the given data.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument<T> FromCsv(string csv)
-        {
-            return FromCsv(csv, CsvFormat.Default, null);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvDocument{T}"/> from the given csv data.
-        /// <para>
-        /// The specified type must have public fields and/or setters to initialize the instance and those fields
-        /// must be of a valid type like primitives, <see cref="string"/>, <see cref="BigInteger"/>, <see cref="TimeSpan"/>,
-        /// <see cref="DateTime"/>, <see cref="DateTimeOffset"/>, <see cref="Guid"/>, <see cref="Enum"/>, <see cref="IPAddress"/>,
-        /// or <see cref="Version"/>.
-        /// </para>
-        /// </summary>
-        /// <param name="csv">The CSV.</param>
-        /// <param name="parser">The parser.</param>
-        /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument<T> FromCsv(string csv, ParserDelegate? parser)
-        {
-            return FromCsv(csv, CsvFormat.Default, parser);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvDocument{T}"/> from the given csv data.
-        /// <para>
-        /// The specified type must have public fields and/or setters to initialize the instance and those fields
-        /// must be of a valid type like primitives, <see cref="string"/>, <see cref="BigInteger"/>, <see cref="TimeSpan"/>,
-        /// <see cref="DateTime"/>, <see cref="DateTimeOffset"/>, <see cref="Guid"/>, <see cref="Enum"/>, <see cref="IPAddress"/>,
-        /// or <see cref="Version"/>.
-        /// </para>
-        /// </summary>
-        /// <param name="csv">The CSV.</param>
-        /// <param name="format">The format.</param>
-        /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument<T> FromCsv(string csv, CsvFormat format)
-        {
-            return FromCsv(csv, format, null);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvDocument{T}"/> from the given csv data.
-        /// <para>
-        /// The specified type must have public fields and/or setters to initialize the instance and those fields
-        /// must be of a valid type like primitives, <see cref="string"/>, <see cref="BigInteger"/>, <see cref="TimeSpan"/>,
-        /// <see cref="DateTime"/>, <see cref="DateTimeOffset"/>, <see cref="Guid"/>, <see cref="Enum"/>, <see cref="IPAddress"/>,
-        /// or <see cref="Version"/>.
-        /// </para>
-        /// </summary>
-        /// <param name="csv">The CSV.</param>
-        /// <param name="format">The format.</param>
-        /// <param name="parser">The parser.</param>
-        /// <returns>A csv document from the given data.</returns>
-        public static CsvDocument<T> FromCsv(string csv, CsvFormat format, ParserDelegate? parser)
-        {
-            var list = new List<T>();
-            var memory = CsvUtility.ToStream(csv);
-
-            using (var reader = CsvReader.FromStream(memory, format))
-            {
-                foreach(var record in reader.ReadAll())
-                {
-                    Dictionary<string, string> data = record.ToDictionary()!;
-                    T value = parser == null ? CsvUtility.CreateInstance<T>(data) : CsvUtility.CreateInstance<T>(data, parser);
-                    list.Add(value);
-                }
-            }
-
-            return new CsvDocument<T>(list, format);
         }
 
         /// <summary>

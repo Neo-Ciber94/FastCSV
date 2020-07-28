@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using FastCSV.Utils;
 
@@ -12,7 +13,7 @@ namespace FastCSV
     /// Represents an in-memory csv document.
     /// </summary>
     /// <seealso cref="ICsvDocument" />
-    public class CsvDocument : ICsvDocument
+    public partial class CsvDocument : ICsvDocument
     {
         private readonly List<CsvRecord> _records = new List<CsvRecord>();
 
@@ -52,84 +53,6 @@ namespace FastCSV
             Header = header;
             Format = format;
             IsFlexible = flexible;
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvDocument"/> from the specified string.
-        /// </summary>
-        /// <param name="csv">The CSV.</param>
-        /// <returns></returns>
-        public static CsvDocument FromCsv(string csv)
-        {
-            return FromCsv(csv, CsvFormat.Default, false);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvDocument"/> from the specified string.
-        /// </summary>
-        /// <param name="csv">The CSV.</param>
-        /// <param name="flexible">if set to <c>true</c> [flexible].</param>
-        /// <returns></returns>
-        public static CsvDocument FromCsv(string csv, bool flexible)
-        {
-            return FromCsv(csv, CsvFormat.Default, flexible);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvDocument"/> from the specified string.
-        /// </summary>
-        /// <param name="csv">The CSV.</param>
-        /// <param name="format">The format.</param>
-        /// <returns></returns>
-        public static CsvDocument FromCsv(string csv, CsvFormat format)
-        {
-            return FromCsv(csv, format, false);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvDocument"/> from the specified string.
-        /// </summary>
-        /// <param name="csv">The CSV.</param>
-        /// <param name="format">The format.</param>
-        /// <param name="flexible">if set to <c>true</c> will allow records of differents lengths.</param>
-        /// <returns></returns>
-        public static CsvDocument FromCsv(string csv, CsvFormat format, bool flexible)
-        {
-            if (csv.IsNullOrBlank())
-            {
-                throw new ArgumentException("CSV is empty");
-            }
-
-            using MemoryStream memory = CsvUtility.ToStream(csv);
-
-            using (CsvReader reader = new CsvReader(new StreamReader(memory), format))
-            {
-                List<CsvRecord>? records;
-
-                if (flexible)
-                {
-                    records = reader.ReadAll().ToList();
-                }
-                else
-                {
-                    records = new List<CsvRecord>();
-                    int headerLength = reader.Header!.Length;
-
-                    foreach (var r in reader.ReadAll())
-                    {
-                        int recordLength = r.Length;
-                        if (recordLength != headerLength)
-                        {
-                            throw new InvalidOperationException($"Invalid record length for non-flexible csv, " +
-                                $"expected {headerLength} but {recordLength} was get");
-                        }
-
-                        records.Add(r);
-                    }
-                }
-
-                return new CsvDocument(records, reader.Header!, format, flexible);
-            }
         }
 
         /// <summary>

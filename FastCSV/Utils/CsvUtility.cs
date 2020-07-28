@@ -415,15 +415,19 @@ namespace FastCSV.Utils
             return result;
         }
 
-        public static T CreateInstance<T>(Dictionary<string, string> data, ParserDelegate parser)
+        public static T CreateInstance<T>(Dictionary<string, string> data)
         {
-            T result = default;
+            return CreateInstance<T>(data, null);
+        }
+
+        public static T CreateInstance<T>(Dictionary<string, string> data, ParserDelegate? parser)
+        {
+            (T result, bool isInitializated) = default((T, bool));
             Type type = typeof(T);
-            bool isInitializated = false;
 
             foreach (var pair in data)
             {
-                FieldInfo? field = type.GetField(pair.Key, BindingFlags.Public | BindingFlags.Instance);
+                FieldInfo? field = GetField(type, pair.Key, BindingFlags.Public | BindingFlags.Instance)?.Field;
 
                 if (field != null)
                 {
@@ -433,25 +437,11 @@ namespace FastCSV.Utils
                         isInitializated = true;
                     }
 
-                    ParseResult parseResult = parser(pair.Key, pair.Value);
-                    object? obj = null;
-
-                    if (parseResult.Success)
-                    {
-                        obj = parseResult.Result;
-                    }
-                    else
-                    {
-                        if (!TryParse(pair.Value, field.FieldType, out obj))
-                        {
-                            throw new InvalidOperationException($"Unable to initalize field: {field.Name}");
-                        }
-                    }
-
+                    object? obj = ParseValue(field.FieldType, field.Name, pair.Key, pair.Value);
                     field.SetValue(result, obj);
                 }
 
-                PropertyInfo? prop = type.GetProperty(pair.Key, BindingFlags.Public | BindingFlags.Instance);
+                PropertyInfo? prop = GetProperty(type, pair.Key, BindingFlags.Public | BindingFlags.Instance)?.Property;
 
                 if (prop != null)
                 {
@@ -461,22 +451,13 @@ namespace FastCSV.Utils
                         isInitializated = true;
                     }
 
-                    ParseResult parseResult = parser(pair.Key, pair.Value);
-                    object? obj = null;
-
-                    if (parseResult.Success)
-                    {
-                        obj = parseResult.Result;
-                    }
-                    else
-                    {
-                        if (!TryParse(pair.Value, prop.PropertyType, out obj))
-                        {
-                            throw new InvalidOperationException($"Unable to initalize property: {prop.Name}");
-                        }
-                    }
-
+                    object? obj = ParseValue(prop.PropertyType, prop.Name, pair.Key, pair.Value);
                     prop.SetValue(result, obj);
+                }
+
+                if(field == null && prop == null)
+                {
+                    throw new InvalidOperationException("Cannot find a field or property named: " +pair.Key);
                 }
             }
 
@@ -486,61 +467,41 @@ namespace FastCSV.Utils
             }
 
             return result!;
-        }
 
-        public static T CreateInstance<T>(Dictionary<string, string> data)
-        {          
-            T result = default;
-            Type type = typeof(T);
-            bool isInitializated = false;
-
-            foreach (var pair in data)
+            // Helper method
+            object? ParseValue(Type type, string fieldOrPropertyName, string key, string value)
             {
-                FieldInfo? field = type.GetField(pair.Key, BindingFlags.Public | BindingFlags.Instance);
+                object? obj = null;
 
-                if (field != null)
+                if (parser != null)
                 {
-                    if (result == null)
-                    {
-                        result = (T)FormatterServices.GetUninitializedObject(typeof(T));
-                        isInitializated = true;
-                    }
+                    ParseResult parseResult = parser(key, value);
 
-                    if(!TryParse(pair.Value, field.FieldType, out var obj))
+                    if (parseResult.Success)
                     {
-                        throw new InvalidOperationException($"Unable to initalize field: {field.Name}");
+                        obj = parseResult.Result;
                     }
-
-                    field.SetValue(result, obj);
+                    else
+                    {
+                        if (!TryParse(value, type, out obj))
+                        {
+                            throw new InvalidOperationException($"Unable to initalize property: {fieldOrPropertyName}");
+                        }
+                    }
+                }
+                else
+                {
+                    if (!TryParse(value, type, out obj))
+                    {
+                        throw new InvalidOperationException($"Unable to initalize property: {fieldOrPropertyName}");
+                    }
                 }
 
-                PropertyInfo? prop = type.GetProperty(pair.Key, BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetProperty);
-
-                if (prop != null)
-                {
-                    if (result == null)
-                    {
-                        result = (T)FormatterServices.GetUninitializedObject(typeof(T));
-                        isInitializated = true;
-                    }
-
-                    if (!TryParse(pair.Value, prop.PropertyType, out var obj))
-                    {
-                        throw new InvalidOperationException($"Unable to initalize property: {prop.Name}");
-                    }
-
-                    prop.SetValue(result, obj);
-                }
+                return obj;
             }
 
-            if(!isInitializated)
-            {
-                throw new InvalidOperationException($"Unable to initializated an object of type {typeof(T)}");
-            }
-
-            return result!;
         }
-        
+
         public static bool TryParse<T>(string value, [MaybeNullWhen(false)] out T result)
         {
             result = default;
@@ -557,136 +518,146 @@ namespace FastCSV.Utils
         {
             result = null;
 
-            if (type == typeof(bool))
+            if (type.IsPrimitive)
             {
-                bool ret = bool.TryParse(value, out var obj);
-                result = obj;
-                return ret;
+                if (type == typeof(bool))
+                {
+                    bool ret = bool.TryParse(value, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else if (type == typeof(char))
+                {
+                    bool ret = char.TryParse(value, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else if (type == typeof(byte))
+                {
+                    bool ret = byte.TryParse(value, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else if (type == typeof(sbyte))
+                {
+                    bool ret = sbyte.TryParse(value, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else if (type == typeof(short))
+                {
+                    bool ret = short.TryParse(value, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else if (type == typeof(int))
+                {
+                    bool ret = int.TryParse(value, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else if (type == typeof(long))
+                {
+                    bool ret = long.TryParse(value, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else if (type == typeof(ushort))
+                {
+                    bool ret = int.TryParse(value, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else if (type == typeof(uint))
+                {
+                    bool ret = int.TryParse(value, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else if (type == typeof(ulong))
+                {
+                    bool ret = long.TryParse(value, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else if (type == typeof(float))
+                {
+                    bool ret = float.TryParse(value, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else if (type == typeof(double))
+                {
+                    bool ret = double.TryParse(value, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else if (type == typeof(decimal))
+                {
+                    bool ret = decimal.TryParse(value, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Unable to cast object of type: " + type.Name);
+                }
             }
-            else if (type == typeof(char))
+            else
             {
-                bool ret = char.TryParse(value, out var obj);
-                result = obj;
-                return ret;
-            }
-            else if (type == typeof(byte))
-            {
-                bool ret = byte.TryParse(value, out var obj);
-                result = obj;
-                return ret;
-            }
-            else if (type == typeof(sbyte))
-            {
-                bool ret = sbyte.TryParse(value, out var obj);
-                result = obj;
-                return ret;
-            }
-            else if (type == typeof(short))
-            {
-                bool ret = short.TryParse(value, out var obj);
-                result = obj;
-                return ret;
-            }
-            else if (type == typeof(int))
-            {
-                bool ret = int.TryParse(value, out var obj);
-                result = obj;
-                return ret;
-            }
-            else if (type == typeof(long))
-            {
-                bool ret = long.TryParse(value, out var obj);
-                result = obj;
-                return ret;
-            }
-            else if (type == typeof(ushort))
-            {
-                bool ret = int.TryParse(value, out var obj);
-                result = obj;
-                return ret;
-            }
-            else if (type == typeof(uint))
-            {
-                bool ret = int.TryParse(value, out var obj);
-                result = obj;
-                return ret;
-            }
-            else if (type == typeof(ulong))
-            {
-                bool ret = long.TryParse(value, out var obj);
-                result = obj;
-                return ret;
-            }
-            else if (type == typeof(float))
-            {
-                bool ret = float.TryParse(value, out var obj);
-                result = obj;
-                return ret;
-            }
-            else if (type == typeof(double))
-            {
-                bool ret = double.TryParse(value, out var obj);
-                result = obj;
-                return ret;
-            }
-            else if (type == typeof(decimal))
-            {
-                bool ret = decimal.TryParse(value, out var obj);
-                result = obj;
-                return ret;
-            }
-            else if (type == typeof(BigInteger))
-            {
-                bool ret = BigInteger.TryParse(value, out var obj);
-                result = obj;
-                return ret;
-            }
-            else if (type == typeof(TimeSpan))
-            {
-                bool ret = TimeSpan.TryParse(value, out var obj);
-                result = obj;
-                return ret;
-            }
-            else if (type == typeof(DateTime))
-            {
-                bool ret = DateTime.TryParse(value, out var obj);
-                result = obj;
-                return ret;
-            }
-            else if (type == typeof(DateTimeOffset))
-            {
-                bool ret = DateTimeOffset.TryParse(value, out var obj);
-                result = obj;
-                return ret;
-            }
-            else if (type == typeof(Guid))
-            {
-                bool ret = Guid.TryParse(value, out var obj);
-                result = obj;
-                return ret;
-            }
-            else if (type == typeof(Enum))
-            {
-                bool ret = Enum.TryParse(type, value, ignoreCase: true, out var obj);
-                result = obj;
-                return ret;
-            }
-            else if (type == typeof(IPAddress))
-            {
-                bool ret = IPAddress.TryParse(value, out var obj);
-                result = obj;
-                return ret;
-            }
-            else if (type == typeof(Version))
-            {
-                bool ret = Version.TryParse(value, out var obj);
-                result = obj;
-                return ret;
-            }
-            else if (type == typeof(string))
-            {
-                result = value;
-                return true;
+                if (type == typeof(BigInteger))
+                {
+                    bool ret = BigInteger.TryParse(value, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else if (type == typeof(TimeSpan))
+                {
+                    bool ret = TimeSpan.TryParse(value, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else if (type == typeof(DateTime))
+                {
+                    bool ret = DateTime.TryParse(value, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else if (type == typeof(DateTimeOffset))
+                {
+                    bool ret = DateTimeOffset.TryParse(value, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else if (type == typeof(Guid))
+                {
+                    bool ret = Guid.TryParse(value, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else if (type.IsEnum)
+                {
+                    bool ret = Enum.TryParse(type, value, ignoreCase: true, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else if (type == typeof(IPAddress))
+                {
+                    bool ret = IPAddress.TryParse(value, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else if (type == typeof(Version))
+                {
+                    bool ret = Version.TryParse(value, out var obj);
+                    result = obj;
+                    return ret;
+                }
+                else if (type == typeof(string))
+                {
+                    result = value;
+                    return true;
+                }
             }
 
             return false;
@@ -706,15 +677,31 @@ namespace FastCSV.Utils
             return memory;
         }
 
-        //private static CsvFieldInfo? GetField(Type type, string name, BindingFlags flags)
-        //{
-        //    return GetFields(type, flags).SingleOrDefault(f => f.Field.Name == name);
-        //}
+        private static CsvFieldInfo? GetField(Type type, string name, BindingFlags flags)
+        {
+            var fields = GetFields(type, flags).Where(f => name == f.Field.Name || name == f.Alias);
 
-        //private static CsvPropertyInfo? GetProperty(Type type, string name, BindingFlags flags)
-        //{
-        //    return GetProperties(type, flags).SingleOrDefault(p => p.Property.Name == name);
-        //}
+            // Duplicated fields names are only possible if contains aliases
+            if(fields.Count() > 1)
+            {
+                throw new InvalidOperationException($"Csv fields with duplicated name: ${fields.ElementAt(0).Alias}");
+            }
+
+            return fields.SingleOrDefault();
+        }
+
+        private static CsvPropertyInfo? GetProperty(Type type, string name, BindingFlags flags)
+        {
+            var props = GetProperties(type, flags).Where(f => name == f.Property.Name || name == f.Alias);
+
+            // Duplicated properties names are only possible if contains aliases
+            if (props.Count() > 1)
+            {
+                throw new InvalidOperationException($"Csv properties with duplicated name: ${props.ElementAt(0).Alias}");
+            }
+
+            return props.SingleOrDefault();
+        }
 
         private static IEnumerable<CsvFieldInfo> GetFields(Type type, BindingFlags flags)
         {
