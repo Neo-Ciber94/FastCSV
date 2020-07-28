@@ -111,5 +111,21 @@ namespace FastCsvTests.Utils
             var opt3 = new Optional<int>();
             Assert.IsFalse(opt3.Filter(n => n >= 10).HasValue);
         }
+
+        [Test]
+        public void ImplicitCastTest()
+        {
+            var opt1 = Optional.Some(10);
+            Assert.IsTrue(opt1 == 10);
+
+            Optional<int> opt2 = 7;
+            Assert.IsTrue(opt2 == 7);
+
+            Optional<int> opt3 = default;
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                int p = opt3;
+            });
+        }
     }
 }

@@ -208,6 +208,46 @@ namespace FastCSV.Tests
             Assert.IsTrue(reader.Done);
         }
 
+        [Test]
+        public void ReasAsTest()
+        {
+            using var csv = ToStream(
+                "Name,Age\n" +
+                "Homer,35\n" +
+                "Marge,28\n");
+
+            using var reader = CsvReader.FromStream(csv);
+
+            Person p1 = reader.ReadAs<Person>();
+            Assert.AreEqual("Homer", p1.Name);
+            Assert.AreEqual(35, p1.Age);
+
+            Person p2 = reader.ReadAs<Person>();
+            Assert.AreEqual("Marge", p2.Name);
+            Assert.AreEqual(28, p2.Age);
+
+            Assert.IsFalse(reader.ReadAs<Person>().HasValue);
+        }
+
+        [Test]
+        public void ReasAllAsTest()
+        {
+            using var csv = ToStream(
+                "Name,Age\n" +
+                "Homer,35\n" +
+                "Marge,28\n");
+
+            using var reader = CsvReader.FromStream(csv);
+
+            var persons = reader.ReadAllAs<Person>().ToList();
+
+            Assert.AreEqual("Homer", persons[0].Name);
+            Assert.AreEqual(35, persons[0].Age);
+
+            Assert.AreEqual("Marge", persons[1].Name);
+            Assert.AreEqual(28, persons[1].Age);
+        }
+
         [Test()]
         public void ResetTest()
         {
@@ -286,6 +326,12 @@ namespace FastCSV.Tests
             {
                 var _ = reader.Read();
             });
+        }
+
+        public class Person
+        {
+            public string? Name { get; set; }
+            public int Age { get; set; }
         }
     }
 }

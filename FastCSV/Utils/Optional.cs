@@ -23,7 +23,7 @@ namespace FastCSV.Utils
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Optional(T value)
         {
-            _value = value ?? throw new ArgumentNullException("Optional cannot contain a null value");
+            _value = value ?? throw new ArgumentNullException("Optional<T> cannot contain a null value");
             _hasValue = true;
         }
 
@@ -105,6 +105,16 @@ namespace FastCSV.Utils
         public static bool operator !=(Optional<T> left, Optional<T> right)
         {
             return !(left == right);
+        }
+
+        public static implicit operator Optional<T>(T value)
+        {
+            return new Optional<T>(value);
+        }
+
+        public static implicit operator T(Optional<T> optional)
+        {
+            return optional.Value;
         }
     }
 

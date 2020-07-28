@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FastCSV.Utils;
@@ -237,7 +238,7 @@ namespace FastCSV
         /// end the reader will be at the end of the file.
         /// </summary>
         /// <returns>An enumerable over the records of this reader csv.</returns>
-        public async IAsyncEnumerable<CsvRecord?> ReadAllAsync()
+        public async IAsyncEnumerable<CsvRecord> ReadAllAsync()
         {
             ThrowIfDispose();
 
@@ -256,6 +257,40 @@ namespace FastCSV
             }
         }
 
+        /// <summary>
+        /// Reads the next record as a value of type T.
+        /// </summary>
+        /// <typeparam name="T">Type to cast the record to.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <returns>An optional with the value or none is there is no more records to read.</returns>
+        public Optional<T> ReadAs<T>(ParserDelegate? parser = null)
+        {
+            Dictionary<string, string>? data = Read()?.ToDictionary();
+
+            if(data == null)
+            {
+                return Optional.None<T>();
+            }
+
+            var result = CsvUtility.CreateInstance<T>(data, parser);
+            return Optional.Some(result);
+        }
+
+        /// <summary>
+        /// Gets an <see cref="IEnumerable{T}"/> over the records of this reader csv and parser them to the type T,
+        /// this enumerable will read the records using this reader, so when the iteration
+        /// end the reader will be at the end of the file.
+        /// </summary>
+        /// <returns>An enumerable over the records of this reader csv.</returns>
+        public IEnumerable<T> ReadAllAs<T>(ParserDelegate? parser = null)
+        {
+            return ReadAll().Select(record =>
+            {
+                Dictionary<string, string> data = record.ToDictionary()!;
+                return CsvUtility.CreateInstance<T>(data, parser);
+            });
+        }
+            
         /// <summary>
         /// Moves this reader to the start of the csv.
         /// </summary>

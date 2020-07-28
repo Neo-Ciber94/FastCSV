@@ -422,7 +422,7 @@ namespace FastCSV.Utils
 
         public static T CreateInstance<T>(Dictionary<string, string> data, ParserDelegate? parser)
         {
-            (T result, bool isInitializated) = default((T, bool));
+            (object? result, bool isInitializated) = (null, false);
             Type type = typeof(T);
 
             foreach (var pair in data)
@@ -433,7 +433,7 @@ namespace FastCSV.Utils
                 {
                     if (result == null)
                     {
-                        result = (T)FormatterServices.GetUninitializedObject(typeof(T));
+                        result = FormatterServices.GetUninitializedObject(type);
                         isInitializated = true;
                     }
 
@@ -447,7 +447,7 @@ namespace FastCSV.Utils
                 {
                     if (result == null)
                     {
-                        result = (T)FormatterServices.GetUninitializedObject(typeof(T));
+                        result = FormatterServices.GetUninitializedObject(type);
                         isInitializated = true;
                     }
 
@@ -466,7 +466,7 @@ namespace FastCSV.Utils
                 throw new InvalidOperationException($"Unable to initializated an object of type {typeof(T)}");
             }
 
-            return result!;
+            return (T)result!;
 
             // Helper method
             object? ParseValue(Type type, string fieldOrPropertyName, string key, string value)
