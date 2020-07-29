@@ -711,7 +711,7 @@ namespace FastCSV.Utils
 
             foreach(var field in fields)
             {
-                CsvFieldNameAttribute? attribute = field.GetCustomAttribute<CsvFieldNameAttribute>();
+                CsvFieldAttribute? attribute = field.GetCustomAttribute<CsvFieldAttribute>();
 
                 result.Add(new CsvFieldInfo
                 {
@@ -730,7 +730,7 @@ namespace FastCSV.Utils
 
             foreach (var property in props)
             {
-                CsvFieldNameAttribute? attribute = property.GetCustomAttribute<CsvFieldNameAttribute>();
+                CsvFieldAttribute? attribute = property.GetCustomAttribute<CsvFieldAttribute>();
 
                 result.Add(new CsvPropertyInfo
                 {

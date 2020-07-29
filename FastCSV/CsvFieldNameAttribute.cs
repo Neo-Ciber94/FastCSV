@@ -7,13 +7,13 @@ namespace FastCSV
     /// </summary>
     /// <seealso cref="System.Attribute" />
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public sealed class CsvFieldNameAttribute : Attribute
+    public sealed class CsvFieldAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CsvFieldNameAttribute"/> class.
+        /// Initializes a new instance of the <see cref="CsvFieldAttribute"/> class.
         /// </summary>
         /// <param name="name">The name.</param>
-        public CsvFieldNameAttribute(string name) { Name = name; }
+        public CsvFieldAttribute(string name) { Name = name; }
 
         /// <summary>
         /// Gets the name of the field.

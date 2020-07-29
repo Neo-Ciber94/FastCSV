@@ -15,8 +15,9 @@ Also provides:
 * ``CsvHeader``: Represents a read-only csv header and provides indexing, slicing and enumeration over its fields.
 * ``CsvFormat``: Provides the format used in a csv document: the delimiter, quote and quote style.
 
-## Example code
-Reading and writing using ``CsvReader`` and ``CsvWriter``.
+## Examples
+
+##### Example 1: Reading and Writing using CsvReader and CsvWriter
 ```csharp
 using System;
 using FastCSV;
@@ -61,7 +62,7 @@ class Program
 }
 ```
 
-Parsing an entire csv to a specify type using the ``CsvDocument<T>``
+##### Example 2: Parsing an entire csv file to a specify type using the CsvDocument\<T\>
 ```csharp
 using System;
 using System.Net;
@@ -100,29 +101,102 @@ class Program
 
     // Class used to parse the data to.
     //
-    // We use the 'CsvFieldName' attribute to match the names of the csv file,
+    // We use the 'CsvField' attribute to match the names of the csv file,
     // we could also change the names of the properties or fields to match the names of the csv header
     public sealed class Person
     {
-        [CsvFieldName("id")]
+        [CsvField("id")]
         public int ID { get; set; }
 
-        [CsvFieldName("first_name")]
+        [CsvField("first_name")]
         public string FirstName { get; set; }
 
-        [CsvFieldName("last_name")]
+        [CsvField("last_name")]
         public string LastName { get; set; }
 
-        [CsvFieldName("age")]
+        [CsvField("age")]
         public int Age { get; set; }
 
-        [CsvFieldName("email")]
+        [CsvField("email")]
         public string Email { get; set; }
 
-        [CsvFieldName("gender")]
+        [CsvField("gender")]
         public Gender Gender { get; set; }
 
-        [CsvFieldName("ip_address")]
+        [CsvField("ip_address")]
+        public IPAddress IPAddress { get; set; }
+
+        public override string ToString()
+        {
+            return $"{{{nameof(ID)}={ID}, {nameof(FirstName)}={FirstName}, {nameof(LastName)}={LastName}, {nameof(Age)}={Age}, {nameof(Email)}={Email}, {nameof(Gender)}={Gender}, {nameof(IPAddress)}={IPAddress}}}";
+        }
+    }
+}
+```
+
+##### Example 3: Query over the records using 'ReadAllAs<T\>'
+
+```csharp
+using System;
+using System.Linq;
+using System.Net;
+using FastCSV;
+
+class Program
+{
+    public static void Main()
+    {
+        const string CsvFile = "../../../example.csv";
+
+        // Creates a CsvReader to the file 'example.csv'
+        using var reader = new CsvReader(CsvFile);
+
+        // Using 'ReadAllAs<Person>' we get a enumerable over the records,
+        // each of which is converted to the type 'Person'.
+        // 
+        // Also we can query the elements using LINQ expressions
+        var result = from person in reader.ReadAllAs<Person>()
+                     where person.Age >= 18 && person.Age <= 30
+                     where person.Gender == Gender.Female
+                     orderby person.Age
+                     select new { person.ID, person.FirstName, person.Age, person.Gender };
+
+        foreach (var p in result.Take(20))
+        {
+            Console.WriteLine(p);
+        }
+    }
+
+    public enum Gender
+    {
+        Male, Female
+    }
+
+    // Class used to parse the data to.
+    //
+    // We use the 'CsvField' attribute to match the names of the csv file,
+    // we could also change the names of the properties or fields to match the names of the csv header
+    public class Person
+    {
+        [CsvField("id")]
+        public int ID { get; set; }
+
+        [CsvField("first_name")]
+        public string FirstName { get; set; }
+
+        [CsvField("last_name")]
+        public string LastName { get; set; }
+
+        [CsvField("age")]
+        public int Age { get; set; }
+
+        [CsvField("email")]
+        public string Email { get; set; }
+
+        [CsvField("gender")]
+        public Gender Gender { get; set; }
+
+        [CsvField("ip_address")]
         public IPAddress IPAddress { get; set; }
 
         public override string ToString()

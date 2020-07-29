@@ -69,9 +69,9 @@ namespace FastCSV.Tests
 
         public class Person2
         {
-            [CsvFieldName("first_name")]
+            [CsvField("first_name")]
             public string Name { get; set; }
-            [CsvFieldName("age")]
+            [CsvField("age")]
             public int Age { get; set; }
         }
 
