@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using FastCSV;
-using System.Linq;
 
 namespace FastCSV.Benchmarks
 {
@@ -19,7 +18,7 @@ namespace FastCSV.Benchmarks
                          where person.Gender == Gender.Female
                          orderby person.Age
                          select new { person.ID, person.FirstName, person.Age, person.Gender };
-                
+
 
             foreach (var p in result.Take(20))
             {

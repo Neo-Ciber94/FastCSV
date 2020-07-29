@@ -36,18 +36,23 @@ namespace FastCSV.Tests
             }
         }
 
-        public void Dispose()
+        private void Close()
         {
             ThrowIfDisposed();
+
             _fileInfo.Delete();
             _fileInfo = null;
+        }
 
+        public void Dispose()
+        {
+            Close();
             GC.SuppressFinalize(this);
         }
 
         ~TempFile()
         {
-            Dispose();
+            Close();
         }
 
         private void ThrowIfDisposed()

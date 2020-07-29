@@ -261,7 +261,9 @@ namespace FastCSV.Tests
             // Force to consume all the records
             foreach (var _ in reader.ReadAll()) { }
 
+            Assert.IsTrue(reader.Done);
             reader.Reset();
+            Assert.IsFalse(reader.Done);
 
             var enumerator = reader.ReadAll().GetEnumerator();
 
@@ -288,7 +290,9 @@ namespace FastCSV.Tests
             // Force to consume all the records
            foreach(var _ in reader.ReadAll()) { }
 
+            Assert.IsTrue(reader.Done);            
             Assert.IsTrue(reader.TryReset());
+            Assert.IsFalse(reader.Done);
 
             var enumerator = reader.ReadAll().GetEnumerator();
 

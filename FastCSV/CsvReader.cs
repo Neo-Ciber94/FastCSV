@@ -367,5 +367,10 @@ namespace FastCSV
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
+
+        ~CsvReader()
+        {
+            Dispose(true);
+        }
     }
 }

@@ -79,16 +79,15 @@ class Program
         //
         // We can also provide parsing for other types using the 'ParserDelegate'.
         //
-        // Keep in mind the the 'CsvDocument<T>' don't modify the orignal csv, it only load in memory all its data
-        // to write the content back to the csv you can use 'CsvDocument.ToString()' to get the csv data and write it 
-        // to a file using a StreamWriter. In a future we will provide a way to write the content to a csv file.
+        // Keep in mind the the 'CsvDocument<T>' don't modify the orignal csv, it only load in-memory all its data,
+        // to write to a file use 'CsvDocument<T>.WriteContentsToFile(...)'
         //
         // NOTE: It's not recomended to use the 'CsvDocument' or 'CsvDocument<T>' to read large files,
         // 'CsvReader' is more suitable for those cases.
         CsvDocument<Person> csv = CsvDocument<Person>.FromPath(CsvFile);
 
         // Get use the getter 'CsvDocument.Values' to get all the inner data store.
-        foreach(Person p in csv.Values)
+        foreach (Person p in csv.Values)
         {
             Console.WriteLine(p);
         }
@@ -114,6 +113,9 @@ class Program
         [CsvFieldName("last_name")]
         public string LastName { get; set; }
 
+        [CsvFieldName("age")]
+        public int Age { get; set; }
+
         [CsvFieldName("email")]
         public string Email { get; set; }
 
@@ -125,7 +127,7 @@ class Program
 
         public override string ToString()
         {
-            return $"{{{nameof(ID)}={ID}, {nameof(FirstName)}={FirstName}, {nameof(LastName)}={LastName}, {nameof(Email)}={Email}, {nameof(Gender)}={Gender}, {nameof(IPAddress)}={IPAddress}}}";
+            return $"{{{nameof(ID)}={ID}, {nameof(FirstName)}={FirstName}, {nameof(LastName)}={LastName}, {nameof(Age)}={Age}, {nameof(Email)}={Email}, {nameof(Gender)}={Gender}, {nameof(IPAddress)}={IPAddress}}}";
         }
     }
 }
