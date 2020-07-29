@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Net;
 using FastCSV;
+using System.Linq;
 
 namespace FastCSV.Benchmarks
 {
@@ -12,10 +13,29 @@ namespace FastCSV.Benchmarks
             const string CsvFile = "../../../example.csv";
 
             using var reader = new CsvReader(CsvFile);
-            foreach (var person in reader.ReadAllAs<Person>())
+
+            var result = from person in reader.ReadAllAs<Person>()
+                         where person.Age >= 18 && person.Age <= 30
+                         where person.Gender == Gender.Female
+                         orderby person.Age
+                         select new { person.ID, person.FirstName, person.Age, person.Gender };
+                
+
+            foreach (var p in result.Take(20))
             {
-                Console.WriteLine(person);
+                Console.WriteLine(p);
             }
+        }
+
+        public static long MeasureAllocated(Action action)
+        {
+            GC.Collect();
+
+            long start = GC.GetTotalMemory(false);
+            action();
+            long end = GC.GetTotalMemory(false);
+
+            return Math.Max(0, end - start);
         }
 
         public enum Gender
@@ -34,6 +54,9 @@ namespace FastCSV.Benchmarks
             [CsvFieldName("last_name")]
             public string LastName { get; set; }
 
+            [CsvFieldName("age")]
+            public int Age { get; set; }
+
             [CsvFieldName("email")]
             public string Email { get; set; }
 
@@ -45,7 +68,7 @@ namespace FastCSV.Benchmarks
 
             public override string ToString()
             {
-                return $"{{{nameof(ID)}={ID}, {nameof(FirstName)}={FirstName}, {nameof(LastName)}={LastName}, {nameof(Email)}={Email}, {nameof(Gender)}={Gender}, {nameof(IPAddress)}={IPAddress}}}";
+                return $"{{{nameof(ID)}={ID}, {nameof(FirstName)}={FirstName}, {nameof(LastName)}={LastName}, {nameof(Age)}={Age}, {nameof(Email)}={Email}, {nameof(Gender)}={Gender}, {nameof(IPAddress)}={IPAddress}}}";
             }
         }
     }

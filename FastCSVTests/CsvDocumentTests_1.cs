@@ -93,7 +93,7 @@ namespace FastCSV.Tests
                 "Red,23,200-1200\r\n" +
                 "Blue,24,233-5565\r\n";
 
-            var document = CsvDocument<Employee>.FromCsv(csv, (string key, string value) => {
+            var document = CsvDocument<Employee>.FromCsv(csv, parser: (string key, string value) => {
                 if(key == "PhoneNumber")
                 {
                     var number = value.Replace("-", string.Empty)

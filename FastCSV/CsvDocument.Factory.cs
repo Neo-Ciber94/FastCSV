@@ -15,6 +15,7 @@ namespace FastCSV
         /// </summary>
         /// <param name="csv">The CSV.</param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static CsvDocument FromCsv(string csv)
         {
             return FromCsv(csv, CsvFormat.Default, false);
@@ -26,6 +27,7 @@ namespace FastCSV
         /// <param name="csv">The CSV.</param>
         /// <param name="flexible">if set to <c>true</c> [flexible].</param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static CsvDocument FromCsv(string csv, bool flexible)
         {
             return FromCsv(csv, CsvFormat.Default, flexible);
@@ -37,6 +39,7 @@ namespace FastCSV
         /// <param name="csv">The CSV.</param>
         /// <param name="format">The format.</param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static CsvDocument FromCsv(string csv, CsvFormat format)
         {
             return FromCsv(csv, format, false);
@@ -133,7 +136,7 @@ namespace FastCSV
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static CsvDocument FromPath(string path, CsvFormat format, bool flexible)
         {
-            using (var streamReader = new StreamReader(path))
+            using (StreamReader streamReader = new StreamReader(path))
             {
                 return FromCsv(streamReader.ReadToEnd(), format, flexible);
             }
@@ -152,70 +155,19 @@ namespace FastCSV
         /// </para>
         /// </summary>
         /// <param name="csv">The CSV.</param>
-        /// <returns>A csv document from the given data.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument<T> FromCsv(string csv)
-        {
-            return FromCsv(csv, CsvFormat.Default, null);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvDocument{T}"/> from the given csv data.
-        /// <para>
-        /// The specified type must have public fields and/or setters to initialize the instance and those fields
-        /// must be of a valid type like primitives, <see cref="string"/>, <see cref="BigInteger"/>, <see cref="TimeSpan"/>,
-        /// <see cref="DateTime"/>, <see cref="DateTimeOffset"/>, <see cref="Guid"/>, <see cref="Enum"/>, <see cref="IPAddress"/>,
-        /// or <see cref="Version"/>.
-        /// </para>
-        /// </summary>
-        /// <param name="csv">The CSV.</param>
-        /// <param name="parser">The parser.</param>
-        /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument<T> FromCsv(string csv, ParserDelegate? parser)
-        {
-            return FromCsv(csv, CsvFormat.Default, parser);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvDocument{T}"/> from the given csv data.
-        /// <para>
-        /// The specified type must have public fields and/or setters to initialize the instance and those fields
-        /// must be of a valid type like primitives, <see cref="string"/>, <see cref="BigInteger"/>, <see cref="TimeSpan"/>,
-        /// <see cref="DateTime"/>, <see cref="DateTimeOffset"/>, <see cref="Guid"/>, <see cref="Enum"/>, <see cref="IPAddress"/>,
-        /// or <see cref="Version"/>.
-        /// </para>
-        /// </summary>
-        /// <param name="csv">The CSV.</param>
-        /// <param name="format">The format.</param>
-        /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument<T> FromCsv(string csv, CsvFormat format)
-        {
-            return FromCsv(csv, format, null);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvDocument{T}"/> from the given csv data.
-        /// <para>
-        /// The specified type must have public fields and/or setters to initialize the instance and those fields
-        /// must be of a valid type like primitives, <see cref="string"/>, <see cref="BigInteger"/>, <see cref="TimeSpan"/>,
-        /// <see cref="DateTime"/>, <see cref="DateTimeOffset"/>, <see cref="Guid"/>, <see cref="Enum"/>, <see cref="IPAddress"/>,
-        /// or <see cref="Version"/>.
-        /// </para>
-        /// </summary>
-        /// <param name="csv">The CSV.</param>
         /// <param name="format">The format.</param>
         /// <param name="parser">The parser.</param>
         /// <returns>A csv document from the given data.</returns>
-        public static CsvDocument<T> FromCsv(string csv, CsvFormat format, ParserDelegate? parser)
+        public static CsvDocument<T> FromCsv(string csv, CsvFormat? format = null, ParserDelegate? parser = null)
         {
-            var list = new List<T>();
-            var memory = CsvUtility.ToStream(csv);
+            List<T> list = new List<T>();
+            MemoryStream memory = CsvUtility.ToStream(csv);
 
-            using (var reader = CsvReader.FromStream(memory, format))
+            format ??= CsvFormat.Default;
+
+            using (CsvReader reader = CsvReader.FromStream(memory, format))
             {
-                foreach (var record in reader.ReadAll())
+                foreach (CsvRecord record in reader.ReadAll())
                 {
                     Dictionary<string, string> data = record.ToDictionary()!;
                     T value = parser == null ? CsvUtility.CreateInstance<T>(data) : CsvUtility.CreateInstance<T>(data, parser);
@@ -227,41 +179,6 @@ namespace FastCSV
         }
 
         /// <summary>
-        /// Creates a <see cref="CsvDocument{T}"/> from a csv file at the given path..
-        /// </summary>
-        /// <param name="path">The path of the csv file.</param>
-        /// <returns>A csv document from the file at the given path.</returns>s>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument<T> FromPath(string path)
-        {
-            return FromPath(path, CsvFormat.Default, null);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvDocument{T}"/> from a csv file at the given path.
-        /// </summary>
-        /// <param name="path">The path of the csv file.</param>
-        /// <param name="parser">The parser.</param>
-        /// <returns>A csv document from the file at the given path.</returns>s>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument<T> FromPath(string path, ParserDelegate? parser)
-        {
-            return FromPath(path, CsvFormat.Default, parser);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvDocument{T}"/> from a csv file at the given path.
-        /// </summary>
-        /// <param name="path">The path of the csv file.</param>
-        /// <param name="format">The format.</param>
-        /// <returns>A csv document from the file at the given path.</returns>s>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument<T> FromPath(string path, CsvFormat format)
-        {
-            return FromPath(path, format, null);
-        }
-
-        /// <summary>
         /// Creates a <see cref="CsvDocument{T}"/> from a csv file at the given path.
         /// </summary>
         /// <param name="path">The path of the csv file.</param>
@@ -269,11 +186,11 @@ namespace FastCSV
         /// <param name="parser">The parser.</param>
         /// <returns>A csv document from the file at the given path.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument<T> FromPath(string path, CsvFormat format, ParserDelegate? parser)
+        public static CsvDocument<T> FromPath(string path, CsvFormat? format = null, ParserDelegate? parser = null)
         {
-            using (var streamReader = new StreamReader(path))
+            using (StreamReader streamReader = new StreamReader(path))
             {
-                return FromCsv(streamReader.ReadToEnd(), format, parser);
+                return FromCsv(streamReader.ReadToEnd(), format?? CsvFormat.Default, parser);
             }
         }
     }
