@@ -49,7 +49,7 @@ namespace FastCSV.Tests
                     "Kara,20\r\n" +
                     "Markus,25\r\n";
 
-            var document = CsvDocument.FromCsv(csv);
+            CsvDocument document = CsvDocument.FromCsv(csv);
 
             Assert.AreEqual(2, document.Count);
             Assert.AreEqual(CsvHeader.FromValues("Name", "Age"), document.Header);

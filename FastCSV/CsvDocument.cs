@@ -108,7 +108,7 @@ namespace FastCSV
         /// Writes a new record with the specified values.
         /// </summary>
         /// <param name="values">The values.</param>
-        public void Write(params object[] values)
+        public void Write(params object?[] values)
         {
             var array = values.Select(e => e?.ToString() ?? string.Empty);
             WriteAll(array);
@@ -294,5 +294,47 @@ namespace FastCSV
         IEnumerator<CsvRecord> IEnumerable<CsvRecord>.GetEnumerator() => _records.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => _records.GetEnumerator();
+
+        public struct Builder
+        {
+            private readonly CsvDocument _document;
+            private readonly object?[] _values;
+            private int _pos;
+
+            internal Builder(CsvDocument document)
+            {
+                _document = document;
+                _values = new object[document.Header.Length];
+                _pos = 0;
+            }
+
+            public void AddField(object? value)
+            {
+                if(_pos == _document.Header.Length)
+                {
+                    throw new InvalidOperationException("Builder cannot hold more values");
+                }
+
+                _values[_pos++] = value;
+            }
+
+            public void AddField(string key, object? value)
+            {
+                int index = _document.Header.IndexOf(key);
+                if(index >= 0)
+                {
+                    _values[index] = value;
+                }
+                else
+                {
+                    throw new ArgumentException($"Cannot find the key {key} in the header");
+                }
+            }
+
+            internal void WriteToDocument()
+            {
+                _document.Write(_values!);
+            }
+        }
     }
 }

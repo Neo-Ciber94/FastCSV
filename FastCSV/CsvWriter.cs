@@ -210,7 +210,7 @@ namespace FastCSV
         /// Writes the specified values.
         /// </summary>
         /// <param name="values">The values.</param>
-        public void Write(params object[] values)
+        public void Write(params object?[] values)
         {
             var array = values.Select(e => e?.ToString() ?? string.Empty);
             WriteAll(array);

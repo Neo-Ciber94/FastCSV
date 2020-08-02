@@ -23,7 +23,7 @@ namespace FastCSV
         /// </summary>
         /// <param name="header">The header.</param>
         /// <param name="values">The values.</param>
-        public CsvRecord(CsvHeader? header, IEnumerable<string> values) : this(header, values, CsvFormat.Default) { }
+        public CsvRecord(CsvHeader? header, IEnumerable<string> values) : this(header, values, header?.Format?? CsvFormat.Default) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CsvRecord"/> class.
