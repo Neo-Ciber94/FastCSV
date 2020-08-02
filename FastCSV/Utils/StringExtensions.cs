@@ -1,4 +1,6 @@
 ﻿
+using System.Runtime.CompilerServices;
+
 namespace FastCSV.Utils
 {
     public static class StringExtensions
@@ -21,6 +23,7 @@ namespace FastCSV.Utils
             return true;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsNullOrBlank(this string? s)
         {
             if(s == null)
@@ -31,14 +34,10 @@ namespace FastCSV.Utils
             return IsBlank(s);
         }
 
-        public static bool EnclosedWith(this string s, string value)
-        {
-            return s.StartsWith(value) && s.EndsWith(value);
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool EnclosedWith(this string s, string value) => s.StartsWith(value) && s.EndsWith(value);
 
-        public static bool EnclosedWith(this string s, char value)
-        {
-            return s.StartsWith(value) && s.EndsWith(value);
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool EnclosedWith(this string s, char value) => s.StartsWith(value) && s.EndsWith(value);
     }
 }

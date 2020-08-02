@@ -1,70 +1,17 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Numerics;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Text;
 
 namespace FastCSV.Utils
 {
-    /// <summary>
-    /// Stores the results of a parsing operation.
-    /// </summary>
-    public struct ParseResult
-    {
-        /// <summary>
-        /// A failed parse result.
-        /// </summary>
-        public static readonly ParseResult Failed = new ParseResult();
-
-        private ParseResult(object? result)
-        {
-            Result = result;
-            Success = true;
-        }
-
-        /// <summary>
-        /// Gets a successful parsing result with the given value.
-        /// </summary>
-        /// <param name="result">The result.</param>
-        /// <returns></returns>
-        public static ParseResult Ok(object? result)
-        {
-            return new ParseResult(result);
-        }
-
-        /// <summary>
-        /// Gets or sets the result.
-        /// </summary>
-        /// <value>
-        /// The result.
-        /// </value>
-        public object? Result { get; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether the parse operation is successful.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if the parse is successful; otherwise, <c>false</c>.
-        /// </value>
-        public bool Success { get; }
-    }
-
-    /// <summary>
-    /// Delegate used by <see cref="CsvUtility.CreateInstance{T}(Dictionary{string, string}, ParserDelegate)"/>.
-    /// </summary>
-    /// <param name="key">The name of the field or property being parse.</param>
-    /// <param name="value">The string value of the property to parse.</param>
-    /// <returns>The result of the parsing operation.</returns>
-    public delegate ParseResult ParserDelegate(string key, string value);
-
     public static class CsvUtility
     {
         public static List<string>? ReadRecord(StreamReader reader, CsvFormat format)
@@ -163,7 +110,6 @@ namespace FastCSV.Utils
                                         break;
                                 }
 
-                                //stringBuilder.Append(nextChar);
                                 hasQuote = false;
                             }
                         }
@@ -184,7 +130,6 @@ namespace FastCSV.Utils
                                     break;
                             }
 
-                            // stringBuilder.Append(quote);
                             hasQuote = true;
                         }
                     }
@@ -306,7 +251,7 @@ namespace FastCSV.Utils
             {
                 foreach (object? e in (IEnumerable)value)
                 {
-                    result.Add(e?.ToString() ?? "");
+                    result.Add(e?.ToString() ?? string.Empty);
                 }
             }
             else
@@ -319,16 +264,16 @@ namespace FastCSV.Utils
                     throw new ArgumentException($"Not public fields or properties available for type {typeof(T)}");
                 }
 
-                foreach (var f in fields)
+                foreach (FieldInfo f in fields)
                 {
                     object? e = f.GetValue(value);
-                    result.Add(e?.ToString() ?? "");
+                    result.Add(e?.ToString() ?? string.Empty);
                 }
 
-                foreach (var p in props)
+                foreach (PropertyInfo p in props)
                 {
                     object? e = p.GetValue(value);
-                    result.Add(e?.ToString() ?? "");
+                    result.Add(e?.ToString() ?? string.Empty);
                 }
             }
 
@@ -359,12 +304,12 @@ namespace FastCSV.Utils
                     throw new ArgumentException($"Not public fields or properties available for type {typeof(T)}");
                 }
 
-                foreach (var f in fields)
+                foreach (CsvFieldInfo f in fields)
                 {
                     result.Add(f.GetAliasOrName());
                 }
 
-                foreach (var p in props)
+                foreach (CsvPropertyInfo p in props)
                 {
                     result.Add(p.GetAliasOrName());
                 }
@@ -402,13 +347,13 @@ namespace FastCSV.Utils
                     throw new ArgumentException($"Not public fields or properties available for type {typeof(T)}");
                 }
 
-                foreach (var f in fields)
+                foreach (FieldInfo f in fields)
                 {
                     object? e = f.GetValue(value);
                     result.Add(f.Name, e);
                 }
 
-                foreach (var p in props)
+                foreach (PropertyInfo p in props)
                 {
                     object? e = p.GetValue(value);
                     result.Add(p.Name, e);
@@ -472,35 +417,23 @@ namespace FastCSV.Utils
             // Helper method
             object? ParseValue(Type type, string fieldOrPropertyName, string key, string value)
             {
-                object? obj = null;
-
-                if (parser != null)
+                if(parser != null)
                 {
                     ParseResult parseResult = parser(key, value);
 
-                    if (parseResult.Success)
+                    if (parseResult.IsSuccess)
                     {
-                        obj = parseResult.Result;
-                    }
-                    else
-                    {
-                        if (!TryParse(value, type, out obj))
-                        {
-                            throw new InvalidOperationException($"Unable to initalize property: {fieldOrPropertyName}");
-                        }
+                        return parseResult.Result;
                     }
                 }
-                else
+
+                if (!TryParse(value, type, out object? result))
                 {
-                    if (!TryParse(value, type, out obj))
-                    {
-                        throw new InvalidOperationException($"Unable to initalize property: {fieldOrPropertyName}");
-                    }
+                    throw new InvalidOperationException($"Unable to initalize property: {fieldOrPropertyName}");
                 }
 
-                return obj;
+                return result;
             }
-
         }
 
         public static bool TryParse<T>(string value, [MaybeNullWhen(false)] out T result)
@@ -598,10 +531,6 @@ namespace FastCSV.Utils
                     bool ret = decimal.TryParse(value, out var obj);
                     result = obj;
                     return ret;
-                }
-                else
-                {
-                    throw new InvalidOperationException("Unable to cast object of type: " + type.Name);
                 }
             }
             else
@@ -748,7 +677,6 @@ namespace FastCSV.Utils
         public FieldInfo Field { get; set; }
 
         public string? Alias { get; set; }
-
 
         public string GetAliasOrName()
         {
