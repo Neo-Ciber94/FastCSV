@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Numerics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -32,10 +33,18 @@ namespace FastCSV.Utils
             QuoteStyle style = format.Style;
             bool hasQuote = false;
 
+            // Position used for track current line and offset to provide information in case of errors.
+            Position currentPosition = Position.Zero;
+            Position quotePosition = Position.Zero;
+
             // If the record don't contains multi-line values, this outer loop will only run once
             while (true)
             {
                 string? line = reader.ReadLine();
+
+                currentPosition = currentPosition
+                    .AddLine(1)
+                    .WithOffset(0);
 
                 if (line == null)
                 {
@@ -56,14 +65,10 @@ namespace FastCSV.Utils
                 {
                     char nextChar = enumerator.Current;
 
+                    currentPosition = currentPosition.AddOffset(1);
+
                     // We ignore any CR (carrier return) or LF (line-break)
                     if (!hasQuote && (nextChar == '\r' || nextChar == '\n'))
-                    {
-                        continue;
-                    }
-
-                    // We ignore whitespaces if needed
-                    if(!hasQuote && format.IgnoreWhitespace && char.IsWhiteSpace(nextChar))
                     {
                         continue;
                     }
@@ -76,7 +81,15 @@ namespace FastCSV.Utils
                         }
                         else
                         {
-                            records.Add(stringBuilder.ToString());
+                            // Gets the current field and trim the whitespaces if required by the format
+                            string field = stringBuilder.ToString();
+
+                            if (format.IgnoreWhitespace)
+                            {
+                                field = field.Trim();
+                            }
+
+                            records.Add(field);
                             stringBuilder.Clear();
                         }
                     }
@@ -88,6 +101,8 @@ namespace FastCSV.Utils
                             // and append the next char
                             if (enumerator.Peek.Contains(quote) && enumerator.MoveNext())
                             {
+                                currentPosition = currentPosition.AddOffset(1);
+
                                 if (style != QuoteStyle.Never)
                                 {
                                     stringBuilder.Append(enumerator.Current);
@@ -130,6 +145,7 @@ namespace FastCSV.Utils
                                     break;
                             }
 
+                            quotePosition = currentPosition;
                             hasQuote = true;
                         }
                     }
@@ -147,6 +163,11 @@ namespace FastCSV.Utils
                 {
                     break;
                 }
+            }
+
+            if (hasQuote)
+            {
+                throw new CsvFormatException($"Quote wasn't closed. Position: {quotePosition}");
             }
 
             return records;
@@ -203,7 +224,7 @@ namespace FastCSV.Utils
                             }
                             break;
                         case QuoteStyle.Never:
-                            // Remove quotes and line breaks if the style don't allow quotes
+                            // Remove quotes and line breaks if the style don't allow quotes to avoid format errors
                             field = field.Replace("\"", string.Empty)
                                          .Replace("\r", string.Empty)
                                          .Replace("\n", string.Empty);

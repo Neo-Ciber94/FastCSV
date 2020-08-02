@@ -145,7 +145,7 @@ namespace FastCSV
 
         public override string ToString()
         {
-            return $"CsvFormat{{Delimiter={Delimiter},Quote={Quote},Style={Style},IgnoreWhitespace={IgnoreWhitespace}}}";
+            return $"{{{nameof(Delimiter)}={Delimiter}, {nameof(Quote)}={Quote}, {nameof(Style)}={Style}, {nameof(IgnoreWhitespace)}={IgnoreWhitespace}}}";
         }
 
         public CsvFormat Clone()

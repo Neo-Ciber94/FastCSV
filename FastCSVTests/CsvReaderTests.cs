@@ -8,28 +8,17 @@ using System.Text;
 using System.IO;
 using System.Threading.Tasks;
 using System.Linq;
+using FastCSV.Utils;
 
 namespace FastCSV.Tests
 {
     [TestFixture()]
     public class CsvReaderTests
     {
-        private static MemoryStream ToStream(string data)
-        {
-            var memory = new MemoryStream(data.Length);
-            using (var writer = new StreamWriter(memory, leaveOpen: true))
-            {
-                writer.Write(data);
-            }
-
-            memory.Position = 0;
-            return memory;
-        }
-
         [Test()]
         public unsafe void CsvReaderTest()
         {
-            using var csv = ToStream(
+            using var csv = CsvUtility.ToStream(
                 "name,age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");
@@ -44,7 +33,7 @@ namespace FastCSV.Tests
         [Test()]
         public void CsvReaderTest1()
         {
-            using var csv = ToStream(
+            using var csv = CsvUtility.ToStream(
                     "name,age\n" +
                     "Homer,35\n" +
                     "Marge,28\n");
@@ -60,7 +49,7 @@ namespace FastCSV.Tests
         [Test()]
         public void CsvReaderTest2()
         {
-            using var csv = ToStream(
+            using var csv = CsvUtility.ToStream(
                     "name,age\n" +
                     "Homer,35\n" +
                     "Marge,28\n");
@@ -75,7 +64,7 @@ namespace FastCSV.Tests
         [Test()]
         public void FromStreamTest()
         {
-            using var csv = ToStream(
+            using var csv = CsvUtility.ToStream(
                     "name,age\n" +
                     "Homer,35\n" +
                     "Marge,28\n");
@@ -90,7 +79,7 @@ namespace FastCSV.Tests
         [Test()]
         public void ReadTest()
         {
-            using var csv = ToStream(
+            using var csv = CsvUtility.ToStream(
                 "name,age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");
@@ -110,17 +99,16 @@ namespace FastCSV.Tests
         [Test()]
         public void ReadEmptyTest1()
         {
-            using var csv = ToStream("");
+            using var csv = CsvUtility.ToStream("");
 
             using var reader = new CsvReader(new StreamReader(csv), hasHeader: false);
             Assert.IsNull(reader.Read());
         }
 
-
         [Test()]
         public void ReadEmptyTest2()
         {
-            using var csv = ToStream("");
+            using var csv = CsvUtility.ToStream("");
 
             var format = CsvFormat.Default.WithIgnoreWhitespace(false);
             using var reader = new CsvReader(new StreamReader(csv), format, hasHeader: false);
@@ -130,7 +118,7 @@ namespace FastCSV.Tests
         [Test()]
         public void ReadBlackTest1()
         {
-            using var csv = ToStream(" ");
+            using var csv = CsvUtility.ToStream(" ");
 
             using var reader = new CsvReader(new StreamReader(csv), hasHeader: false);
             Assert.IsNull(reader.Read());
@@ -139,7 +127,7 @@ namespace FastCSV.Tests
         [Test()]
         public void ReadBlackTest2()
         {
-            using var csv = ToStream(" ");
+            using var csv = CsvUtility.ToStream(" ");
 
             var format = CsvFormat.Default.WithIgnoreWhitespace(false);
             using var reader = new CsvReader(new StreamReader(csv), hasHeader: false, format: format);
@@ -147,9 +135,66 @@ namespace FastCSV.Tests
         }
 
         [Test()]
+        public void ReadRecordWithWhiteSpaceTest()
+        {
+            using var csv = CsvUtility.ToStream(
+                "Name,Age\n" +
+                "Homer , 35\n" +
+                " Marge,28\n");
+
+            using var reader = CsvReader.FromStream(csv, CsvFormat.Default.WithIgnoreWhitespace(false));
+
+            Assert.AreEqual("Homer , 35", reader.Read()!.ToString());
+            Assert.AreEqual(" Marge,28", reader.Read()!.ToString());
+        }
+
+        [Test()]
+        public void ReadWithUnclosedQuoteTest()
+        {
+            using var csv = CsvUtility.ToStream(
+                "Name,Age\n" +
+                "Mario \"The plumber, 20\n" +
+                "Luigi, 19\n");
+
+            using var reader = CsvReader.FromStream(csv);
+
+            Assert.Throws<CsvFormatException>(() =>
+            {
+                var _ = reader.Read();
+            });
+        }
+
+        [Test()]
+        public void ReadWithQuoteAlwaysTest()
+        {
+            using var csv = CsvUtility.ToStream(
+                "Name,Age\n" +
+                "Homer,35\n" +
+                "Marge,28\n");
+
+            var reader = CsvReader.FromStream(csv, CsvFormat.Default.WithStyle(QuoteStyle.Always));
+
+            Assert.AreEqual("\"Homer\",\"35\"", reader.Read()!.ToString());
+            Assert.AreEqual("\"Marge\",\"28\"", reader.Read()!.ToString());
+        }
+
+        [Test()]
+        public void ReadWithQuoteNeverTest()
+        {
+            using var csv = CsvUtility.ToStream(
+                "Name,Age\n" +
+                "Frida \"The Painter\", 35\n" +
+                "Pagannini \"The violinist\",28\n");
+
+            var reader = CsvReader.FromStream(csv, CsvFormat.Default.WithStyle(QuoteStyle.Never));
+            Assert.AreEqual("Frida The Painter,35", reader.Read()!.ToString());
+            Assert.AreEqual("Pagannini The violinist,28", reader.Read()!.ToString());
+        }
+
+        [Test()]
         public async Task ReadAsyncTest()
         {
-            using var csv = ToStream(
+            using var csv = CsvUtility.ToStream(
                 "name,age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");
@@ -169,7 +214,7 @@ namespace FastCSV.Tests
         [Test()]
         public void ReadAllTest()
         {
-            using var csv = ToStream(
+            using var csv = CsvUtility.ToStream(
                 "name,age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");
@@ -190,7 +235,7 @@ namespace FastCSV.Tests
         [Test()]
         public async Task ReadAllAsyncTest()
         {
-            using var csv = ToStream(
+            using var csv = CsvUtility.ToStream(
                 "name,age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");
@@ -211,7 +256,7 @@ namespace FastCSV.Tests
         [Test]
         public void ReasAsTest()
         {
-            using var csv = ToStream(
+            using var csv = CsvUtility.ToStream(
                 "Name,Age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");
@@ -232,7 +277,7 @@ namespace FastCSV.Tests
         [Test]
         public void ReasAllAsTest()
         {
-            using var csv = ToStream(
+            using var csv = CsvUtility.ToStream(
                 "Name,Age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");
@@ -251,7 +296,7 @@ namespace FastCSV.Tests
         [Test()]
         public void ResetTest()
         {
-            using var csv = ToStream(
+            using var csv = CsvUtility.ToStream(
                 "name,age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");
@@ -280,7 +325,7 @@ namespace FastCSV.Tests
         [Test()]
         public void TryResetTest()
         {
-            using var csv = ToStream(
+            using var csv = CsvUtility.ToStream(
                 "name,age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");
