@@ -7,9 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Numerics;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
-using System.Text;
 
 namespace FastCSV.Utils
 {
@@ -17,15 +15,12 @@ namespace FastCSV.Utils
     {
         public static List<string>? ReadRecord(StreamReader reader, CsvFormat format)
         {
-            return ReadRecord(new StringBuilder(), reader, format);
-        }
-
-        public static List<string>? ReadRecord(StringBuilder stringBuilder, StreamReader reader, CsvFormat format)
-        {
             if (reader.EndOfStream)
             {
                 return null;
             }
+
+            using ValueStringBuilder stringBuilder = new ValueStringBuilder(stackalloc char[128]);
 
             List<string> records = new List<string>();
             char delimiter = format.Delimiter;
@@ -182,11 +177,6 @@ namespace FastCSV.Utils
 
         public static string ToCsvString(IEnumerable<string> values, CsvFormat format)
         {
-            return ToCsvString(new StringBuilder(), values, format);
-        }
-
-        public static string ToCsvString(StringBuilder stringBuilder, IEnumerable<string> values, CsvFormat format)
-        {
             if (values.Count() == 0)
             {
                 return string.Empty;
@@ -198,6 +188,7 @@ namespace FastCSV.Utils
                 return string.Concat(format.Quote, s, format.Quote);
             }
 
+            using var stringBuilder = new ValueStringBuilder(stackalloc char[128]);
             IEnumerator<string> enumerator = values.GetEnumerator();
             QuoteStyle style = format.Style;
 

@@ -1,4 +1,5 @@
 ﻿
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace FastCSV.Utils
@@ -39,5 +40,27 @@ namespace FastCSV.Utils
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool EnclosedWith(this string s, char value) => s.StartsWith(value) && s.EndsWith(value);
+
+        public static string IntoString<T>(this IEnumerable<T> enumerable, string separator = ",")
+        {
+            ValueStringBuilder sb = new ValueStringBuilder(stackalloc char[64]);
+            IEnumerator<T> enumerator = enumerable.GetEnumerator();
+
+            while (enumerator.MoveNext())
+            {
+                sb.Append(enumerator.Current);
+
+                if (enumerator.MoveNext())
+                {
+                    sb.Append(separator);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return sb.ToStringAndDispose();
+        }
     }
 }

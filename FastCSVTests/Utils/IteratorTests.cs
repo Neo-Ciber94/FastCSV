@@ -5,6 +5,7 @@ using System;
 
 namespace FastCSV.Tests.Utils
 {
+    [TestFixture()]
     public class IteratorTests
     {
         [Test]

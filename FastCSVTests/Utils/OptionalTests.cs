@@ -6,6 +6,7 @@ using NUnit.Framework;
 
 namespace FastCSV.Tests.Utils
 {
+    [TestFixture()]
     public class OptionalTests
     {
         [Test]
