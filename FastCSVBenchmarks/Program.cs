@@ -14,19 +14,21 @@ namespace FastCSV.Benchmarks
 
             using var reader = new CsvReader(CsvFile);
 
-            Console.WriteLine(reader.Header[0..4].IntoString());
+            //Console.WriteLine(reader.Header[0..4].IntoString());
 
-            foreach(CsvRecord record in reader.ReadAll().Take(20))
-            {
-                Console.WriteLine(record[0..4].IntoString());
-            }
+            //foreach(CsvRecord record in reader.ReadAll().Take(20))
+            //{
+            //    Console.WriteLine(record[0..4].IntoString());
+            //}
+
+            string s = CsvUtility.ToPrettyString(reader.ReadAll().Take(20).ToList());
+            Console.WriteLine(s);
         }
 
         public enum Gender
         {
             Male, Female
         }
-
 
         public class Person
         {

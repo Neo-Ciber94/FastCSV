@@ -223,7 +223,7 @@ namespace FastCSV
         /// <exception cref="ArgumentException">If the writer is flexible and attempt to write more fields than the previous one.</exception>
         public void WriteAll(IEnumerable<string> values)
         {
-            ThrowIfDispose();
+            ThrowIfDisposed();
 
             int length = values.Count();
 
@@ -285,7 +285,7 @@ namespace FastCSV
             await Task.Run(() => WriteWith(value));
         }
 
-        protected void ThrowIfDispose()
+        protected void ThrowIfDisposed()
         {
             if (_writer == null)
             {

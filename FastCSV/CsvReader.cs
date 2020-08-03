@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using FastCSV.Utils;
 
@@ -171,7 +172,7 @@ namespace FastCSV
         /// <value>
         ///   <c>true</c> if done; otherwise, <c>false</c>.
         /// </value>
-        public bool Done => _reader?.EndOfStream ?? false;
+        public bool IsDone => _reader?.EndOfStream ?? false;
 
         /// <summary>
         /// Reads the next record.
@@ -179,7 +180,7 @@ namespace FastCSV
         /// <returns>The next record or null is there is not more records</returns>
         public CsvRecord? Read()
         {
-            ThrowIfDispose();
+            ThrowIfDisposed();
 
             List<string>? values = CsvUtility.ReadRecord(_reader!, Format);
 
@@ -213,23 +214,11 @@ namespace FastCSV
         /// end the reader will be at the end of the file.
         /// </summary>
         /// <returns>An enumerable over the records of this reader csv.</returns>
-        public IEnumerable<CsvRecord> ReadAll()
+        public Records ReadAll()
         {
-            ThrowIfDispose();
+            ThrowIfDisposed();
 
-            while (true)
-            {
-                CsvRecord? record = Read();
-
-                if(record != null)
-                {
-                    yield return record;
-                }
-                else
-                {
-                    break;
-                }
-            }
+            return new Records(this);
         }
 
         /// <summary>
@@ -238,23 +227,10 @@ namespace FastCSV
         /// end the reader will be at the end of the file.
         /// </summary>
         /// <returns>An enumerable over the records of this reader csv.</returns>
-        public async IAsyncEnumerable<CsvRecord> ReadAllAsync()
+        public RecordsAsync ReadAllAsync()
         {
-            ThrowIfDispose();
-
-            while (true)
-            {
-                CsvRecord? record = await ReadAsync();
-
-                if (record != null)
-                {
-                    yield return record;
-                }
-                else
-                {
-                    break;
-                }
-            }
+            ThrowIfDisposed();
+            return new RecordsAsync(this);
         }
 
         /// <summary>
@@ -297,7 +273,7 @@ namespace FastCSV
         /// <exception cref="InvalidOperationException">If is unable to move.</exception>
         public void Reset()
         {
-            ThrowIfDispose();
+            ThrowIfDisposed();
 
             if (!TryReset())
             {
@@ -333,7 +309,7 @@ namespace FastCSV
             return false;
         }
 
-        protected void ThrowIfDispose()
+        protected void ThrowIfDisposed()
         {
             if(_reader == null)
             {
@@ -371,6 +347,94 @@ namespace FastCSV
         ~CsvReader()
         {
             Dispose(true);
+        }
+
+        public struct Records : IEnumerator<CsvRecord>, IEnumerable<CsvRecord>
+        {
+            private readonly CsvReader _reader;
+            private CsvRecord? _record;
+
+            internal Records(CsvReader reader)
+            {
+                _reader = reader;
+                _record = null;
+            }
+
+            public CsvRecord Current => _record!;
+
+            object? IEnumerator.Current => _record;
+
+            public bool IsDone => _reader.IsDone;
+
+            public void Dispose() { }
+
+            public bool MoveNext()
+            {
+                if (_reader.IsDone)
+                {
+                    return false;
+                }
+
+                if((_record = _reader.Read()) == null)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            public void Reset()
+            {
+                _reader.Reset();
+            }
+
+            public Records GetEnumerator() => this;
+
+            IEnumerator<CsvRecord> IEnumerable<CsvRecord>.GetEnumerator() => this;
+
+            IEnumerator IEnumerable.GetEnumerator() => this;
+        }
+
+        public struct RecordsAsync : IAsyncEnumerator<CsvRecord>, IAsyncEnumerable<CsvRecord>
+        {
+            private readonly CsvReader _reader;
+            private CsvRecord? _record;
+
+            internal RecordsAsync(CsvReader reader)
+            {
+                _reader = reader;
+                _record = null;
+            }
+
+            public CsvRecord Current => _record!;
+
+            public bool IsDone => _reader.IsDone;
+
+            public ValueTask<bool> MoveNextAsync()
+            {
+                if (_reader.IsDone)
+                {
+                    return new ValueTask<bool>(false);
+                }
+
+                if ((_record = _reader.Read()) == null)
+                {
+                    return new ValueTask<bool>(false);
+                }
+
+                return new ValueTask<bool>(true);
+            }
+
+            public ValueTask DisposeAsync() => default;
+
+            public void Reset()
+            {
+                _reader.Reset();
+            }
+
+            public RecordsAsync GetEnumerator(CancellationToken cancellationToken = default) => this;
+
+            public IAsyncEnumerator<CsvRecord> GetAsyncEnumerator(CancellationToken cancellationToken = default) => this;
         }
     }
 }

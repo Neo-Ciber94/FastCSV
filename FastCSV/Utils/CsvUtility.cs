@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -617,6 +618,81 @@ namespace FastCSV.Utils
             }
 
             return memory;
+        }
+
+        public static string ToPrettyString(IEnumerable<CsvRecord> records)
+        {
+            if (!records.Any())
+            {
+                return string.Empty;
+            }
+
+            const int MinPadding = 5;
+
+            CsvHeader? header = records.First().Header;
+
+            using ValueStringBuilder recordBuilder = new ValueStringBuilder(stackalloc char[64]);
+            using ValueStringBuilder resultBuilder = new ValueStringBuilder(stackalloc char[256]);
+            int columns = header?.Length ?? records.First().Length;
+
+            Span<int> columnSizes = columns < 100? stackalloc int[columns]: new int[columns];
+
+            // Takes the header lenghts
+            if(header != null)
+            {
+                for (int i = 0; i < columns; i++)
+                {
+                    columnSizes[i] = header[i].Length;
+                }
+            }
+
+            foreach (CsvRecord record in records)
+            {
+                Debug.Assert(record.Header == header);
+
+                for(int i = 0; i < columns; i++)
+                {
+                    columnSizes[i] = Math.Max(columnSizes[i], record[i].Length);
+                }
+            }
+
+            if (header != null)
+            {
+                for(int i = 0; i < columns; i++)
+                {
+                    string field = header[i];
+
+                    if(i < columns - 1)
+                    {
+                        field = field.PadRight(columnSizes[i] + MinPadding);
+                    }
+
+                    recordBuilder.Append(field);
+                }
+
+                resultBuilder.AppendLine(recordBuilder.ToString());
+                recordBuilder.Clear();
+            }
+
+            foreach(CsvRecord record in records)
+            {
+                for (int i = 0; i < columns; i++)
+                {
+                    string field = record[i].Trim();
+
+                    if (i < columns - 1)
+                    {
+                        field = field.PadRight(columnSizes[i] + MinPadding);
+                    }
+
+                    recordBuilder.Append(field);
+                }
+
+                resultBuilder.AppendLine(recordBuilder.ToString());
+                recordBuilder.Clear();
+            }
+
+            return resultBuilder.ToString();
         }
 
         private static CsvFieldInfo? GetField(Type type, string name, BindingFlags flags)

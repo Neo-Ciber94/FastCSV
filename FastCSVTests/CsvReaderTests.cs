@@ -27,7 +27,7 @@ namespace FastCSV.Tests
 
             Assert.AreEqual(CsvFormat.Default, reader.Format);
             Assert.IsTrue(reader.HasHeader);
-            Assert.IsFalse(reader.Done);
+            Assert.IsFalse(reader.IsDone);
         }
 
         [Test()]
@@ -43,7 +43,7 @@ namespace FastCSV.Tests
 
             Assert.AreEqual(new CsvFormat('\t', '\"'), reader.Format);
             Assert.IsTrue(reader.HasHeader);
-            Assert.IsFalse(reader.Done);
+            Assert.IsFalse(reader.IsDone);
         }
 
         [Test()]
@@ -58,7 +58,7 @@ namespace FastCSV.Tests
 
             Assert.AreEqual(CsvFormat.Default, reader.Format);
             Assert.IsFalse(reader.HasHeader);
-            Assert.IsFalse(reader.Done);
+            Assert.IsFalse(reader.IsDone);
         }
 
         [Test()]
@@ -73,7 +73,7 @@ namespace FastCSV.Tests
 
             Assert.AreEqual(CsvFormat.Default, reader.Format);
             Assert.IsTrue(reader.HasHeader);
-            Assert.IsFalse(reader.Done);
+            Assert.IsFalse(reader.IsDone);
         }
 
         [Test()]
@@ -85,14 +85,14 @@ namespace FastCSV.Tests
                 "Marge,28\n");
 
             using var reader = new CsvReader(new StreamReader(csv));
-            Assert.IsFalse(reader.Done);
+            Assert.IsFalse(reader.IsDone);
             Assert.AreEqual(0, reader.RecordNumber);
 
             Assert.AreEqual("name,age", reader.Header!.ToString());
             Assert.AreEqual("Homer,35", reader.Read()!.ToString());
             Assert.AreEqual("Marge,28", reader.Read()!.ToString());
             Assert.IsNull(reader.Read());
-            Assert.IsTrue(reader.Done);
+            Assert.IsTrue(reader.IsDone);
             Assert.AreEqual(2, reader.RecordNumber);
         }
 
@@ -200,7 +200,7 @@ namespace FastCSV.Tests
                 "Marge,28\n");
 
             using var reader = new CsvReader(new StreamReader(csv));
-            Assert.IsFalse(reader.Done);
+            Assert.IsFalse(reader.IsDone);
 
             Assert.AreEqual("name,age", reader.Header!.ToString());
             Assert.AreEqual("Homer,35", (await reader.ReadAsync())!.ToString());
@@ -208,7 +208,7 @@ namespace FastCSV.Tests
 
             CsvRecord? record = await reader.ReadAsync();
             Assert.IsNull(record);
-            Assert.IsTrue(reader.Done);
+            Assert.IsTrue(reader.IsDone);
         }
 
         [Test()]
@@ -229,7 +229,7 @@ namespace FastCSV.Tests
             Assert.AreEqual("Marge,28", enumerator.Current.ToString());
 
             Assert.IsFalse(enumerator.MoveNext());
-            Assert.IsTrue(reader.Done);
+            Assert.IsTrue(reader.IsDone);
         }
 
         [Test()]
@@ -250,7 +250,7 @@ namespace FastCSV.Tests
             Assert.AreEqual("Marge,28", enumerator.Current.ToString());
 
             Assert.IsFalse(await enumerator.MoveNextAsync());
-            Assert.IsTrue(reader.Done);
+            Assert.IsTrue(reader.IsDone);
         }
 
         [Test]
@@ -306,9 +306,9 @@ namespace FastCSV.Tests
             // Force to consume all the records
             foreach (var _ in reader.ReadAll()) { }
 
-            Assert.IsTrue(reader.Done);
+            Assert.IsTrue(reader.IsDone);
             reader.Reset();
-            Assert.IsFalse(reader.Done);
+            Assert.IsFalse(reader.IsDone);
 
             var enumerator = reader.ReadAll().GetEnumerator();
 
@@ -319,7 +319,7 @@ namespace FastCSV.Tests
             Assert.AreEqual("Marge,28", enumerator.Current.ToString());
 
             Assert.IsFalse(enumerator.MoveNext());
-            Assert.IsTrue(reader.Done);
+            Assert.IsTrue(reader.IsDone);
         }
 
         [Test()]
@@ -335,9 +335,9 @@ namespace FastCSV.Tests
             // Force to consume all the records
            foreach(var _ in reader.ReadAll()) { }
 
-            Assert.IsTrue(reader.Done);            
+            Assert.IsTrue(reader.IsDone);            
             Assert.IsTrue(reader.TryReset());
-            Assert.IsFalse(reader.Done);
+            Assert.IsFalse(reader.IsDone);
 
             var enumerator = reader.ReadAll().GetEnumerator();
 
@@ -348,7 +348,7 @@ namespace FastCSV.Tests
             Assert.AreEqual("Marge,28", enumerator.Current.ToString());
 
             Assert.IsFalse(enumerator.MoveNext());
-            Assert.IsTrue(reader.Done);
+            Assert.IsTrue(reader.IsDone);
         }
 
         [Test()]
