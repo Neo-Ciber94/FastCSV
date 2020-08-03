@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -41,23 +42,106 @@ namespace FastCSV.Utils
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool EnclosedWith(this string s, char value) => s.StartsWith(value) && s.EndsWith(value);
 
-        public static string IntoString<T>(this IEnumerable<T> enumerable, string separator = ",")
+        public static string IntoString<T>(this IEnumerable<T> enumerable, string separator = ",", bool encloseWithBrackets = true)
         {
             ValueStringBuilder sb = new ValueStringBuilder(stackalloc char[64]);
-            IEnumerator<T> enumerator = enumerable.GetEnumerator();
+            var enumerator = enumerable.GetEnumerator();
 
-            while (enumerator.MoveNext())
+            if (encloseWithBrackets)
             {
-                sb.Append(enumerator.Current);
+                sb.Append('[');
+            }
 
-                if (enumerator.MoveNext())
+            if(enumerator.MoveNext())
+            {
+                while (true)
                 {
-                    sb.Append(separator);
+                    sb.Append(enumerator.Current);
+
+                    if (enumerator.MoveNext())
+                    {
+                        sb.Append(separator);
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
-                else
+            }
+
+            if (encloseWithBrackets)
+            {
+                sb.Append(']');
+            }
+
+            return sb.ToStringAndDispose();
+        }
+
+        public static string IntoString<T>(this Span<T> span, string separator = ",", bool encloseWithBrackets = true)
+        {
+            ValueStringBuilder sb = new ValueStringBuilder(stackalloc char[64]);
+            var enumerator = span.GetEnumerator();
+
+            if (encloseWithBrackets)
+            {
+                sb.Append('[');
+            }
+
+            if (enumerator.MoveNext())
+            {
+                while (true)
                 {
-                    break;
+                    sb.Append(enumerator.Current);
+
+                    if (enumerator.MoveNext())
+                    {
+                        sb.Append(separator);
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
+            }
+
+            if (encloseWithBrackets)
+            {
+                sb.Append(']');
+            }
+
+            return sb.ToStringAndDispose();
+        }
+
+        public static string IntoString<T>(this ReadOnlySpan<T> span, string separator = ",", bool encloseWithBrackets = true)
+        {
+            ValueStringBuilder sb = new ValueStringBuilder(stackalloc char[64]);
+            var enumerator = span.GetEnumerator();
+
+            if (encloseWithBrackets)
+            {
+                sb.Append('[');
+            }
+
+            if (enumerator.MoveNext())
+            {
+                while (true)
+                {
+                    sb.Append(enumerator.Current);
+
+                    if (enumerator.MoveNext())
+                    {
+                        sb.Append(separator);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (encloseWithBrackets)
+            {
+                sb.Append(']');
             }
 
             return sb.ToStringAndDispose();

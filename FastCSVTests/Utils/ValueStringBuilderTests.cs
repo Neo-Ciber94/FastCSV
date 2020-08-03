@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using FastCSV.Utils;
 
-namespace FastCSV.Tests.Utils
+namespace FastCSV.Utils.Tests
 {
     [TestFixture()]
     public class ValueStringBuilderTests
