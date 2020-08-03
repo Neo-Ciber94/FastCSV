@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,12 +9,24 @@ using System.Linq;
 using System.Net;
 using System.Numerics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using System.Text;
 
 namespace FastCSV.Utils
 {
+    /// <summary>
+    /// Utility class for work with CSV.
+    /// </summary>
     public static class CsvUtility
     {
+        /// <summary>
+        /// Reads the next csv record using the specified <see cref="StreamReader"/>.
+        /// </summary>
+        /// <param name="reader">The reader.</param>
+        /// <param name="format">The format.</param>
+        /// <returns>A list with the fields of the record</returns>
+        /// <exception cref="FastCSV.CsvFormatException">If a quote is not closed.</exception>
         public static List<string>? ReadRecord(StreamReader reader, CsvFormat format)
         {
             if (reader.EndOfStream)
@@ -169,6 +182,12 @@ namespace FastCSV.Utils
             return records;
         }
 
+        /// <summary>
+        /// Writes a csv record using the specified <see cref="StreamWriter"/>.
+        /// </summary>
+        /// <param name="writer">The writer.</param>
+        /// <param name="values">The values to write.</param>
+        /// <param name="format">The format used to write the record.</param>
         public static void WriteRecord(StreamWriter writer, IEnumerable<string> values, CsvFormat format)
         {
             string record = ToCsvString(values, format);
@@ -176,6 +195,12 @@ namespace FastCSV.Utils
             writer.Flush();
         }
 
+        /// <summary>
+        /// Converts the given <see cref="IEnumerable{T}"/> into a csv string.
+        /// </summary>
+        /// <param name="values">The values.</param>
+        /// <param name="format">The format.</param>
+        /// <returns></returns>
         public static string ToCsvString(IEnumerable<string> values, CsvFormat format)
         {
             if (values.Count() == 0)
@@ -246,9 +271,15 @@ namespace FastCSV.Utils
             return stringBuilder.ToString();
         }
 
+        /// <summary>
+        /// Converts the values of all the public fields and properties of the specified value to <see cref="string"/>.
+        /// </summary>
+        /// <typeparam name="T">Type of the value.</typeparam>
+        /// <param name="value">The value.</param>
+        /// <returns>The list with the string values of all the public fields and properties of teh value.</returns>
         public static List<string> GetValues<T>(T value)
         {
-            if(value == null)
+            if (value == null)
             {
                 throw new ArgumentException(nameof(value));
             }
@@ -293,6 +324,11 @@ namespace FastCSV.Utils
             return result;
         }
 
+        /// <summary>
+        /// Gets the names of all the public fields and properties of the specified type.
+        /// </summary>
+        /// <typeparam name="T">The type to get the values.</typeparam>
+        /// <returns>A list with the name of all the public fields or properties of the specified type.</returns>
         public static List<string> GetHeader<T>()
         {
             List<string> result = new List<string>();
@@ -331,6 +367,14 @@ namespace FastCSV.Utils
             return result;
         }
 
+        /// <summary>
+        /// Converts the specified value to a dictionary, where the keys-value pair
+        /// represents the names of the public fields and properties and its values.
+        /// </summary>
+        /// <typeparam name="T">Type of the value.</typeparam>
+        /// <param name="value">The value.</param>
+        /// <returns>A dictionary with the values of the fields and properties of the value.</returns>
+        /// <exception cref="ArgumentException">If the value is null, and IEnumerable or don't contains public field or properties.</exception>
         public static Dictionary<string, object?> ToDictionary<T>(T value)
         {
             if (value == null)
@@ -376,11 +420,28 @@ namespace FastCSV.Utils
             return result;
         }
 
+        /// <summary>
+        /// Creates the instance of the specified type using the values of the given <see cref="Dictionary{TKey, TValue}"/>.
+        /// </summary>
+        /// <typeparam name="T">Type of the value</typeparam>
+        /// <param name="data">The data to populate the fields of the new instance.</param>
+        /// and if fail will attempt to parse using <see cref="CsvUtility.TryParse(string, Type, out object?)"/>.</param>
+        /// <returns>A new instance of the specified type.</returns>
+        /// <exception cref="InvalidOperationException">If cannot find or parse the fields or properties with the name of keys of the <c>data</c></exception>
         public static T CreateInstance<T>(Dictionary<string, string> data)
         {
             return CreateInstance<T>(data, null);
         }
 
+        /// <summary>
+        /// Creates the instance of the specified type using the values of the given <see cref="Dictionary{TKey, TValue}"/>.
+        /// </summary>
+        /// <typeparam name="T">Type of the value</typeparam>
+        /// <param name="data">The data to populate the fields of the new instance.</param>
+        /// <param name="parser">A parser used for all the values, for each value the parser will be called
+        /// and if fail will attempt to parse using <see cref="CsvUtility.TryParse(string, Type, out object?)"/>.</param>
+        /// <returns>A new instance of the specified type.</returns>
+        /// <exception cref="InvalidOperationException">If cannot find or parse the fields or properties with the name of keys of the <c>data</c></exception>
         public static T CreateInstance<T>(Dictionary<string, string> data, ParserDelegate? parser)
         {
             Optional<object> result = default;
@@ -414,9 +475,9 @@ namespace FastCSV.Utils
                     prop.SetValue(result.Value, obj);
                 }
 
-                if(field == null && prop == null)
+                if (field == null && prop == null)
                 {
-                    throw new InvalidOperationException("Cannot find a field or property named: " +pair.Key);
+                    throw new InvalidOperationException("Cannot find a field or property named: " + pair.Key);
                 }
             }
 
@@ -430,7 +491,7 @@ namespace FastCSV.Utils
             // Helper method
             object? ParseValue(Type type, string fieldOrPropertyName, string key, string value)
             {
-                if(parser != null)
+                if (parser != null)
                 {
                     ParseResult parseResult = parser(key, value);
 
@@ -449,6 +510,13 @@ namespace FastCSV.Utils
             }
         }
 
+        /// <summary>
+        /// Attempts to parse the specified <see cref="string"/> value.
+        /// </summary>
+        /// <typeparam name="T">The type to parse to.</typeparam>
+        /// <param name="value">The value to parse.</param>
+        /// <param name="result">The result value.</param>
+        /// <returns><c>true</c> if the parse success, otherwise <c>false</c></returns>
         public static bool TryParse<T>(string value, [MaybeNullWhen(false)] out T result)
         {
             result = default;
@@ -461,6 +529,13 @@ namespace FastCSV.Utils
             return false;
         }
 
+        /// <summary>
+        /// Attempts to parse the specified <see cref="string"/> value.
+        /// </summary>
+        /// <param name="value">The value to parse.</param>
+        /// <param name="type">The type to parse to.</param>
+        /// <param name="result">The result value.</param>
+        /// <returns><c>true</c> if the parse success, otherwise <c>false</c></returns>
         public static bool TryParse(string value, Type type, out object? result)
         {
             result = null;
@@ -606,11 +681,15 @@ namespace FastCSV.Utils
             return false;
         }
 
+        /// <summary>
+        /// Gets a <see cref="MemoryStream"/> containing the specified <see cref="string"/> data.
+        /// </summary>
+        /// <param name="data">The data.</param>
+        /// <returns>A stream containing the specified data.</returns>
         public static MemoryStream ToStream(string data)
         {
-            var memory = new MemoryStream(data.Length);
-
-            using(var writer = new StreamWriter(memory, leaveOpen: true))
+            MemoryStream memory = new MemoryStream(data.Length);
+            using (var writer = new StreamWriter(memory, leaveOpen: true))
             {
                 writer.Write(data);
                 writer.Flush();
@@ -620,6 +699,11 @@ namespace FastCSV.Utils
             return memory;
         }
 
+        /// <summary>
+        /// Gets a pretty formatted string of the given records.
+        /// </summary>
+        /// <param name="records">The records.</param>
+        /// <returns></returns>
         public static string ToPrettyString(IEnumerable<CsvRecord> records)
         {
             if (!records.Any())
@@ -627,6 +711,7 @@ namespace FastCSV.Utils
                 return string.Empty;
             }
 
+            // Min padding between 2 columns
             const int MinPadding = 5;
 
             CsvHeader? header = records.First().Header;
@@ -635,10 +720,11 @@ namespace FastCSV.Utils
             using ValueStringBuilder resultBuilder = new ValueStringBuilder(stackalloc char[256]);
             int columns = header?.Length ?? records.First().Length;
 
-            Span<int> columnSizes = columns < 100? stackalloc int[columns]: new int[columns];
+            // We decide if allocates on the head or stack depending the amount of columns with 100 as thredshold.
+            Span<int> columnSizes = columns < 100 ? stackalloc int[columns] : new int[columns];
 
             // Takes the header lenghts
-            if(header != null)
+            if (header != null)
             {
                 for (int i = 0; i < columns; i++)
                 {
@@ -646,23 +732,25 @@ namespace FastCSV.Utils
                 }
             }
 
+            // Calculates the max length of each column
             foreach (CsvRecord record in records)
             {
                 Debug.Assert(record.Header == header);
 
-                for(int i = 0; i < columns; i++)
+                for (int i = 0; i < columns; i++)
                 {
                     columnSizes[i] = Math.Max(columnSizes[i], record[i].Length);
                 }
             }
 
+            // Writes the header
             if (header != null)
             {
-                for(int i = 0; i < columns; i++)
+                for (int i = 0; i < columns; i++)
                 {
                     string field = header[i];
 
-                    if(i < columns - 1)
+                    if (i < columns - 1)
                     {
                         field = field.PadRight(columnSizes[i] + MinPadding);
                     }
@@ -674,7 +762,8 @@ namespace FastCSV.Utils
                 recordBuilder.Clear();
             }
 
-            foreach(CsvRecord record in records)
+            // Writes each record and add the min padding
+            foreach (CsvRecord record in records)
             {
                 for (int i = 0; i < columns; i++)
                 {

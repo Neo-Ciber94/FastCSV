@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using FastCSV.Utils;
@@ -21,7 +22,14 @@ namespace FastCSV.Benchmarks
             //    Console.WriteLine(record[0..4].IntoString());
             //}
 
-            string s = CsvUtility.ToPrettyString(reader.ReadAll().Take(20).ToList());
+            string s = CsvUtility.ToPrettyString(reader.ReadAll().ToList().Take(20));
+            
+            //using (var w = new StreamWriter("../../../myfile.csv"))
+            //{
+            //    w.Write(s);
+            //    w.Flush();
+            //}
+
             Console.WriteLine(s);
         }
 
