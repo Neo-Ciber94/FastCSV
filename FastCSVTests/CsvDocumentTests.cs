@@ -132,6 +132,38 @@ namespace FastCSV.Tests
         }
 
         [Test()]
+        public void WriteFieldsTest()
+        {
+            var document = new CsvDocument(new[] { "Name", "Age" });
+
+            document.WriteFields(b =>
+            {
+                b.AddField("Carlos");
+                b.AddField(20);
+            });
+
+            document.WriteFields(b =>
+            {
+                b.AddField("Age", 30);
+                b.AddField("Name", "Maria");
+            });
+
+            Assert.AreEqual("Name,Age\r\n" +
+                "Carlos,20\r\n" +
+                "Maria,30\r\n", document.ToString());
+
+            Assert.Throws<ArgumentException>(() =>
+            {
+                document.WriteFields(b =>
+                {
+                    b.AddField("Name", "Kara");
+                    b.AddField("Age", 17);
+                    b.AddField("LastName", "Li");
+                });
+            });
+        }
+
+        [Test()]
         public void IndexerTest()
         {
             var document = new CsvDocument(new string[] { "name", "age" });

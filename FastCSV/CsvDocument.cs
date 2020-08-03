@@ -176,6 +176,17 @@ namespace FastCSV
         }
 
         /// <summary>
+        /// Writes a records using a <see cref="Builder"/>
+        /// </summary>
+        /// <param name="action">The action that provides the builder.</param>
+        public void WriteFields(Action<Builder> action)
+        {
+            Builder builder = new Builder(this);
+            action(builder);
+            builder.WriteToDocument();
+        }
+
+        /// <summary>
         /// Updates the record at the specified index.
         /// </summary>
         /// <param name="index">The index.</param>
@@ -312,7 +323,7 @@ namespace FastCSV
             {
                 if(_pos == _document.Header.Length)
                 {
-                    throw new InvalidOperationException("Builder cannot hold more values");
+                    throw new InvalidOperationException($"Builder cannot hold more than {_document.Header.Length} values");
                 }
 
                 _values[_pos++] = value;
@@ -327,7 +338,7 @@ namespace FastCSV
                 }
                 else
                 {
-                    throw new ArgumentException($"Cannot find the key {key} in the header");
+                    throw new ArgumentException($"Cannot find the key '{key}' in the header");
                 }
             }
 
