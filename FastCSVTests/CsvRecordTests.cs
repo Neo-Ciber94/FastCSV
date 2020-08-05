@@ -104,6 +104,32 @@ namespace FastCSV.Tests
         }
 
         [Test()]
+        public void MutateTest()
+        {
+            var record = CsvRecord.From(new Person { Name = "Jhon", Age = 20 });
+            Assert.AreEqual("Jhon,20", record.ToString());
+
+            var record2 = record.Mutate(self => self.Update("Age", 26));
+            Assert.AreEqual("Jhon,26", record2.ToString());
+
+            var record3 = record.Mutate(self =>
+            {
+                self[0] = "Carlos";
+                self[1] = "30";
+            });
+
+            Assert.AreEqual("Carlos,30", record3.ToString());
+
+            Assert.Throws<ArgumentException>(() =>
+            {
+                var _ = record.Mutate(self =>
+                {
+                    self["LastName"] = "Lenon";
+                });
+            });
+        }
+
+        [Test()]
         public void ToStringTest()
         {
             var record = new CsvRecord(null, new string[] { "Violet", "16" });
@@ -146,6 +172,12 @@ namespace FastCSV.Tests
         {
             var record = new CsvRecord(null, new string[] { "Violet", "16" });
             Assert.AreEqual(new CsvRecord(null, new string[] { "Violet", "16" }), record);
+        }
+
+        class Person
+        {
+            public string Name { get; set; }
+            public int Age { get; set; }
         }
     }
 }

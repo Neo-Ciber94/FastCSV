@@ -1,38 +1,33 @@
-﻿using FastCSV.Utils;
+﻿using System.Runtime.CompilerServices;
+using FastCSV.Utils;
 
 namespace FastCSV
 {
-    internal struct TypedCsvRecord<T>
+    internal readonly struct TypedCsvRecord<T>
     {
-        private Optional<CsvRecord> _record;
-
-        public TypedCsvRecord(T value, CsvHeader header, CsvFormat format)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TypedCsvRecord(T value, CsvFormat format)
         {
+            Record = CsvRecord.From(value, format);
             Value = value;
-            _record = default;
-            Format = format;
-            Header = header;
+        }
+        
+        public CsvRecord Record 
+        { 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get; 
         }
 
-        public T Value { get; }
-
-        public CsvFormat Format { get; }
-
-        public CsvHeader Header { get; }
-
-        public CsvRecord Record
+        public T Value 
         {
-            get
-            {
-                if (!_record.HasValue)
-                {
-                    var values = CsvUtility.GetValues(Value);
-                    var temp = new CsvRecord(Header, values, Format);
-                    _record = new Optional<CsvRecord>(temp);
-                }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get; 
+        }
 
-                return _record.Value;
-            }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public (CsvRecord, T) ToTuple()
+        {
+            return (Record, Value);
         }
     }
 }

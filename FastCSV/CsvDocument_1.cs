@@ -125,7 +125,7 @@ namespace FastCSV
         /// <param name="value">The value.</param>
         public void Write(T value)
         {
-            _records.Add(new TypedCsvRecord<T>(value, Header, Format));
+            _records.Add(new TypedCsvRecord<T>(value, Format));
         }
 
         /// <summary>
@@ -135,7 +135,7 @@ namespace FastCSV
         /// <param name="value">The value.</param>
         public void WriteAt(int index, T value)
         {
-            _records.Insert(index, new TypedCsvRecord<T>(value, Header, Format));
+            _records.Insert(index, new TypedCsvRecord<T>(value, Format));
         }
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace FastCSV
         /// <param name="value">The value.</param>
         public void Update(int index, T value)
         {
-            _records[index] = new TypedCsvRecord<T>(value, Header, Format);
+            _records[index] = new TypedCsvRecord<T>(value, Format);
         }
 
         /// <summary>
@@ -163,7 +163,7 @@ namespace FastCSV
 
             TypedCsvRecord<T> typedRecord = _records[index];
             _records.RemoveAt(index);
-            return (typedRecord.Record, typedRecord.Value);
+            return typedRecord.ToTuple();
         }
 
         /// <summary>
@@ -260,7 +260,7 @@ namespace FastCSV
         /// <exception cref="IndexOutOfRangeException"></exception>
         public T GetValue(int index)
         {
-            if(index < 0 || index > Count)
+            if(index < 0 || index >= Count)
             {
                 throw new IndexOutOfRangeException(index.ToString());
             }

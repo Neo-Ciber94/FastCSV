@@ -15,6 +15,7 @@ using System.Text;
 
 namespace FastCSV.Utils
 {
+
     /// <summary>
     /// Utility class for work with CSV.
     /// </summary>
@@ -35,7 +36,6 @@ namespace FastCSV.Utils
             }
 
             using ValueStringBuilder stringBuilder = new ValueStringBuilder(stackalloc char[128]);
-
             List<string> records = new List<string>();
             char delimiter = format.Delimiter;
             char quote = format.Quote;

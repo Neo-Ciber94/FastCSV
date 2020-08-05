@@ -14,7 +14,7 @@ namespace FastCSV
     /// <seealso cref="FastCSV.ICloneable{FastCSV.CsvRecord}" />
     /// <seealso cref="System.IEquatable{FastCSV.CsvRecord}" />
     [Serializable]
-    public class CsvRecord : ICsvRecord, ICloneable<CsvRecord>, IEquatable<CsvRecord?>
+    public class CsvRecord : IEnumerable<string>, ICloneable<CsvRecord>, IEquatable<CsvRecord?>
     {
         private readonly string[] _values;
 
@@ -40,6 +40,18 @@ namespace FastCSV
             }
 
             _values = values.ToArray();
+            Header = header;
+            Format = format;
+        }
+
+        internal CsvRecord(CsvHeader? header, string[] values, CsvFormat format)
+        {
+            if (header != null && header.Format != format)
+            {
+                throw new ArgumentException("Header csv format is different than the provided format");
+            }
+
+            _values = values;
             Header = header;
             Format = format;
         }
@@ -108,9 +120,9 @@ namespace FastCSV
         {
             get
             {
-                if (index < 0 || index > _values.Length)
+                if (index < 0 || index >= _values.Length)
                 {
-                    throw new IndexOutOfRangeException($"{index} > {Length}");
+                    throw new ArgumentOutOfRangeException($"{index} > {Length}");
                 }
 
                 return _values[index];
@@ -227,6 +239,18 @@ namespace FastCSV
             return result;
         }
 
+        /// <summary>
+        /// Mutates the contents of this instance and get the mutated instance.
+        /// </summary>
+        /// <param name="action">The action to mutate the record.</param>
+        /// <returns>The mutated instance.</returns>
+        public CsvRecord Mutate(Action<Mutable> action)
+        {
+            var mutable = new Mutable(this);
+            action(mutable);
+            return mutable.ToRecord();
+        }
+
         public string ToString(CsvFormat format)
         {
             return CsvUtility.ToCsvString(_values, format);
@@ -279,6 +303,108 @@ namespace FastCSV
             return !(left == right);
         }
 
+        /// <summary>
+        /// Provides a way to mutate a <see cref="CsvRecord"/>.
+        /// </summary>
+        public readonly struct Mutable
+        {
+            private readonly string[] _values;
+            private readonly CsvHeader? _header;
+            private readonly CsvFormat _format;
+
+            internal Mutable(CsvRecord record)
+            {
+                _values = new string[record.Length];
+                _header = record.Header;
+                _format = record.Format;
+
+                record._values.AsSpan().CopyTo(_values);
+            }
+
+            public int Length => _values.Length;
+
+            public string this[int index]
+            {
+                get
+                {
+                    if(index < 0 || index >= _values.Length)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(index));
+                    }
+
+                    return _values[index];
+                }
+
+                set
+                {
+                    if (index < 0 || index >= _values.Length)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(index));
+                    }
+
+                    _values[index] = value;
+                }
+            }
+
+            public string this[string key]
+            {
+                get
+                {
+                    if(_header == null)
+                    {
+                        throw new InvalidOperationException("Record don't have a header");
+                    }
+
+                    int index = _header.IndexOf(key);
+                    if(index >= 0)
+                    {
+                        return _values[index];
+                    }
+                    else
+                    {
+                        throw new ArgumentException("Key not found: " + key);
+                    }
+                }
+
+                set
+                {
+                    if (_header == null)
+                    {
+                        throw new InvalidOperationException("Record don't have a header");
+                    }
+
+                    int index = _header.IndexOf(key);
+                    if (index >= 0)
+                    {
+                        _values[index] = value;
+                    }
+                    else
+                    {
+                        throw new KeyNotFoundException(key);
+                    }
+                }
+            }
+
+            public void Update(int index, object? value)
+            {
+                this[index] = value.ToStringOrEmpty();
+            }
+
+            public void Update(string key, object? value)
+            {
+                this[key] = value.ToStringOrEmpty();
+            }
+
+            internal CsvRecord ToRecord()
+            {
+                return new CsvRecord(_header, _values, _format);
+            }
+        }
+
+        /// <summary>
+        /// An enumerator over the fields of this record.
+        /// </summary>
+        /// <seealso cref="System.Collections.Generic.IEnumerator{System.String}" />
         public struct Enumerator : IEnumerator<string>
         {
             private readonly string[] _values;

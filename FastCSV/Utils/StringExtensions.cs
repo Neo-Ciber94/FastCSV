@@ -42,6 +42,12 @@ namespace FastCSV.Utils
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool EnclosedWith(this string s, char value) => s.StartsWith(value) && s.EndsWith(value);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string ToStringOrEmpty<T>(this T obj)
+        {
+            return obj?.ToString() ?? string.Empty;
+        }
+
         public static string IntoString<T>(this IEnumerable<T> enumerable, string separator = ",", bool encloseWithBrackets = true)
         {
             ValueStringBuilder sb = new ValueStringBuilder(stackalloc char[64]);

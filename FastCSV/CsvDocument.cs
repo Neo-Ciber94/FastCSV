@@ -148,9 +148,9 @@ namespace FastCSV
         /// <param name="values">The values.</param>
         public void WriteAt(int index, IEnumerable<string> values)
         {
-            if (index < 0 || index > Count)
+            if (index < 0 || index >= Count)
             {
-                throw new IndexOutOfRangeException($"{index} > {Count}");
+                throw new ArgumentOutOfRangeException($"{index} > {Count}");
             }
 
             int length = values.Count();
@@ -193,9 +193,9 @@ namespace FastCSV
         /// <param name="values">The values.</param>
         public void Update(int index, IEnumerable<string> values)
         {
-            if (index < 0 || index > Count)
+            if (index < 0 || index >= Count)
             {
-                throw new IndexOutOfRangeException($"{index} > {Count}");
+                throw new ArgumentOutOfRangeException($"{index} > {Count}");
             }
 
             int length = values.Count();
@@ -218,6 +218,22 @@ namespace FastCSV
         {
             var values = CsvUtility.GetValues(value);
             Update(index, values);
+        }
+
+        /// <summary>
+        /// Mutates the record at the specified index.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <param name="action">The action to mutate the record.</param>
+        /// <exception cref="IndexOutOfRangeException"></exception>
+        public void MutateAt(int index, Action<CsvRecord.Mutable> action)
+        {
+            if (index < 0 || index >= Count)
+            {
+                throw new ArgumentOutOfRangeException($"{index} > {Count}");
+            }
+
+            _records[index] = _records[index].Mutate(action);
         }
 
         /// <summary>

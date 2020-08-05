@@ -104,9 +104,9 @@ namespace FastCSV
         {
             get
             {
-                if (index < 0 || index > _values.Length)
+                if (index < 0 || index >= _values.Length)
                 {
-                    throw new IndexOutOfRangeException($"{index} > {Length}");
+                    throw new ArgumentOutOfRangeException($"{index} > {Length}");
                 }
 
                 return _values[index];

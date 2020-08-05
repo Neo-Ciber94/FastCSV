@@ -3,34 +3,24 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using BenchmarkDotNet.Running;
 using FastCSV.Utils;
 
 namespace FastCSV.Benchmarks
 {
     class Program
     {
+        private const string ProjectPath = "../../../";
+
         public static void Main()
         {
-            const string CsvFile = "../../../example.csv";
+            //const string CsvFile = ProjectPath + "example.csv";
+            //using var reader = new CsvReader(CsvFile);
 
-            using var reader = new CsvReader(CsvFile);
+            //string s = CsvUtility.ToPrettyString(reader.ReadAll().ToList().Take(20));
+            //Console.WriteLine(s);
 
-            //Console.WriteLine(reader.Header[0..4].IntoString());
-
-            //foreach(CsvRecord record in reader.ReadAll().Take(20))
-            //{
-            //    Console.WriteLine(record[0..4].IntoString());
-            //}
-
-            string s = CsvUtility.ToPrettyString(reader.ReadAll().ToList().Take(20));
-            
-            //using (var w = new StreamWriter("../../../myfile.csv"))
-            //{
-            //    w.Write(s);
-            //    w.Flush();
-            //}
-
-            Console.WriteLine(s);
+            BenchmarkRunner.Run<ReadAllVsReadAllAsync>();
         }
 
         public enum Gender

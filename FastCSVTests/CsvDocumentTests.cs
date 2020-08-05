@@ -175,6 +175,11 @@ namespace FastCSV.Tests
 
             var record2 = new CsvRecord(document.Header, new string[] { "Misa", "20" });
             Assert.AreEqual(record2, document[1]);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            {
+                var _ = document[3];
+            });
         }
 
         [Test()]
@@ -197,6 +202,17 @@ namespace FastCSV.Tests
 
             document.UpdateWith(1, new { Name = "Misa", Age = 17 });
             Assert.AreEqual(2, document.Count);
+        }
+
+        [Test()]
+        public void MutateAtTest()
+        {
+            var document = new CsvDocument(new string[] { "name", "age" });
+            document.Write("Light", 18);
+            document.Write("Misa", 20);
+
+            document.MutateAt(0, record => record.Update("name", "Light Yagami"));
+            Assert.AreEqual("Light Yagami,18", document[0].ToString());
         }
 
         [Test()]
