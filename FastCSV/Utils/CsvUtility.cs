@@ -32,10 +32,10 @@ namespace FastCSV.Utils
         {
             if (reader.EndOfStream)
             {
-                return null;
+                return default;
             }
 
-            using ValueStringBuilder stringBuilder = new ValueStringBuilder(stackalloc char[128]);
+            using ValueStringBuilder stringBuilder = new ValueStringBuilder(stackalloc char[512]);
             List<string> records = new List<string>();
             char delimiter = format.Delimiter;
             char quote = format.Quote;

@@ -8,6 +8,23 @@ using FastCSV.Utils;
 
 namespace FastCSV.Benchmarks
 {
+    public struct IndexedValue<T>
+    {
+        public T Value { get; }
+        public int Index { get; }
+
+        public IndexedValue(T value, int index)
+        {
+            Value = value;
+            Index = index;
+        }
+
+        public override string ToString()
+        {
+            return $"{{{nameof(Value)}={Value}, {nameof(Index)}={Index}}}";
+        }
+    }
+
     class Program
     {
         private const string ProjectPath = "../../../";
@@ -20,7 +37,11 @@ namespace FastCSV.Benchmarks
             //string s = CsvUtility.ToPrettyString(reader.ReadAll().ToList().Take(20));
             //Console.WriteLine(s);
 
-            BenchmarkRunner.Run<ReadAllVsReadAllAsync>();
+            using(var reader = new CsvReader(ProjectPath + "example.csv"))
+            {
+                //var csv = new CsvDocument(reader.HasHeader, reader.ReadAll().Take(10));
+            }
+            //BenchmarkRunner.Run<ReadAllVsReadAllAsync>();
         }
 
         public enum Gender

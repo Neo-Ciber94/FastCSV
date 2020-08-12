@@ -18,7 +18,7 @@ namespace FastCSV.Tests
             Assert.AreEqual("name", header[1]);
             Assert.AreEqual("age", header[2]);
 
-            Assert.Throws<IndexOutOfRangeException>(() =>
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
             {
                 var _ = header[3];
             });
@@ -37,7 +37,7 @@ namespace FastCSV.Tests
             Assert.AreEqual("name", header[1]);
             Assert.AreEqual("age", header[2]);
 
-            Assert.Throws<IndexOutOfRangeException>(() =>
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
             {
                 var _ = header[3];
             });
@@ -55,7 +55,7 @@ namespace FastCSV.Tests
             Assert.AreEqual("name", header[1]);
             Assert.AreEqual("age", header[2]);
 
-            Assert.Throws<IndexOutOfRangeException>(() =>
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
             {
                 var _ = header[3];
             });

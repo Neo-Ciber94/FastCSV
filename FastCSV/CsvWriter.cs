@@ -316,8 +316,15 @@ namespace FastCSV
 
         public void Dispose()
         {
+            ThrowIfDisposed();
+
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        ~CsvWriter()
+        {
+            Dispose(true);
         }
     }
 }

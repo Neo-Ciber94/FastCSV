@@ -57,7 +57,7 @@ namespace FastCSV
             }
         }
 
-        private CsvDocument(List<TypedCsvRecord<T>> records, CsvHeader header, CsvFormat format)
+        internal CsvDocument(List<TypedCsvRecord<T>> records, CsvHeader header, CsvFormat format)
         {
             if(header.Format != format)
             {

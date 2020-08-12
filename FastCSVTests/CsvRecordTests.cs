@@ -20,7 +20,7 @@ namespace FastCSV.Tests
             Assert.AreEqual("Violet", record[0]);
             Assert.AreEqual("16", record[1]);
 
-            Assert.Throws<IndexOutOfRangeException>(() =>
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
             {
                 var _ = record[2];
             });
@@ -120,7 +120,7 @@ namespace FastCSV.Tests
 
             Assert.AreEqual("Carlos,30", record3.ToString());
 
-            Assert.Throws<ArgumentException>(() =>
+            Assert.Throws<KeyNotFoundException>(() =>
             {
                 var _ = record.Mutate(self =>
                 {

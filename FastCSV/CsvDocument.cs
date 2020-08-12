@@ -42,7 +42,7 @@ namespace FastCSV
             Header = new CsvHeader(header, format);
         }
 
-        private CsvDocument(List<CsvRecord> records, CsvHeader header, CsvFormat format, bool flexible)
+        internal CsvDocument(List<CsvRecord> records, CsvHeader header, CsvFormat format, bool flexible)
         {
             if (header.Format != format)
             {

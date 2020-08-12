@@ -14,46 +14,13 @@ namespace FastCSV
         /// Creates a <see cref="CsvDocument"/> from the specified string.
         /// </summary>
         /// <param name="csv">The CSV.</param>
-        /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument FromCsv(string csv)
-        {
-            return FromCsv(csv, CsvFormat.Default, false);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvDocument"/> from the specified string.
-        /// </summary>
-        /// <param name="csv">The CSV.</param>
-        /// <param name="flexible">if set to <c>true</c> [flexible].</param>
-        /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument FromCsv(string csv, bool flexible)
-        {
-            return FromCsv(csv, CsvFormat.Default, flexible);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvDocument"/> from the specified string.
-        /// </summary>
-        /// <param name="csv">The CSV.</param>
-        /// <param name="format">The format.</param>
-        /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument FromCsv(string csv, CsvFormat format)
-        {
-            return FromCsv(csv, format, false);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvDocument"/> from the specified string.
-        /// </summary>
-        /// <param name="csv">The CSV.</param>
         /// <param name="format">The format.</param>
         /// <param name="flexible">if set to <c>true</c> will allow records of differents lengths.</param>
         /// <returns></returns>
-        public static CsvDocument FromCsv(string csv, CsvFormat format, bool flexible)
+        public static CsvDocument FromCsv(string csv, CsvFormat? format = null, bool flexible = false)
         {
+            format ??= CsvFormat.Default;
+
             if (csv.IsNullOrBlank())
             {
                 throw new ArgumentException("CSV is empty");
@@ -95,51 +62,47 @@ namespace FastCSV
         /// Creates a <see cref="CsvDocument"/> from a csv file at the given path.
         /// </summary>
         /// <param name="path">The path of the csv file.</param>
-        /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument FromPath(string path)
-        {
-            return FromPath(path, CsvFormat.Default, false);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvDocument"/> from a csv file at the given path.
-        /// </summary>
-        /// <param name="path">The path of the csv file.</param>
-        /// <param name="flexible">if set to <c>true</c> [flexible].</param>
-        /// <returns>A csv document from the file at the given path.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument FromPath(string path, bool flexible)
-        {
-            return FromPath(path, CsvFormat.Default, flexible);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvDocument"/> from a csv file at the given path.
-        /// </summary>
-        /// <param name="path">The path of the csv file.</param>
-        /// <param name="format">The format.</param>
-        /// <returns>A csv document from the file at the given path.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument FromPath(string path, CsvFormat format)
-        {
-            return FromPath(path, format, false);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvDocument"/> from a csv file at the given path.
-        /// </summary>
-        /// <param name="path">The path of the csv file.</param>
         /// <param name="format">The format.</param>
         /// <param name="flexible">if set to <c>true</c> will allow records of differents lengths.</param>
         /// <returns>A csv document from the file at the given path.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument FromPath(string path, CsvFormat format, bool flexible)
+        public static CsvDocument FromPath(string path, CsvFormat? format = null, bool flexible = false)
         {
+            format ??= CsvFormat.Default;
+
             using (StreamReader streamReader = new StreamReader(path))
             {
                 return FromCsv(streamReader.ReadToEnd(), format, flexible);
             }
+        }
+
+        /// <summary>
+        /// Creates a <see cref="CsvDocument"/> from the specified header and records.
+        /// </summary>
+        /// <param name="header">The header.</param>
+        /// <param name="records">The records.</param>
+        /// <param name="flexible">if set to <c>true</c> [flexible].</param>
+        /// <returns>A document with the specified header and record.</returns>
+        public static CsvDocument FromRaw(CsvHeader header, IEnumerable<CsvRecord> records, bool flexible = false)
+        {
+            List<CsvRecord> result = new List<CsvRecord>();
+
+            foreach (CsvRecord record in records)
+            {
+                if (record.Header != header)
+                {
+                    throw new ArgumentException($"Differents header on record: {record}");
+                }
+
+                if (!flexible && record.Length != header.Length)
+                {
+                    throw new ArgumentException($"Invalid length on record, expected {header.Length} elements. Record: {record}");
+                }
+
+                result.Add(record);
+            }
+
+            return new CsvDocument(result, header, header.Format, flexible);
         }
     }
 
