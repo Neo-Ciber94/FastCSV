@@ -313,6 +313,15 @@ namespace FastCSV
         }
 
         /// <summary>
+        /// Gets a pretty formated string of the records of this document.
+        /// </summary>
+        /// <returns></returns>
+        public string ToPrettyString()
+        {
+            return CsvUtility.ToPrettyString(_records);
+        }
+
+        /// <summary>
         /// Gets an enumerator over the records of this csv.
         /// </summary>
         /// <returns></returns>

@@ -39,7 +39,11 @@ namespace FastCSV.Benchmarks
 
             using(var reader = new CsvReader(ProjectPath + "example.csv"))
             {
-                //var csv = new CsvDocument(reader.HasHeader, reader.ReadAll().Take(10));
+                CsvHeader header = reader.Header;
+                IEnumerable<CsvRecord> records = reader.ReadAll().Skip(10).Take(10);
+                CsvDocument csv = CsvDocument.FromRaw(header, records);
+
+                Console.WriteLine(csv.ToPrettyString());
             }
             //BenchmarkRunner.Run<ReadAllVsReadAllAsync>();
         }

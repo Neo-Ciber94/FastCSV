@@ -41,7 +41,7 @@ namespace FastCSV
                     records = new List<CsvRecord>();
                     int headerLength = reader.Header!.Length;
 
-                    foreach (var r in reader.ReadAll())
+                    foreach (CsvRecord r in reader.ReadAll())
                     {
                         int recordLength = r.Length;
                         if (recordLength != headerLength)
@@ -65,7 +65,6 @@ namespace FastCSV
         /// <param name="format">The format.</param>
         /// <param name="flexible">if set to <c>true</c> will allow records of differents lengths.</param>
         /// <returns>A csv document from the file at the given path.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static CsvDocument FromPath(string path, CsvFormat? format = null, bool flexible = false)
         {
             format ??= CsvFormat.Default;

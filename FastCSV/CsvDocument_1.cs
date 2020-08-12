@@ -320,6 +320,15 @@ namespace FastCSV
         }
 
         /// <summary>
+        /// Gets a pretty formated string of the records of this document.
+        /// </summary>
+        /// <returns></returns>
+        public string ToPrettyString()
+        {
+            return CsvUtility.ToPrettyString(_records.Select(e => e.Record));
+        }
+
+        /// <summary>
         /// Gets the enumerator.
         /// </summary>
         /// <returns></returns>
