@@ -174,6 +174,55 @@ namespace FastCSV.Utils.Tests
         }
 
         [Test()]
+        public void AppendJoinTest1()
+        {
+            using var sb = new ValueStringBuilder(stackalloc char[64]);
+            sb.AppendJoin(',', new int[] { 1, 2, 3, 4 });
+
+            Assert.AreEqual("1,2,3,4", sb.ToString());
+        }
+
+        [Test()]
+        public void AppendJoinTest2()
+        {
+            using var sb = new ValueStringBuilder(stackalloc char[64]);
+            sb.AppendJoin(", ", new int[] { 1, 2, 3, 4 });
+
+            Assert.AreEqual("1, 2, 3, 4", sb.ToString());
+        }
+
+        [Test()]
+        public void AppendJoinTest3()
+        {
+            using var sb = new ValueStringBuilder(stackalloc char[64]);
+            ReadOnlySpan<int> values = new int[] { 1, 2, 3, 4 };
+            sb.AppendJoin(',', values);
+
+            Assert.AreEqual("1,2,3,4", sb.ToString());
+        }
+
+        [Test()]
+        public void AppendJoinTest4()
+        {
+            using var sb = new ValueStringBuilder(stackalloc char[64]);
+            ReadOnlySpan<int> values = new int[] { 1, 2, 3, 4 };
+            sb.AppendJoin(", ", values);
+
+            Assert.AreEqual("1, 2, 3, 4", sb.ToString());
+        }
+
+        [Test()]
+        public void AppendJoinTest5()
+        {
+            using var sb = new ValueStringBuilder(stackalloc char[64]);
+            ReadOnlySpan<int> values = new int[] { 1, 2, 3, 4 };
+            ReadOnlySpan<char> separator = ", ".AsSpan();
+            sb.AppendJoin(separator, values);
+
+            Assert.AreEqual("1, 2, 3, 4", sb.ToString());
+        }
+
+        [Test()]
         public void InsertTest()
         {
             using ValueStringBuilder sb = ValueStringBuilder.CreateFrom("HelloWorld".AsSpan());

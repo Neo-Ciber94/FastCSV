@@ -37,15 +37,15 @@ namespace FastCSV.Benchmarks
             //string s = CsvUtility.ToPrettyString(reader.ReadAll().ToList().Take(20));
             //Console.WriteLine(s);
 
-            using(var reader = new CsvReader(ProjectPath + "example.csv"))
+            var elements = new []
             {
-                CsvHeader header = reader.Header;
-                IEnumerable<CsvRecord> records = reader.ReadAll().Skip(10).Take(10);
-                CsvDocument csv = CsvDocument.FromRaw(header, records);
+                new List<int>{1,2,3},
+                new List<int>{4,5,6 },
+                new List<int>{7,8,9}
+            };
 
-                Console.WriteLine(csv.ToPrettyString());
-            }
-            //BenchmarkRunner.Run<ReadAllVsReadAllAsync>();
+            var csv = new CsvDocument<List<int>>(elements);
+            Console.WriteLine(csv);
         }
 
         public enum Gender

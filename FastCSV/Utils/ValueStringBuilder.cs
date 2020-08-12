@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace FastCSV.Utils
 {
@@ -241,6 +243,146 @@ namespace FastCSV.Utils
                     Unsafe.CopyBlock(dst + _count, src, (uint)(length * sizeof(char)));
                     _count += length;
                     _span[_count++] = NewLine;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Appends the values of the enumerator separated by the specified separator.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="separator">The separator.</param>
+        /// <param name="values">The values.</param>
+        public void AppendJoin<T>(char separator, IEnumerable<T> values)
+        {
+            var enumerator = values.GetEnumerator();
+            if (enumerator.MoveNext())
+            {
+                while (true)
+                {
+                    string current = enumerator.Current?.ToString() ?? "null";
+                    Append(current);
+
+                    if (enumerator.MoveNext())
+                    {
+                        Append(separator);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Appends the values of the enumerator separated by the specified separator.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="separator">The separator.</param>
+        /// <param name="values">The values.</param>
+        public void AppendJoin<T>(string separator, IEnumerable<T> values)
+        {
+            var enumerator = values.GetEnumerator();
+            if (enumerator.MoveNext())
+            {
+                while (true)
+                {
+                    string current = enumerator.Current?.ToString() ?? "null";
+                    Append(current);
+
+                    if (enumerator.MoveNext())
+                    {
+                        Append(separator);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Appends the values of the span separated by the specified separator.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="separator">The separator.</param>
+        /// <param name="values">The values.</param>
+        public void AppendJoin<T>(char separator, in ReadOnlySpan<T> values)
+        {
+            var enumerator = values.GetEnumerator();
+            if (enumerator.MoveNext())
+            {
+                while (true)
+                {
+                    string current = enumerator.Current?.ToString() ?? "null";
+                    Append(current);
+
+                    if (enumerator.MoveNext())
+                    {
+                        Append(separator);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Appends the values of the span separated by the specified separator.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="separator">The separator.</param>
+        /// <param name="values">The values.</param>
+        public void AppendJoin<T>(string separator, in ReadOnlySpan<T> values)
+        {
+            var enumerator = values.GetEnumerator();
+            if (enumerator.MoveNext())
+            {
+                while (true)
+                {
+                    string current = enumerator.Current?.ToString() ?? "null";
+                    Append(current);
+
+                    if (enumerator.MoveNext())
+                    {
+                        Append(separator);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Appends the values of the span separated by the specified separator.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="separator">The separator.</param>
+        /// <param name="values">The values.</param>
+        public void AppendJoin<T>(ReadOnlySpan<char> separator, in ReadOnlySpan<T> values)
+        {
+            var enumerator = values.GetEnumerator();
+            if (enumerator.MoveNext())
+            {
+                while (true)
+                {
+                    string current = enumerator.Current?.ToString() ?? "null";
+                    Append(current);
+
+                    if (enumerator.MoveNext())
+                    {
+                        Append(separator);
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
             }
         }

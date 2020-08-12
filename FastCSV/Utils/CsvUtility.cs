@@ -287,11 +287,20 @@ namespace FastCSV.Utils
             List<string> result = new List<string>();
             Type type = value!.GetType();
 
-            if (type.IsPrimitive || type.IsEnum || type == typeof(string) || type == typeof(DateTime) || type == typeof(TimeSpan))
+            if (type.IsPrimitive
+                || type.IsEnum
+                || type == typeof(string)
+                || type == typeof(BigInteger)
+                || type == typeof(DateTime)
+                || type == typeof(DateTimeOffset)
+                || type == typeof(TimeSpan)
+                || type == typeof(IPAddress)
+                || type == typeof(Version)
+                || type == typeof(Guid))
             {
                 result.Add(value.ToString()!);
             }
-            else if (type.IsAssignableFrom(typeof(IEnumerable)))
+            else if (typeof(IEnumerable).IsAssignableFrom(type))
             {
                 foreach (object? e in (IEnumerable)value)
                 {
@@ -337,11 +346,33 @@ namespace FastCSV.Utils
             if (type.IsPrimitive
                 || type.IsEnum
                 || type == typeof(string)
+                || type == typeof(BigInteger)
                 || type == typeof(DateTime)
+                || type == typeof(DateTimeOffset)
                 || type == typeof(TimeSpan)
-                || type.IsAssignableFrom(typeof(IEnumerable)))
+                || type == typeof(IPAddress)
+                || type == typeof(Version)
+                || type == typeof(Guid)
+                || typeof(IEnumerable).IsAssignableFrom(type))
             {
-                result.Add(type.Name);
+
+                var generics = type.GenericTypeArguments;
+
+                if(generics != null)
+                {
+                    using (var sb = new ValueStringBuilder(stackalloc char[64]))
+                    {
+                        sb.Append(type.Name);
+                        sb.Append('<');
+                        sb.AppendJoin(", ", generics.Select(e => e.Name));                   
+                        sb.Append('>');
+                        result.Add(sb.ToString());
+                    }
+                }
+                else
+                {
+                    result.Add(type.Name);
+                }
             }
             else
             {
