@@ -56,6 +56,87 @@ namespace FastCSV.Tests
             Assert.AreEqual("Violet,16", record.ToString());
         }
 
+
+        [Test()]
+        public void IndexerTest1()
+        {
+            var record = CsvRecord.From(new
+            {
+                ID = 10,
+                FirstName = "BoJack",
+                LastName = "Horseman",
+                Age = 50
+            });
+
+            Assert.AreEqual("10", record[0]);
+            Assert.AreEqual("BoJack", record[1]);
+            Assert.AreEqual("Horseman", record[2]);
+            Assert.AreEqual("50", record[3]);
+        }
+
+        [Test()]
+        public void IndexerTest2()
+        {
+            var record = CsvRecord.From(new
+            {
+                ID = 10,
+                FirstName = "BoJack",
+                LastName = "Horseman",
+                Age = 50
+            });
+
+            Assert.AreEqual("10", record["ID"]);
+            Assert.AreEqual("BoJack", record["FirstName"]);
+            Assert.AreEqual("Horseman", record["LastName"]);
+            Assert.AreEqual("50", record["Age"]);
+        }
+
+        [Test()]
+        public void GetValuesTest1()
+        {
+            var record = CsvRecord.From(new
+            {
+                ID = 10,
+                FirstName = "BoJack",
+                LastName = "Horseman",
+                Age = 50
+            });
+
+            var values = record.GetValues("ID", "FirstName");
+            Assert.AreEqual("10", values["ID"]);
+            Assert.AreEqual("BoJack", values["FirstName"]);
+        }
+
+        [Test()]
+        public void GetValuesTest2()
+        {
+            var record = CsvRecord.From(new
+            {
+                ID = 10,
+                FirstName = "BoJack",
+                LastName = "Horseman",
+                Age = 50
+            });
+
+            var values = record.GetValues("ID", "FirstName".As("Name"));
+            Assert.AreEqual("10", values["ID"]);
+            Assert.AreEqual("BoJack", values["Name"]);
+        }
+
+        [Test()]
+        public void IndexerRangeTest()
+        {
+            var record = CsvRecord.From(new
+            {
+                ID = 10,
+                FirstName = "BoJack",
+                LastName = "Horseman",
+                Age = 50
+            });
+
+            Assert.AreEqual(new string[] { "BoJack", "Horseman" }, record[1..3].ToArray());
+        }
+
         [Test()]
         public void WithDelimiterTest()
         {

@@ -14,20 +14,11 @@ namespace FastCSV.Benchmarks
 
         public static void Main()
         {
-            //const string CsvFile = ProjectPath + "example.csv";
-            //using var reader = new CsvReader(CsvFile);
-
-            //string s = CsvUtility.ToPrettyString(reader.ReadAll().ToList().Take(20));
-            //Console.WriteLine(s);
-
-            //var csv = CsvDocument<Person>.FromPath(ProjectPath + "example.csv");
-            //Console.WriteLine(csv.GetValue(0));
-
-            CsvDocument csv = CsvDocument.FromPath(ProjectPath + "example.csv");
-            
-            foreach(var e in csv.GetColumn(1))
+            using var reader = new CsvReader(ProjectPath + "example.csv");
+            foreach(var record in reader.ReadAll())
             {
-                Console.WriteLine(e);
+                var e = record.GetValues("first_name".As("name"), "age");
+                Console.WriteLine(e["name"] + ", " + e["age"]);
             }
         }
 

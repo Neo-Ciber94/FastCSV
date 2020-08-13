@@ -11,8 +11,8 @@ namespace FastCSV
     /// Represents a record in a csv document.
     /// </summary>
     /// <seealso cref="FastCSV.ICsvRecord" />
-    /// <seealso cref="FastCSV.ICloneable{FastCSV.CsvRecord}" />
-    /// <seealso cref="System.IEquatable{FastCSV.CsvRecord}" />
+    /// <seealso cref="ICloneable{CsvRecord}" />
+    /// <seealso cref="IEquatable{CsvRecord}" />
     [Serializable]
     public class CsvRecord : IEnumerable<string>, ICloneable<CsvRecord>, IEquatable<CsvRecord?>
     {
@@ -23,7 +23,7 @@ namespace FastCSV
         /// </summary>
         /// <param name="header">The header.</param>
         /// <param name="values">The values.</param>
-        public CsvRecord(CsvHeader? header, IEnumerable<string> values) : this(header, values, header?.Format?? CsvFormat.Default) { }
+        public CsvRecord(CsvHeader? header, IEnumerable<string> values) : this(header, values, header?.Format ?? CsvFormat.Default) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CsvRecord"/> class.
@@ -34,7 +34,7 @@ namespace FastCSV
         /// <exception cref="ArgumentException">If the header csv format is different than the provided format</exception>
         public CsvRecord(CsvHeader? header, IEnumerable<string> values, CsvFormat format)
         {
-            if(header != null && header.Format != format)
+            if (header != null && header.Format != format)
             {
                 throw new ArgumentException("Header csv format is different than the provided format");
             }
@@ -148,7 +148,7 @@ namespace FastCSV
                     throw new InvalidOperationException("Header is not set");
                 }
 
-                int index = Header.IndexOf(key);              
+                int index = Header.IndexOf(key);
 
                 return index >= 0 ? this[index] : throw new KeyNotFoundException($"Cannot find a value for the corresponding key: {key}");
             }
@@ -163,6 +163,28 @@ namespace FastCSV
         /// <param name="range">The range.</param>
         /// <returns></returns>
         public Span<string> this[Range range] => _values.AsSpan(range);
+
+        /// <summary>
+        /// Gets a <see cref="IReadOnlyDictionary{TKey, TValue}"/> with the values of the specified column names.
+        /// </summary>
+        /// <param name="columnNames">The column names, this value can be implicit converted from <see cref="string"/>.</param>
+        /// <returns>Gets the values of the specified column names.</returns>
+        public IReadOnlyDictionary<string, string> GetValues(params ColumnName[] columnNames)
+        {
+            if (columnNames.Length == 0)
+            {
+                return EmptyDictionary<string, string>.Value;
+            }
+
+            var result = new Dictionary<string, string>(columnNames.Length);
+
+            foreach (ColumnName columnName in columnNames)
+            {
+                result.Add(columnName.GetAliasOrName(), this[columnName.Name]);
+            }
+
+            return result;
+        }
 
         /// <summary>
         /// Gets a copy of this record using the specified delimiter.
@@ -224,14 +246,14 @@ namespace FastCSV
         /// <returns>A dictionary containing the key and values of this record, or null if this record don't have a header</returns>
         public Dictionary<string, string>? ToDictionary(IEqualityComparer<string>? comparer)
         {
-            if(Header == null)
+            if (Header == null)
             {
                 return null;
             }
 
             Dictionary<string, string> result = new Dictionary<string, string>(Length, comparer);
 
-            foreach(string key in Header)
+            foreach (string key in Header)
             {
                 result.Add(key, this[key]);
             }
@@ -327,7 +349,7 @@ namespace FastCSV
             {
                 get
                 {
-                    if(index < 0 || index >= _values.Length)
+                    if (index < 0 || index >= _values.Length)
                     {
                         throw new ArgumentOutOfRangeException(nameof(index));
                     }
@@ -350,13 +372,13 @@ namespace FastCSV
             {
                 get
                 {
-                    if(_header == null)
+                    if (_header == null)
                     {
                         throw new InvalidOperationException("Record don't have a header");
                     }
 
                     int index = _header.IndexOf(key);
-                    if(index >= 0)
+                    if (index >= 0)
                     {
                         return _values[index];
                     }
@@ -404,7 +426,7 @@ namespace FastCSV
         /// <summary>
         /// An enumerator over the fields of this record.
         /// </summary>
-        /// <seealso cref="System.Collections.Generic.IEnumerator{System.String}" />
+        /// <seealso cref="IEnumerator{string}" />
         public struct Enumerator : IEnumerator<string>
         {
             private readonly string[] _values;
@@ -423,7 +445,7 @@ namespace FastCSV
             public bool MoveNext()
             {
                 int i = _index + 1;
-                if(i < _values.Length)
+                if (i < _values.Length)
                 {
                     _index = i;
                     return true;

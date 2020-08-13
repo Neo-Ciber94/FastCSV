@@ -10,7 +10,7 @@ namespace FastCSV.Utils
     /// <typeparam name="T">Type of the value.</typeparam>
     /// <seealso cref="IEquatable{Optional{T}}" />
     [Serializable]
-    public readonly struct Optional<T> : IEquatable<Optional<T>>
+    public readonly struct Optional<T> : IEquatable<Optional<T>> where T: notnull
     {
         internal readonly T _value;
         internal readonly bool _hasValue;
@@ -121,19 +121,19 @@ namespace FastCSV.Utils
     public static class Optional
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Optional<T> Some<T>(T value)
+        public static Optional<T> Some<T>(T value) where T: notnull
         {
             return new Optional<T>(value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Optional<T> None<T>()
+        public static Optional<T> None<T>() where T : notnull
         {
             return default;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Optional<T> Flatten<T>(this in Optional<Optional<T>> optional)
+        public static Optional<T> Flatten<T>(this in Optional<Optional<T>> optional) where T : notnull
         {
             if (optional.HasValue)
             {
@@ -147,6 +147,8 @@ namespace FastCSV.Utils
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Optional<TResult> Match<T, TResult>(this in Optional<T> optional, Func<T, TResult> ifSome, Action ifNone)
+            where T : notnull
+            where TResult : notnull
         {
             if (optional.HasValue)
             {
@@ -161,7 +163,9 @@ namespace FastCSV.Utils
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Optional<TResult> Map<T, TResult>(this in Optional<T> optional, Func<T, TResult> mapper)
+        public static Optional<TResult> Map<T, TResult>(this in Optional<T> optional, Func<T, TResult> mapper) 
+            where T : notnull 
+            where TResult : notnull
         {
             if (optional.HasValue)
             {
@@ -175,7 +179,7 @@ namespace FastCSV.Utils
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Optional<T> Filter<T>(this in Optional<T> optional, Predicate<T> predicate)
+        public static Optional<T> Filter<T>(this in Optional<T> optional, Predicate<T> predicate) where T : notnull
         {
             if (optional.HasValue)
             {
@@ -193,16 +197,6 @@ namespace FastCSV.Utils
             {
                 return default;
             }
-        }
-
-        public static unsafe T Take<T>(this in Optional<T> optional)
-        {
-            throw null!;
-        }
-
-        public static unsafe void Replace<T>(this in Optional<T> optional, T newValue)
-        {
-            throw null!;
         }
     }
 }
