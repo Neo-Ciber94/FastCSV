@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using FastCSV.Tests;
 using NUnit.Framework;
 
@@ -252,6 +253,66 @@ namespace FastCSV.Tests
 
             Assert.IsTrue(document.IsEmpty);
             Assert.AreEqual(0, document.Count);
+        }
+
+        [Test()]
+        public void GetColumnTest1()
+        {
+            string data = "name,age\n" +
+                "Robert,40\n" +
+                "Tom,20\n";
+
+            var csv = CsvDocument.FromCsv(data);
+
+            var names = csv.GetColumn("name");
+            Assert.AreEqual(new[] { "Robert", "Tom" }, names.ToArray());
+
+            var ages = csv.GetColumn("age");
+            Assert.AreEqual(new[] { "40", "20" }, ages.ToArray());
+        }
+
+        [Test()]
+        public void GetColumnTest2()
+        {
+            string data = "name,age\n" +
+                "Robert,40\n" +
+                "Tom,20\n";
+
+            var csv = CsvDocument.FromCsv(data);
+
+            var names = csv.GetColumn(0);
+            Assert.AreEqual(new[] { "Robert", "Tom" }, names.ToArray());
+
+            var ages = csv.GetColumn(1);
+            Assert.AreEqual(new[] { "40", "20" }, ages.ToArray());
+        }
+
+        [Test()]
+        public void GetColumnsTest1()
+        {
+            string data = "name,age\n" +
+                "Robert,40\n" +
+                "Tom,20\n";
+
+            var csv = CsvDocument.FromCsv(data);
+
+            var columns = csv.GetColumns();
+            Assert.AreEqual(new[] { "Robert", "Tom" }, columns.ElementAt(0).ToArray());
+            Assert.AreEqual(new[] { "40", "20" }, columns.ElementAt(1).ToArray());
+        }
+
+        [Test()]
+        public void GetColumnsTest2()
+        {
+            string data = "name,age\n" +
+                "Robert,40\n" +
+                "Tom,20\n";
+
+            var csv = CsvDocument.FromCsv(data);
+
+            var columns = csv.GetColumns("age", "name");
+            Assert.AreEqual(new[] { "Robert", "Tom" }, columns.ElementAt(1).ToArray());
+            Assert.AreEqual(new[] { "40", "20" }, columns.ElementAt(0).ToArray());
         }
 
         [Test]

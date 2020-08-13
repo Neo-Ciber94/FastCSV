@@ -15,7 +15,7 @@ namespace FastCSV
     /// <seealso cref="ICsvDocument" />
     public partial class CsvDocument : ICsvDocument
     {
-        private readonly List<CsvRecord> _records = new List<CsvRecord>();
+        internal readonly List<CsvRecord> _records = new List<CsvRecord>();
 
         public CsvDocument(IEnumerable<string> header) : this(header, CsvFormat.Default, false) { }
 
@@ -72,7 +72,7 @@ namespace FastCSV
         public CsvFormat Format { get; }
 
         /// <summary>
-        /// Gets a value indicating whether this instance is flexible.
+        /// Gets a value indicating whether this <see cref="CsvDocument"/> allow records of differents lengths.
         /// </summary>
         /// <value>
         /// <c>true</c> if this instance is flexible; otherwise, <c>false</c>.
@@ -269,6 +269,49 @@ namespace FastCSV
         public CsvDocument WithFormat(CsvFormat format)
         {
             return new CsvDocument(_records.ToList(), Header.WithFormat(format), format, IsFlexible);
+        }
+
+        /// <summary>
+        /// Gets the column with the given name.
+        /// </summary>
+        /// <param name="columnName">Name of the column.</param>
+        /// <returns>The column with the given name.</returns>
+        public CsvColumn GetColumn(string columnName)
+        {
+            return new CsvColumn(this, columnName);
+        }
+
+        /// <summary>
+        /// Gets the column with the given index.
+        /// </summary>
+        /// <param name="columnIndex">Index of the column.</param>
+        /// <returns>The column with the given index.</returns>
+        public CsvColumn GetColumn(int columnIndex)
+        {
+            return new CsvColumn(this, columnIndex);
+        }
+
+        /// <summary>
+        /// Gets the columns with the specified names.
+        /// </summary>
+        /// <param name="columnNames">The column names.</param>
+        /// <returns>The columns with the specified names or all the columns if not names is specified.</returns>
+        public IEnumerable<CsvColumn> GetColumns(params string[] columnNames)
+        {
+            if (columnNames.Length == 0)
+            {
+                for(int i = 0; i < Header.Length; i++)
+                {
+                    yield return GetColumn(i);
+                }
+            }
+            else
+            {
+                foreach (var columnName in columnNames)
+                {
+                    yield return GetColumn(columnName);
+                }
+            }
         }
 
         /// <summary>

@@ -339,24 +339,7 @@ namespace FastCSV.Utils
         /// <param name="values">The values.</param>
         public void AppendJoin<T>(string separator, in ReadOnlySpan<T> values)
         {
-            var enumerator = values.GetEnumerator();
-            if (enumerator.MoveNext())
-            {
-                while (true)
-                {
-                    string current = enumerator.Current?.ToString() ?? "null";
-                    Append(current);
-
-                    if (enumerator.MoveNext())
-                    {
-                        Append(separator);
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-            }
+            AppendJoin(separator.AsSpan(), values);
         }
 
         /// <summary>
