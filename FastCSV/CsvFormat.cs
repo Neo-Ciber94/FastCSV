@@ -13,42 +13,12 @@ namespace FastCSV
     public class CsvFormat : ICloneable<CsvFormat>, IEquatable<CsvFormat?>
     {
         /// <summary>
-        /// The default format.
+        /// Gets the default format.
         /// </summary>
-        private static readonly CsvFormat _default = new CsvFormat(
-            delimiter: ',', 
-            quote: '"', 
-            style: QuoteStyle.WhenNeeded,
-            ignoreWhitespaces: true
-        );
-
-        public static CsvFormat Default => _default;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CsvFormat"/> class.
-        /// </summary>
-        /// <param name="delimiter">The delimiter.</param>
-        /// <param name="quote">The quote.</param>
-        /// <exception cref="ArgumentException">If the delimiter is equals to the quote</exception>
-        public CsvFormat(char delimiter, char quote) : this(delimiter, quote, QuoteStyle.WhenNeeded, true) { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CsvFormat"/> class.
-        /// </summary>
-        /// <param name="delimiter">The delimiter.</param>
-        /// <param name="quote">The quote.</param>
-        /// <param name="ignoreWhitespaces">if set to <c>true</c> leading and trailing whitespaces will be ignored.</param>
-        /// <exception cref="ArgumentException">If the delimiter is equals to the quote</exception>
-        public CsvFormat(char delimiter, char quote, bool ignoreWhitespaces) : this(delimiter, quote, QuoteStyle.WhenNeeded, ignoreWhitespaces) { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CsvFormat"/> class.
-        /// </summary>
-        /// <param name="delimiter">The delimiter.</param>
-        /// <param name="quote">The quote.</param>
-        /// <param name="style">The style.</param>
-        /// <exception cref="ArgumentException">If the delimiter is equals to the quote</exception>
-        public CsvFormat(char delimiter, char quote, QuoteStyle style) : this(delimiter, quote, style, true) { }
+        /// <value>
+        /// The default.
+        /// </value>
+        public static CsvFormat Default { get; } = new CsvFormat();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CsvFormat"/> class.
@@ -58,7 +28,7 @@ namespace FastCSV
         /// <param name="style">The style.</param>
         /// <param name="ignoreWhitespaces">if set to <c>true</c> leading and trailing whitespaces will be ignored.</param>
         /// <exception cref="ArgumentException">If the delimiter is equals to the quote</exception>
-        public CsvFormat(char delimiter, char quote, QuoteStyle style, bool ignoreWhitespaces)
+        public CsvFormat(char delimiter = ',', char quote = '"', QuoteStyle style = QuoteStyle.WhenNeeded, bool ignoreWhitespaces = true)
         {
             if (delimiter == quote)
             {

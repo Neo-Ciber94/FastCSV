@@ -22,7 +22,7 @@ namespace FastCSV
         {
             format ??= CsvFormat.Default;
 
-            if (csv.IsNullOrBlank())
+            if (string.IsNullOrWhiteSpace(csv))
             {
                 throw new ArgumentException("CSV is empty");
             }

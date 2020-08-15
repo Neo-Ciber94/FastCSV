@@ -3,114 +3,114 @@ using System.Runtime.CompilerServices;
 
 namespace FastCSV.Benchmarks
 {
-    public readonly ref struct Result<T, E>
+    public readonly struct Result<T, TError>
     {
-        private readonly RawReference _value;
-        private readonly bool _isOk;
+        private readonly T _value;
+        private readonly TError _error;
+        private readonly bool _hasValue;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Result(T value)
         {
-            _value = RawReference.From(ref value);
-            _isOk = true;
+            _value = value;
+            _error = default;
+            _hasValue = true;
         }
 
-        public Result(E error)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Result(TError error)
         {
-            _value = RawReference.From(ref error);
-            _isOk = false;
+            _value = default;
+            _error = error;
+            _hasValue = false;
         }
 
-        public bool IsOk => _isOk;
-        public bool IsError => !_isOk;
+        public bool HasValue
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _hasValue;
+        }
+
+        public bool HasError
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => !_hasValue;
+        }
 
         public T Value
         {
             get
             {
-                if (IsError)
+                if (!_hasValue)
                 {
-                    throw new InvalidOperationException("The result is an error");
+                    throw new InvalidOperationException("Result has an error");
                 }
 
-                return _value.As<T>();
+                return _value;
             }
         }
 
-        public E Error
+        public TError Error
         {
             get
             {
-                if (IsOk)
+                if (_hasValue)
                 {
-                    throw new InvalidOperationException("The result is ok");
+                    throw new InvalidOperationException("Result has a value");
                 }
 
-                return _value.As<E>();
+                return _error;
             }
-        }
-
-        public static implicit operator Result<T, E>(ResultOk<T> result)
-        {
-            return new Result<T, E>(result._value);
-        }
-
-        public static implicit operator Result<T, E>(ResultError<E> result)
-        {
-            return new Result<T, E>(result._error);
         }
 
         public override string ToString()
         {
-            return _isOk ? $"Ok({Value})" : $"Error({Error})";
+            return _hasValue ? $"Ok({_value})" : $"Error({_error})";
         }
-    }
 
-    public readonly ref struct ResultOk<T>
-    {
-        internal readonly T _value;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator Result<T, TError>(ResultOk<T> result) => new Result<T, TError>(result.Value);
 
-        internal ResultOk(T value)
-        {
-            _value = value;
-        }
-    }
-
-    public readonly ref struct ResultError<E>
-    {
-        internal readonly E _error;
-
-        internal ResultError(E error)
-        {
-            _error = error;
-        }
-    }
-
-    public readonly struct _Result<T, E>
-    {
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator Result<T, TError>(ResultError<TError> result) => new ResultError<TError>(result.Error);
     }
 
     public static class Result
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ResultOk<T> Ok<T>(T value) => new ResultOk<T>(value);
 
-        public static ResultError<E> Error<E>(E error) => new ResultError<E>(error);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ResultError<TError> Error<TError>(TError error) => new ResultError<TError>(error);
     }
 
-    public unsafe ref struct RawReference
+    public readonly struct ResultOk<T>
     {
-        private readonly void* _value;
-
-        private RawReference(void* ptr)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal ResultOk(T value)
         {
-            _value = ptr;
+            Value = value;
         }
 
-        public static RawReference From<T>(ref T value)
+        public T Value 
+        { 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+            get; 
+        }
+    }
+
+    public readonly struct ResultError<TError>
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal ResultError(TError error)
         {
-            return new RawReference(Unsafe.AsPointer<T>(ref value));
+            Error = error;
         }
 
-        public ref T As<T>() => ref Unsafe.AsRef<T>(_value);
+        public TError Error 
+        { 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+            get; 
+        }
     }
 }

@@ -62,7 +62,7 @@ namespace FastCSV.Utils
                 }
 
                 // Ignore empty entries if the format don't allow whitespaces
-                if (format.IgnoreWhitespace && line.IsBlank())
+                if (format.IgnoreWhitespace && string.IsNullOrWhiteSpace(line))
                 {
                     continue;
                 }

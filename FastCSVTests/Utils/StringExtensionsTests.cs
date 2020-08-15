@@ -10,35 +10,6 @@ namespace FastCSV.Utils.Tests
     public class StringExtensionsTests
     {
         [Test()]
-        public void IsBlankTest()
-        {
-            Assert.IsTrue("".IsBlank());
-            Assert.IsTrue("  ".IsBlank());
-            Assert.IsTrue("\t".IsBlank());
-            Assert.IsTrue("\n".IsBlank());
-
-            Assert.IsFalse("a".IsBlank());
-            Assert.IsFalse(" abc".IsBlank());
-            Assert.IsFalse("abc ".IsBlank());
-        }
-
-        [Test()]
-        public void IsNullOrBlankTest()
-        {
-            string s = null;
-            Assert.IsTrue(s.IsNullOrBlank());
-
-            Assert.IsTrue("".IsNullOrBlank());
-            Assert.IsTrue("  ".IsNullOrBlank());
-            Assert.IsTrue("\t".IsNullOrBlank());
-            Assert.IsTrue("\n".IsNullOrBlank());
-
-            Assert.IsFalse("a".IsNullOrBlank());
-            Assert.IsFalse(" abc".IsNullOrBlank());
-            Assert.IsFalse("abc ".IsNullOrBlank());
-        }
-
-        [Test()]
         public void EnclosedWithTest()
         {
             Assert.IsTrue("'Hello'".EnclosedWith("'"));
