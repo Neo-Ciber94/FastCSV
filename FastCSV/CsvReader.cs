@@ -51,39 +51,19 @@ namespace FastCSV
         /// Initializes a new instance of the <see cref="CsvReader"/> class.
         /// </summary>
         /// <param name="reader">The reader.</param>
-        public CsvReader(StreamReader reader) : this(reader, CsvFormat.Default, true) { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CsvReader"/> class.
-        /// </summary>
-        /// <param name="reader">The reader.</param>
-        /// <param name="hasHeader">if set to <c>true</c> the first record will be considered the header.</param>
-        public CsvReader(StreamReader reader, bool hasHeader) : this(reader, CsvFormat.Default, hasHeader) { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CsvReader"/> class.
-        /// </summary>
-        /// <param name="reader">The reader.</param>
-        /// <param name="format">The format.</param>
-        public CsvReader(StreamReader reader, CsvFormat format) : this(reader, format, true) { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CsvReader"/> class.
-        /// </summary>
-        /// <param name="reader">The reader.</param>
         /// <param name="format">The format.</param>
         /// <param name="hasHeader">if set to <c>true</c> the first record will be considered the header.</param>
-        public CsvReader(StreamReader reader, CsvFormat format, bool hasHeader)
+        public CsvReader(StreamReader reader, CsvFormat? format = null, bool hasHeader = true)
         {
             _reader = reader;
-            Format = format;
+            Format = format?? CsvFormat.Default;
 
             if (hasHeader)
             {
                 List<string>? values = CsvUtility.ReadRecord(_reader!, Format);
                 if (values != null && values.Count > 0)
                 {
-                    Header = new CsvHeader(values, format);
+                    Header = new CsvHeader(values, Format);
                     _recordNumber += 1;
                 }
             }
@@ -93,43 +73,13 @@ namespace FastCSV
         /// Froms the stream.
         /// </summary>
         /// <param name="stream">The stream.</param>
-        /// <returns></returns>
-        public static CsvReader FromStream(Stream stream)
-        {
-            return FromStream(stream, CsvFormat.Default, true);
-        }
-
-        /// <summary>
-        /// Froms the stream.
-        /// </summary>
-        /// <param name="stream">The stream.</param>
-        /// <param name="hasHeader">if set to <c>true</c> the first record will be considered the header.</param>
-        /// <returns></returns>
-        public static CsvReader FromStream(Stream stream, bool hasHeader)
-        {
-            return FromStream(stream, CsvFormat.Default, hasHeader);
-        }
-
-        /// <summary>
-        /// Froms the stream.
-        /// </summary>
-        /// <param name="stream">The stream.</param>
-        /// <param name="format">The format.</param>
-        /// <returns></returns>
-        public static CsvReader FromStream(Stream stream, CsvFormat format)
-        {
-            return FromStream(stream, format, true);
-        }
-
-        /// <summary>
-        /// Froms the stream.
-        /// </summary>
-        /// <param name="stream">The stream.</param>
         /// <param name="format">The format.</param>
         /// <param name="hasHeader">if set to <c>true</c> the first record will be considered the header.</param>
         /// <returns></returns>
-        public static CsvReader FromStream(Stream stream, CsvFormat format, bool hasHeader)
+        public static CsvReader FromStream(Stream stream, CsvFormat? format = null, bool hasHeader = true)
         {
+            format ??= CsvFormat.Default;
+
             StreamReader reader = new StreamReader(stream);
             return new CsvReader(reader, format, hasHeader);
         }
@@ -238,7 +188,7 @@ namespace FastCSV
         /// <typeparam name="T">Type to cast the record to.</typeparam>
         /// <param name="parser">The parser.</param>
         /// <returns>An optional with the value or none is there is no more records to read.</returns>
-        public Optional<T> ReadAs<T>(ParserDelegate? parser = null)
+        public Optional<T> ReadAs<T>(IEnumerable<IValueParser>? parsers = null) where T: notnull
         {
             Dictionary<string, string>? data = Read()?.ToDictionary();
 
@@ -247,7 +197,7 @@ namespace FastCSV
                 return Optional.None<T>();
             }
 
-            var result = CsvUtility.CreateInstance<T>(data, parser);
+            var result = CsvUtility.CreateInstance<T>(data, parsers);
             return Optional.Some(result);
         }
 
@@ -257,12 +207,12 @@ namespace FastCSV
         /// end the reader will be at the end of the file.
         /// </summary>
         /// <returns>An enumerable over the records of this reader csv.</returns>
-        public IEnumerable<T> ReadAllAs<T>(ParserDelegate? parser = null)
+        public IEnumerable<T> ReadAllAs<T>(IEnumerable<IValueParser>? parsers = null)
         {
             return ReadAll().Select(record =>
             {
                 Dictionary<string, string> data = record.ToDictionary()!;
-                return CsvUtility.CreateInstance<T>(data, parser);
+                return CsvUtility.CreateInstance<T>(data, parsers);
             });
         }
             
@@ -456,7 +406,9 @@ namespace FastCSV
                 //_record = null;
             }
 
+#pragma warning disable IDE0060 // Quitar el parámetro no utilizado
             public RecordsAsync GetEnumerator(CancellationToken cancellationToken = default) => this;
+#pragma warning restore IDE0060 // Quitar el parámetro no utilizado
 
             public IAsyncEnumerator<CsvRecord> GetAsyncEnumerator(CancellationToken cancellationToken = default) => this;
         }

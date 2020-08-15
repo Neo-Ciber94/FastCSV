@@ -49,5 +49,11 @@ namespace FastCSV
         /// <param name="index">The index.</param>
         /// <returns></returns>
         public CsvRecord this[int index] { get; }
+
+        /// <summary>
+        /// Writes the contents of this document to file.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        public void WriteContentsToFile(string path);
     }
 }

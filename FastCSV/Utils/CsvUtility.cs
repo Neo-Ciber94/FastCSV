@@ -361,14 +361,12 @@ namespace FastCSV.Utils
 
                 if(generics != null)
                 {
-                    using (var sb = new ValueStringBuilder(stackalloc char[64]))
-                    {
-                        sb.Append(type.Name);
-                        sb.Append('<');
-                        sb.AppendJoin(", ", generics.Select(e => e.Name));                   
-                        sb.Append('>');
-                        result.Add(sb.ToString());
-                    }
+                    using var sb = new ValueStringBuilder(stackalloc char[64]);
+                    sb.Append(type.Name);
+                    sb.Append('<');
+                    sb.AppendJoin(", ", generics.Select(e => e.Name));
+                    sb.Append('>');
+                    result.Add(sb.ToString());
                 }
                 else
                 {
@@ -457,24 +455,11 @@ namespace FastCSV.Utils
         /// </summary>
         /// <typeparam name="T">Type of the value</typeparam>
         /// <param name="data">The data to populate the fields of the new instance.</param>
-        /// and if fail will attempt to parse using <see cref="CsvUtility.TryParse(string, Type, out object?)"/>.</param>
-        /// <returns>A new instance of the specified type.</returns>
-        /// <exception cref="InvalidOperationException">If cannot find or parse the fields or properties with the name of keys of the <c>data</c></exception>
-        public static T CreateInstance<T>(Dictionary<string, string> data)
-        {
-            return CreateInstance<T>(data, null);
-        }
-
-        /// <summary>
-        /// Creates the instance of the specified type using the values of the given <see cref="Dictionary{TKey, TValue}"/>.
-        /// </summary>
-        /// <typeparam name="T">Type of the value</typeparam>
-        /// <param name="data">The data to populate the fields of the new instance.</param>
         /// <param name="parser">A parser used for all the values, for each value the parser will be called
         /// and if fail will attempt to parse using <see cref="CsvUtility.TryParse(string, Type, out object?)"/>.</param>
         /// <returns>A new instance of the specified type.</returns>
         /// <exception cref="InvalidOperationException">If cannot find or parse the fields or properties with the name of keys of the <c>data</c></exception>
-        public static T CreateInstance<T>(Dictionary<string, string> data, ParserDelegate? parser)
+        public static T CreateInstance<T>(Dictionary<string, string> data, IEnumerable<IValueParser>? parsers = null)
         {
             Optional<object> result = default;
             Type type = typeof(T);
@@ -490,7 +475,7 @@ namespace FastCSV.Utils
                         result = Optional.Some(FormatterServices.GetUninitializedObject(type));
                     }
 
-                    object? obj = ParseValue(field.FieldType, field.Name, pair.Key, pair.Value);
+                    object? obj = ParseValue(parsers, field.FieldType, field.Name, pair.Key, pair.Value);
                     field.SetValue(result.Value, obj);
                 }
 
@@ -503,7 +488,7 @@ namespace FastCSV.Utils
                         result = Optional.Some(FormatterServices.GetUninitializedObject(type));
                     }
 
-                    object? obj = ParseValue(prop.PropertyType, prop.Name, pair.Key, pair.Value);
+                    object? obj = ParseValue(parsers, prop.PropertyType, prop.Name, pair.Key, pair.Value);
                     prop.SetValue(result.Value, obj);
                 }
 
@@ -521,15 +506,16 @@ namespace FastCSV.Utils
             return (T)result.Value;
 
             // Helper method
-            object? ParseValue(Type type, string fieldOrPropertyName, string key, string value)
+            static object? ParseValue(IEnumerable<IValueParser>? parsers, Type type, string fieldOrPropertyName, string key, string value)
             {
-                if (parser != null)
+                if (parsers != null)
                 {
-                    ParseResult parseResult = parser(key, value);
-
-                    if (parseResult.IsSuccess)
+                    foreach(IValueParser parser in parsers)
                     {
-                        return parseResult.Result;
+                        if(parser.TryParse(key, value, out object? obj))
+                        {
+                            return obj;
+                        }
                     }
                 }
 
@@ -571,6 +557,13 @@ namespace FastCSV.Utils
         public static bool TryParse(string value, Type type, out object? result)
         {
             result = null;
+
+            Type? nullableType = Nullable.GetUnderlyingType(type);
+
+            if(nullableType != null)
+            {
+                type = nullableType;
+            }
 
             if (type.IsPrimitive)
             {

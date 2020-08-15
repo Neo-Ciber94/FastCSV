@@ -49,65 +49,13 @@ namespace FastCSV
         /// Initializes a new instance of the <see cref="CsvWriter"/> class.
         /// </summary>
         /// <param name="writer">The writer.</param>
-        public CsvWriter(StreamWriter writer) : this(writer, CsvFormat.Default, false) { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CsvWriter"/> class.
-        /// </summary>
-        /// <param name="writer">The writer.</param>
-        /// <param name="flexible">if set to <c>true</c> the writer will allow records of diferent lenghts.</param>
-        public CsvWriter(StreamWriter writer, bool flexible) : this(writer, CsvFormat.Default, flexible) { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CsvWriter"/> class.
-        /// </summary>
-        /// <param name="writer">The writer.</param>
-        /// <param name="format">The format.</param>
-        public CsvWriter(StreamWriter writer, CsvFormat format) : this(writer, format, false) { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CsvWriter"/> class.
-        /// </summary>
-        /// <param name="writer">The writer.</param>
         /// <param name="format">The format.</param>
         /// <param name="flexible">if set to <c>true</c> the writer will allow records of diferent lenghts.</param>
-        public CsvWriter(StreamWriter writer, CsvFormat format, bool flexible)
+        public CsvWriter(StreamWriter writer, CsvFormat? format = null, bool flexible = false)
         {
             _writer = writer;
             IsFlexible = flexible;
-            Format = format;
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvWriter"/> from the specified stream.
-        /// </summary>
-        /// <param name="stream">The stream.</param>
-        /// <returns></returns>
-        public static CsvWriter FromStream(Stream stream)
-        {
-            return FromStream(stream, CsvFormat.Default, false);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvWriter"/> from the specified stream.
-        /// </summary>
-        /// <param name="stream">The stream.</param>
-        /// <param name="flexible">if set to <c>true</c> the writer will allow records of diferent lenghts.</param>
-        /// <returns></returns>
-        public static CsvWriter FromStream(Stream stream, bool flexible)
-        {
-            return FromStream(stream, CsvFormat.Default, flexible);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CsvWriter"/> from the specified stream.
-        /// </summary>
-        /// <param name="stream">The stream.</param>
-        /// <param name="format">The format.</param>
-        /// <returns></returns>
-        public static CsvWriter FromStream(Stream stream, CsvFormat format)
-        {
-            return FromStream(stream, format, false);
+            Format = format?? CsvFormat.Default;
         }
 
         /// <summary>
@@ -117,8 +65,10 @@ namespace FastCSV
         /// <param name="format">The format.</param>
         /// <param name="flexible">if set to <c>true</c> the writer will allow records of diferent lenghts.</param>
         /// <returns></returns>
-        public static CsvWriter FromStream(Stream stream, CsvFormat format, bool flexible)
+        public static CsvWriter FromStream(Stream stream, CsvFormat? format = null, bool flexible = false)
         {
+            format ??= CsvFormat.Default;
+
             StreamWriter writer = new StreamWriter(stream);
             return new CsvWriter(writer, format, flexible);
         }

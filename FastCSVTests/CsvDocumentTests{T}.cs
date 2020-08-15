@@ -93,19 +93,24 @@ namespace FastCSV.Tests
                 "Red,23,200-1200\r\n" +
                 "Blue,24,233-5565\r\n";
 
-            var document = CsvDocument<Employee>.FromCsv(csv, parser: (string key, string value) => {
-                if(key == "PhoneNumber")
+            var phoneNumberParser = new ValueParser((string key, string value, out object result) =>
+            {
+                result = null;
+                if (key == "PhoneNumber")
                 {
                     var number = value.Replace("-", string.Empty)
                         .ToCharArray()
                         .Select(e => (byte)char.GetNumericValue(e))
                         .ToArray();
 
-                    return ParseResult.Ok(new PhoneNumber(number));
+                    result = new PhoneNumber(number).ToNullable();
+                    return true;
                 }
 
-                return ParseResult.Failed;
+                return false;
             });
+
+            var document = CsvDocument<Employee>.FromCsv(csv, parsers: new IValueParser[] { phoneNumberParser });
 
             Assert.AreEqual(2, document.Count);
             Assert.AreEqual(new Employee("Red", 23, new PhoneNumber(2, 0, 0, 1, 2, 0, 0)), document.GetValue(0));

@@ -31,7 +31,14 @@ namespace FastCSV
         /// <param name="format">The format.</param>
         public CsvHeader(IEnumerable<string> values, CsvFormat format)
         {
-            _values = values.ToArray();
+            string[] array = values.ToArray();
+
+            if(array.Length == 0)
+            {
+                throw new ArgumentException("Header need at least 1 value");
+            }
+
+            _values = array;
             Format = format;
         }
 
