@@ -93,21 +93,15 @@ namespace FastCSV.Tests
                 "Red,23,200-1200\r\n" +
                 "Blue,24,233-5565\r\n";
 
-            var phoneNumberParser = new ValueParser((string key, string value, out object result) =>
+            var phoneNumberParser = new ValueParser(keys: "PhoneNumber", parser: (string key, string value, out object result) =>
             {
-                result = null;
-                if (key == "PhoneNumber")
-                {
-                    var number = value.Replace("-", string.Empty)
-                        .ToCharArray()
-                        .Select(e => (byte)char.GetNumericValue(e))
-                        .ToArray();
+                var number = value.Replace("-", string.Empty)
+                    .ToCharArray()
+                    .Select(e => (byte)char.GetNumericValue(e))
+                    .ToArray();
 
-                    result = new PhoneNumber(number).ToNullable();
-                    return true;
-                }
-
-                return false;
+                result = new PhoneNumber(number).ToNullable();
+                return true;
             });
 
             var document = CsvDocument<Employee>.FromCsv(csv, parsers: new IValueParser[] { phoneNumberParser });
