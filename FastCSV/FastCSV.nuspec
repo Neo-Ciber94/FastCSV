@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>NeoCiber94</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <projectUrl>https://github.com/Neo-Ciber94/FastCSV</projectUrl>
+    <description>$description$</description>
+    <releaseNotes>First version</releaseNotes>
+    <copyright>$copyright$</copyright>
+    <tags>csv</tags>
+  </metadata>
+</package>

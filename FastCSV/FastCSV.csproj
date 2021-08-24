@@ -1,8 +1,22 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">  
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>NeoCiber94.FastCSV</PackageId>
+    <Title>FastCSV</Title>
+    <Version>1.0.0</Version>
+    <Authors>NeoCiber94</Authors>
+    <Company>NeoCiber94</Company>
+    <PackageReleaseNotes>First version</PackageReleaseNotes>
+    <PackageTags>csv</PackageTags>
+    <Description>A csv reader and writer for C#</Description>
+    <PackageLicenseUrl>https://github.com/Neo-Ciber94/FastCSV/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/Neo-Ciber94/FastCSV</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Neo-Ciber94/FastCSV</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
