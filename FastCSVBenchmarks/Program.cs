@@ -19,7 +19,7 @@ namespace FastCSV.Benchmarks
 
             using var reader = new CsvReader(ProjectPath + "example.csv");
 
-            foreach(var r in reader.ReadAll().Take(10))
+            foreach(var r in reader.ReadAll())
             {
                 Console.WriteLine(r.ToString());
             }
