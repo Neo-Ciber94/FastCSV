@@ -200,7 +200,7 @@ namespace FastCSV
         /// </summary>
         /// <typeparam name="T">Type of the value</typeparam>
         /// <param name="value">The value to write.</param>
-        public void WriteWith<T>(T value)
+        public void WriteWith<T>(T value) //FIXME: WriteValue
         {
             List<string> values = CsvUtility.GetValues(value);
             WriteAll(values);
@@ -220,7 +220,7 @@ namespace FastCSV
         /// </summary>
         /// <param name="values">The values.</param>
         /// <exception cref="ArgumentException">If the writer is flexible and attempt to write more fields than the previous one.</exception>
-        public async Task WriteAllAsync(IEnumerable<string> values)
+        public async Task WriteAllAsync(IEnumerable<string> values) // FIXME: WriteValueAsync
         {
             await Task.Run(() => WriteAll(values));
         }
