@@ -15,14 +15,7 @@ namespace FastCSV.Benchmarks
     {
         public static void Main()
         {
-            const string ProjectPath = "../../../";
-
-            using var reader = new CsvReader(ProjectPath + "example.csv");
-
-            foreach(var r in reader.ReadAll())
-            {
-                Console.WriteLine(r.ToString());
-            }
+            BenchmarkRunner.Run<ReadAllVsReadAllAsync>();
         }
     }
 }
