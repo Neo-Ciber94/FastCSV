@@ -153,9 +153,10 @@ namespace FastCSV
         /// Reads the next record asynchronously.
         /// </summary>
         /// <returns>The next record or null is there is not more records</returns>
-        public async Task<CsvRecord?> ReadAsync()
+        public ValueTask<CsvRecord?> ReadAsync()
         {
-            return await Task.Run(() => Read());
+            CsvRecord? record = Read();
+            return new ValueTask<CsvRecord?>(record);
         }
 
         /// <summary>
