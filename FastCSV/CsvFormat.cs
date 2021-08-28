@@ -12,6 +12,12 @@ namespace FastCSV
     [Serializable]
     public class CsvFormat : ICloneable<CsvFormat>, IEquatable<CsvFormat?>
     {
+        public const char DefaultDelimiter = ',';
+
+        public const char DefautlQuote = '"';
+
+        public const QuoteStyle DefaultStyle = QuoteStyle.WhenNeeded;
+
         /// <summary>
         /// Gets the default format.
         /// </summary>
@@ -28,7 +34,7 @@ namespace FastCSV
         /// <param name="style">The style.</param>
         /// <param name="ignoreWhitespaces">if set to <c>true</c> leading and trailing whitespaces will be ignored.</param>
         /// <exception cref="ArgumentException">If the delimiter is equals to the quote</exception>
-        public CsvFormat(char delimiter = ',', char quote = '"', QuoteStyle style = QuoteStyle.WhenNeeded, bool ignoreWhitespaces = true)
+        public CsvFormat(char delimiter = DefaultDelimiter, char quote = DefautlQuote, QuoteStyle style = QuoteStyle.WhenNeeded, bool ignoreWhitespaces = true)
         {
             if (delimiter == quote)
             {
