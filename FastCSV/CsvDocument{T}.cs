@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Net;
-using System.Numerics;
 using System.Linq;
 using System.Text;
 using FastCSV.Utils;
-using System.Runtime.CompilerServices;
-using System.IO;
 
 namespace FastCSV
 {
@@ -296,7 +292,7 @@ namespace FastCSV
         /// </returns>
         public string ToString(CsvFormat format)
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = StringBuilderCache.Acquire();
 
             sb.AppendLine(Header.ToString(format));
 
@@ -305,7 +301,7 @@ namespace FastCSV
                 sb.AppendLine(typedRecord.Record.ToString(format));
             }
 
-            return sb.ToString();
+            return StringBuilderCache.ToStringAndRelease(ref sb!);
         }
 
         /// <summary>

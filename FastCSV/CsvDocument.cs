@@ -332,7 +332,7 @@ namespace FastCSV
         /// </returns>
         public string ToString(CsvFormat format)
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = StringBuilderCache.Acquire();
 
             sb.AppendLine(Header.ToString());
 
@@ -341,7 +341,7 @@ namespace FastCSV
                 sb.AppendLine(record.ToString(format));
             }
 
-            return sb.ToString();
+            return StringBuilderCache.ToStringAndRelease(ref sb!);
         }
 
         /// <summary>
