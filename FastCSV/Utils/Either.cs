@@ -38,6 +38,11 @@ namespace FastCSV.Utils
             return HashCode.Combine(_value, _isRight);
         }
 
+        public override string ToString()
+        {
+            return IsLeft ? $"Left({Left})" : $"Right({Right})";
+        }
+
         public static bool operator ==(Either<TLeft, TRight> left, Either<TLeft, TRight> right)
         {
             return left.Equals(right);
