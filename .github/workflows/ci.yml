@@ -19,11 +19,12 @@ jobs:
       with:
         dotnet-version: 5.0.x
 
-    #- name: Clean
-    #  run: dotnet clean ./FastCSV.sln --configuration Debug && dotnet nuget locals all --clear
+    # https://stackoverflow.com/questions/67052324/github-actions-dotnet-build-unable-to-find-package
+    - name: Add nuget.org as nuget package source
+      run: dotnet nuget add source https://api.nuget.org/v3/index.json --name nuget.org
 
-    #- name: Restore dependencies
-    #  run: dotnet restore
+    - name: Restore dependencies
+      run: dotnet restore
 
     - name: Build
       run: dotnet build --no-restore
