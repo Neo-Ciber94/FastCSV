@@ -19,10 +19,6 @@ jobs:
       with:
         dotnet-version: 5.0.x
 
-    # https://github.com/actions/virtual-environments/issues/3038
-    - name: Add nuget.config
-      run: dotnet new nugetconfig
-
     - name: Restore dependencies
       run: dotnet restore
       working-directory: ./FastCSV/
