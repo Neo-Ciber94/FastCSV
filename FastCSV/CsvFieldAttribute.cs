@@ -13,10 +13,18 @@ namespace FastCSV
         /// Initializes a new instance of the <see cref="CsvFieldAttribute"/> class.
         /// </summary>
         /// <param name="name">The name.</param>
-        public CsvFieldAttribute(string name) { Name = name; }
+        public CsvFieldAttribute(string name) 
+        { 
+            if (name.Trim().Length == 0)
+            {
+                throw new ArgumentException("field name cannot be blank", nameof(name));
+            }
+
+            Name = name; 
+        }
 
         /// <summary>
-        /// Gets the name of the field.
+        /// Gets the name of the csv field.
         /// </summary>
         /// <value>
         /// The name.
