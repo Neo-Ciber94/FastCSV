@@ -19,9 +19,9 @@ jobs:
       with:
         dotnet-version: 5.0.x
 
-    # https://stackoverflow.com/questions/67052324/github-actions-dotnet-build-unable-to-find-package
-    - name: Add nuget.org as nuget package source
-      run: dotnet nuget add source https://api.nuget.org/v3/index.json --name nuget.org
+    # https://github.com/actions/virtual-environments/issues/3038
+    - name: Add nuget.config
+      run: dotnet new nugetconfig
 
     - name: Restore dependencies
       run: dotnet restore
