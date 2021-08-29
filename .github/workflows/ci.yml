@@ -29,6 +29,8 @@ jobs:
 
     - name: Build
       run: dotnet build --no-restore
+      working-directory: ./FastCSV/
 
     - name: Test
       run: dotnet test --no-build --verbosity normal
+      working-directory: ./FastCSV/~
