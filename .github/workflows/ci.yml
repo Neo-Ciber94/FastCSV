@@ -25,6 +25,7 @@ jobs:
 
     - name: Restore dependencies
       run: dotnet restore
+      working-directory: ./FastCSV/
 
     - name: Build
       run: dotnet build --no-restore
