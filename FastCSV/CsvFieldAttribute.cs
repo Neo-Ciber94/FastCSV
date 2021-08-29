@@ -15,9 +15,9 @@ namespace FastCSV
         /// <param name="name">The name.</param>
         public CsvFieldAttribute(string name) 
         { 
-            if (name.Trim().Length == 0)
+            if (string.IsNullOrWhiteSpace(name))
             {
-                throw new ArgumentException("field name cannot be blank", nameof(name));
+                throw new ArgumentException("field name cannot be empty", nameof(name));
             }
 
             Name = name; 
