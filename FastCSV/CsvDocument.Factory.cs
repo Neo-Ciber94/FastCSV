@@ -40,7 +40,7 @@ namespace FastCSV
                 else
                 {
                     records = new List<CsvRecord>();
-                    int headerLength = reader.Header!.Length;
+                    int headerLength = reader.Header!.Length; // FIXME: What warrantes the header is not null?
 
                     foreach (CsvRecord r in reader.ReadAll())
                     {
