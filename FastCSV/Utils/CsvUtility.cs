@@ -204,7 +204,7 @@ namespace FastCSV.Utils
         /// <returns></returns>
         public static string ToCsvString(IEnumerable<string> values, CsvFormat format)
         {
-            if (values.Count() == 0)
+            if (!values.Any())
             {
                 return string.Empty;
             }
@@ -807,6 +807,16 @@ namespace FastCSV.Utils
             }
 
             return resultBuilder.ToString();
+        }
+
+        /// <summary>
+        /// Combines a list of csv records into a csv separated by newlines.
+        /// </summary>
+        /// <param name="values">The csv records to combine</param>
+        /// <returns>A csv with the records separated by a newline.</returns>
+        public static string Join(IEnumerable<string> values)
+        {
+            return string.Join('\n', values);
         }
 
         private static CsvFieldInfo? GetField(Type type, string name, BindingFlags flags)
