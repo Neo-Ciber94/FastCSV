@@ -639,16 +639,18 @@ namespace FastCSV.Utils
                     result = obj;
                     return ret;
                 }
-                else if (type == typeof(decimal))
+            }
+            else
+            {
+                // System.Decimal is not a primitive type
+                // https://docs.microsoft.com/en-us/dotnet/api/system.type.isprimitive?view=net-5.0#System_Type_IsPrimitive
+                if (type == typeof(decimal))
                 {
                     bool ret = decimal.TryParse(value, out var obj);
                     result = obj;
                     return ret;
                 }
-            }
-            else
-            {
-                if (type == typeof(BigInteger))
+                else if (type == typeof(BigInteger))
                 {
                     bool ret = BigInteger.TryParse(value, out var obj);
                     result = obj;
