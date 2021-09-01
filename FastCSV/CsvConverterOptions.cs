@@ -17,13 +17,15 @@
 
         /// <summary>
         /// If <c>true</c> class fields will be included during serialization/deserialization, by default only properties are included.
+        /// Default is <c>false</c>.
         /// </summary>
         public bool IncludeFields { get; init; } = false;
 
         /// <summary>
         /// If <c>true</c> a header will be included during serialization/deserialization.
+        /// Default is <c>true</c>.
         /// </summary>
-        public bool IncludeHeader { get; set; } = true;
+        public bool IncludeHeader { get; init; } = true;
 
         /// <summary>
         /// The delimiter of the format.
