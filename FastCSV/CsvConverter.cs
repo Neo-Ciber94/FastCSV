@@ -93,8 +93,7 @@
                 // Special case, boolean ToString is capitalized
                 if (value.GetType() == typeof(bool))
                 {
-                    bool b = (bool)value;
-                    return b ? "true" : "false";
+                    return (bool)value ? "true" : "false";
                 }
 
                 return value.ToString()?? string.Empty;
