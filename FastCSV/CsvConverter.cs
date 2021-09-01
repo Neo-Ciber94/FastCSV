@@ -67,7 +67,7 @@
 
             List<CsvField> fields = GetFields(type, options, Permission.Read, value);
             string[] csvValues = fields.Where(e => !e.Ignore)
-                .Select(e => e.Value?.ToString() ?? string.Empty)
+                .Select((e) => ValueToString(e.Value))
                 .ToArray();
 
             string values = CsvUtility.ToCsvString(csvValues, options.Format);
@@ -80,6 +80,25 @@
             }
 
             return values;
+
+            // Helper
+
+            static string ValueToString(object? value)
+            {
+                if (value == null)
+                {
+                    return string.Empty;
+                }
+
+                // Special case, boolean ToString is capitalized
+                if (value.GetType() == typeof(bool))
+                {
+                    bool b = (bool)value;
+                    return b ? "true" : "false";
+                }
+
+                return value.ToString()?? string.Empty;
+            }
         }
 
         /// <summary>
