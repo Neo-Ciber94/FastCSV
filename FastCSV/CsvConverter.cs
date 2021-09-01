@@ -1,18 +1,31 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Numerics;
-using System.Reflection;
-using System.Runtime.Serialization;
-using FastCSV.Utils;
-
-namespace FastCSV
+﻿namespace FastCSV
 {
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Net;
+    using System.Numerics;
+    using System.Reflection;
+    using System.Runtime.Serialization;
+    using FastCSV.Utils;
+
     // Determine if a field/property will be a getter, setter of both.
-    internal enum Permission { Read, Write, ReadWrite }
+    internal enum Permission
+    { /// <summary>
+      /// Defines the Read.
+      /// </summary>
+        Read,
+        /// <summary>
+        /// Defines the Write.
+        /// </summary>
+        Write,
+        /// <summary>
+        /// Defines the ReadWrite.
+        /// </summary>
+        ReadWrite
+    }
 
     /// <summary>
     /// Provides a set of utilities for serialize and deserialize csv.
@@ -23,7 +36,7 @@ namespace FastCSV
         /// Serialize the given value to a csv.
         /// </summary>
         /// <typeparam name="T">Type of the value.</typeparam>
-        /// <param name="value">The value to convert to csv</param>
+        /// <param name="value">The value to convert to csv.</param>
         /// <param name="options">Options used, if null will use the default options.</param>
         /// <returns>A csv string of the value.</returns>
         public static string Serialize<T>(T value, CsvConverterOptions? options = null)
@@ -34,13 +47,13 @@ namespace FastCSV
         /// <summary>
         /// Serialize the given value to a csv.
         /// </summary>
-        /// <param name="value">The value to convert to csv</param>
-        /// <param name="type">Type of the value</param>
+        /// <param name="value">The value to convert to csv.</param>
+        /// <param name="type">Type of the value.</param>
         /// <param name="options">Options used, if null will use the default options.</param>
         /// <returns>A csv string of the value.</returns>
         public static string Serialize(object value, Type type, CsvConverterOptions? options = null)
         {
-            if(value == null)
+            if (value == null)
             {
                 throw new ArgumentNullException(nameof(value));
             }
@@ -53,7 +66,9 @@ namespace FastCSV
             options ??= CsvConverterOptions.Default;
 
             List<CsvField> fields = GetFields(type, options, Permission.Read, value);
-            string[] csvValues = fields.Select(e => e.Value?.ToString() ?? string.Empty).ToArray();
+            string[] csvValues = fields.Where(e => !e.Ignore)
+                .Select(e => e.Value?.ToString() ?? string.Empty)
+                .ToArray();
 
             string values = CsvUtility.ToCsvString(csvValues, options.Format);
 
@@ -132,7 +147,7 @@ namespace FastCSV
 
                     if (!CsvUtility.TryParse(csvValue, csvField.Type, out var value))
                     {
-                        throw new InvalidCastException($"Cannot convert '{csvValue}' to '{ csvField.Type}'");
+                        throw new InvalidOperationException($"Cannot convert '{csvValue}' to '{ csvField.Type}'");
                     }
 
                     field.SetValue(obj, value);
@@ -144,7 +159,7 @@ namespace FastCSV
 
                     if (!CsvUtility.TryParse(csvValue, csvField.Type, out var value))
                     {
-                        throw new InvalidCastException($"Cannot convert '{csvValue}' to '{ csvField.Type}'");
+                        throw new InvalidOperationException($"Cannot convert '{csvValue}' to '{ csvField.Type}'");
                     }
 
                     prop.SetValue(obj, value);
@@ -157,14 +172,17 @@ namespace FastCSV
 
             static string GetCsvValue(CsvRecord record, CsvField field, int index)
             {
-                if (record.Header is not null)
+                if((uint)index > (uint)record.Length)
                 {
-                    return record[field.Name];
+                    throw new InvalidOperationException($"Record value out of range, index was {index} but length was {record.Length}");
                 }
-                else
+
+                if (record.Header != null && !record.Header.Contains(field.Name))
                 {
-                    return record[index];
+                    throw new InvalidOperationException($"Cannot find \"{field.Name}\" value in the record");
                 }
+
+                return record.Header != null? record[field.Name]: record[index];
             }
         }
 
@@ -188,15 +206,17 @@ namespace FastCSV
                 return new string[] { value?.ToString() ?? string.Empty };
             }
             else if (typeof(IEnumerable).IsAssignableFrom(type))
-            {               
+            {
                 return ((IEnumerable)value).Cast<object>()
                     .Select(e => e.ToString() ?? string.Empty)
                     .ToArray();
             }
             else
             {
-                List<CsvField> fields = GetFields(type, options?? CsvConverterOptions.Default, Permission.Read, instance: value);
-                return fields.Select(e => e.Value?.ToString() ?? string.Empty).ToArray();
+                return GetFields(type, options ?? CsvConverterOptions.Default, Permission.Read, instance: value)
+                    .Where(e => !e.Ignore)
+                    .Select(e => e.Value?.ToString() ?? string.Empty)
+                    .ToArray();
             }
         }
 
@@ -213,10 +233,17 @@ namespace FastCSV
                 return new string[] { GetBuiltInTypeName(type) };
             }
 
-            IEnumerable<CsvField> fields = GetFields(type, options ?? CsvConverterOptions.Default, Permission.Read, instance: null);
-            return fields.Select(e => e.Name).ToArray();
+            return GetFields(type, options ?? CsvConverterOptions.Default, Permission.Read, instance: null)
+                .Where(e => !e.Ignore)
+                .Select(e => e.Name)
+                .ToArray();
         }
 
+        /// <summary>
+        /// The GetBuiltInTypeName.
+        /// </summary>
+        /// <param name="type">The type<see cref="Type"/>.</param>
+        /// <returns>The <see cref="string"/>.</returns>
         internal static string GetBuiltInTypeName(Type type)
         {
             return type switch
@@ -239,6 +266,11 @@ namespace FastCSV
             };
         }
 
+        /// <summary>
+        /// The IsBuiltInType.
+        /// </summary>
+        /// <param name="type">The type<see cref="Type"/>.</param>
+        /// <returns>The <see cref="bool"/>.</returns>
         internal static bool IsBuiltInType(Type type)
         {
             return type.IsPrimitive
@@ -254,6 +286,14 @@ namespace FastCSV
                 || type == typeof(Guid);
         }
 
+        /// <summary>
+        /// The GetFields.
+        /// </summary>
+        /// <param name="type">The type<see cref="Type"/>.</param>
+        /// <param name="options">The options<see cref="CsvConverterOptions"/>.</param>
+        /// <param name="permission">The permission<see cref="Permission"/>.</param>
+        /// <param name="instance">The instance<see cref="object?"/>.</param>
+        /// <returns>The <see cref="List{CsvField}"/>.</returns>
         internal static List<CsvField> GetFields(Type type, CsvConverterOptions options, Permission permission, object? instance)
         {
             List<CsvField> csvFields;
@@ -279,9 +319,9 @@ namespace FastCSV
                     string originalName = field.Name;
                     string name = field.GetCustomAttribute<CsvFieldAttribute>()?.Name ?? originalName;
                     Type fieldType = field.FieldType;
-                    object? fieldValue = instance != null? field.GetValue(instance) : null;
+                    object? fieldValue = instance != null ? field.GetValue(instance) : null;
                     bool ignore = field.GetCustomAttribute<CsvIgnoreAttribute>() != null || field.GetCustomAttribute<NonSerializedAttribute>() != null;
-                    
+
                     CsvField csvField = new(originalName, name, fieldValue, fieldType, Either.FromLeft(field), ignore);
                     csvFields.Add(csvField);
                 }
@@ -297,14 +337,14 @@ namespace FastCSV
                 }
             }
 
-            foreach(var prop in properties)
+            foreach (var prop in properties)
             {
                 string originalName = prop.Name;
                 string name = prop.GetCustomAttribute<CsvFieldAttribute>()?.Name ?? originalName;
                 Type propType = prop.PropertyType;
                 object? propValue = instance != null ? prop.GetValue(instance) : null;
                 bool ignore = prop.GetCustomAttribute<CsvIgnoreAttribute>() != null || prop.GetCustomAttribute<NonSerializedAttribute>() != null;
-                
+
                 CsvField csvField = new(originalName, name, propValue, propType, Either.FromRight(prop), ignore);
                 csvFields.Add(csvField);
             }
@@ -312,7 +352,7 @@ namespace FastCSV
             return csvFields;
 
             /// Helpers
-            
+
             static BindingFlags GetFlagsFromPermission(Permission permission)
             {
                 var flags = BindingFlags.Public | BindingFlags.Instance;

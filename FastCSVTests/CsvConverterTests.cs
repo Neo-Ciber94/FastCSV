@@ -17,6 +17,12 @@ namespace FastCSV.Tests
             public decimal Price { get; set; }
         }
 
+        class OtherProduct
+        {
+            public int Id { get; set; }
+            public bool Available { get; set; }
+        }
+
         [Test()]
         public void SerializeTest()
         {
@@ -51,6 +57,28 @@ namespace FastCSV.Tests
 
             Assert.AreEqual("Table", product.Name);
             Assert.AreEqual(200m, product.Price);
+        }
+
+        [Test()]
+        public void DeserializeHeaderMissmatchTest()
+        {
+            var csv = "product_name,product_price\nTable,200";
+
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                var product = CsvConverter.Deserialize(csv, typeof(Product));
+            });
+        }
+
+        [Test()]
+        public void DeserializeInvalidTypeTest()
+        {
+            var csv = "Id,Available\n102,true";
+
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                var product = CsvConverter.Deserialize(csv, typeof(Product));
+            });
         }
 
         [Test()]
