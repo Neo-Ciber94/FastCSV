@@ -296,6 +296,7 @@
                 || type == typeof(decimal)
                 || type == typeof(string)
                 || type == typeof(BigInteger)
+                || type == typeof(Half)
                 || type == typeof(DateTime)
                 || type == typeof(DateTimeOffset)
                 || type == typeof(TimeSpan)
