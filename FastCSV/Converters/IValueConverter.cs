@@ -5,15 +5,15 @@ namespace FastCSV.Converters
     {
         public bool TryParse(string? s, out object? value);
 
-        public string ToValue(object? value);
+        public string? ToValue(object? value);
     }
 
     public interface IValueConverter<T> : IValueConverter
     {
         public bool TryParse(string? s, out T value);
-        public string ToValue(T value);
+        public string? ToValue(T value);
 
-        string IValueConverter.ToValue(object? value)
+        string? IValueConverter.ToValue(object? value)
         {
             return ToValue((T)value!);
         }

@@ -9,7 +9,7 @@ namespace FastCSV.Converters
     /// </summary>
     public class TimeSpanValueConverter : IValueConverter<System.TimeSpan>
     {
-        public string ToValue(System.TimeSpan value)
+        public string? ToValue(System.TimeSpan value)
         {
             return value.ToString();
         }

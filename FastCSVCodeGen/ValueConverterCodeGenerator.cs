@@ -19,7 +19,7 @@ namespace FastCSV.Converters
     /// </summary>
     public class {0}ValueConverter : IValueConverter<{1}>
     {
-        public string ToValue({1} value)
+        public string? ToValue({1} value)
         {
             return {2};
         }

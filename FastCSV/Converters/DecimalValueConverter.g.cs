@@ -9,7 +9,7 @@ namespace FastCSV.Converters
     /// </summary>
     public class DecimalValueConverter : IValueConverter<System.Decimal>
     {
-        public string ToValue(System.Decimal value)
+        public string? ToValue(System.Decimal value)
         {
             return value.ToString();
         }

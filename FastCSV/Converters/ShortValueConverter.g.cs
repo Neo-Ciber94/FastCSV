@@ -9,7 +9,7 @@ namespace FastCSV.Converters
     /// </summary>
     public class ShortValueConverter : IValueConverter<System.Int16>
     {
-        public string ToValue(System.Int16 value)
+        public string? ToValue(System.Int16 value)
         {
             return value.ToString();
         }

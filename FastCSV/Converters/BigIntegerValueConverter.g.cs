@@ -9,7 +9,7 @@ namespace FastCSV.Converters
     /// </summary>
     public class BigIntegerValueConverter : IValueConverter<System.Numerics.BigInteger>
     {
-        public string ToValue(System.Numerics.BigInteger value)
+        public string? ToValue(System.Numerics.BigInteger value)
         {
             return value.ToString();
         }
