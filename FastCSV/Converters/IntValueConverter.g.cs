@@ -7,7 +7,7 @@ namespace FastCSV.Converters
     /// <summary>
     /// A value converter for <see cref="System.Int32"/>.
     /// </summary>
-    public class IntConverter : IValueConverter<System.Int32>
+    public class IntValueConverter : IValueConverter<System.Int32>
     {
         public string ToValue(System.Int32 value)
         {

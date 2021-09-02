@@ -17,7 +17,7 @@ namespace FastCSV.Converters
     /// <summary>
     /// A value converter for <see cref=""{1}""/>.
     /// </summary>
-    public class {0}Converter : IValueConverter<{1}>
+    public class {0}ValueConverter : IValueConverter<{1}>
     {
         public string ToValue({1} value)
         {
@@ -77,7 +77,7 @@ namespace FastCSV.Converters
 
                 contents = contents.Replace("{2}", valueToString);
 
-                string fileName = $"{path}/{name}Converter.g.cs";
+                string fileName = $"{path}/{name}ValueConverter.g.cs";
 
                 if (!Directory.Exists(path))
                 {

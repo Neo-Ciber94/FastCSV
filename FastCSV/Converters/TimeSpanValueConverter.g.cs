@@ -7,7 +7,7 @@ namespace FastCSV.Converters
     /// <summary>
     /// A value converter for <see cref="System.TimeSpan"/>.
     /// </summary>
-    public class TimeSpanConverter : IValueConverter<System.TimeSpan>
+    public class TimeSpanValueConverter : IValueConverter<System.TimeSpan>
     {
         public string ToValue(System.TimeSpan value)
         {

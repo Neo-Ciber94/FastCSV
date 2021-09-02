@@ -7,7 +7,7 @@ namespace FastCSV.Converters
     /// <summary>
     /// A value converter for <see cref="System.Numerics.BigInteger"/>.
     /// </summary>
-    public class BigIntegerConverter : IValueConverter<System.Numerics.BigInteger>
+    public class BigIntegerValueConverter : IValueConverter<System.Numerics.BigInteger>
     {
         public string ToValue(System.Numerics.BigInteger value)
         {

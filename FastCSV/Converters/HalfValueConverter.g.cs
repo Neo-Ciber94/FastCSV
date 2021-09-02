@@ -7,7 +7,7 @@ namespace FastCSV.Converters
     /// <summary>
     /// A value converter for <see cref="System.Half"/>.
     /// </summary>
-    public class HalfConverter : IValueConverter<System.Half>
+    public class HalfValueConverter : IValueConverter<System.Half>
     {
         public string ToValue(System.Half value)
         {

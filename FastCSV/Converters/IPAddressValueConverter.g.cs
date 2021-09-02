@@ -7,7 +7,7 @@ namespace FastCSV.Converters
     /// <summary>
     /// A value converter for <see cref="System.Net.IPAddress"/>.
     /// </summary>
-    public class IPAddressConverter : IValueConverter<System.Net.IPAddress>
+    public class IPAddressValueConverter : IValueConverter<System.Net.IPAddress>
     {
         public string ToValue(System.Net.IPAddress value)
         {
