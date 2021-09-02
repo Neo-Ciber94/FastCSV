@@ -1,0 +1,23 @@
+#nullable enable
+
+////////////////// GENERATED CODE, DO NOT EDIT //////////////////
+
+namespace FastCSV.Converters
+{
+    /// <summary>
+    /// A value converter for <see cref="System.Boolean"/>.
+    /// </summary>
+    public class BoolConverter : IValueConverter<System.Boolean>
+    {
+        public string ToValue(System.Boolean value)
+        {
+            return value? "true": "false";
+        }
+
+        public bool TryParse(string? s, out System.Boolean value)
+        {
+            return System.Boolean.TryParse(s, out value);
+        }
+    }
+}
+

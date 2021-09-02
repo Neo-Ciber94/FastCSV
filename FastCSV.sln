@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FastCSVTests", "FastCsvTest
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FastCSVBenchmarks", "FastCSVBenchmarks\FastCSVBenchmarks.csproj", "{28CD9515-BC2C-43A6-B5B2-8CF64A7D9027}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastCSVCodeGen", "FastCSVCodeGen\FastCSVCodeGen.csproj", "{52DDC770-EEDE-43E1-8257-7A8D6A3D6204}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{28CD9515-BC2C-43A6-B5B2-8CF64A7D9027}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{28CD9515-BC2C-43A6-B5B2-8CF64A7D9027}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{28CD9515-BC2C-43A6-B5B2-8CF64A7D9027}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52DDC770-EEDE-43E1-8257-7A8D6A3D6204}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52DDC770-EEDE-43E1-8257-7A8D6A3D6204}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52DDC770-EEDE-43E1-8257-7A8D6A3D6204}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52DDC770-EEDE-43E1-8257-7A8D6A3D6204}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
