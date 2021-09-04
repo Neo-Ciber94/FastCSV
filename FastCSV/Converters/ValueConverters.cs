@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Numerics;
+using FastCSV.Utils;
 
 namespace FastCSV.Converters
 {
@@ -10,32 +11,34 @@ namespace FastCSV.Converters
     /// </summary>
     public static class ValueConverters
     {
+        private static readonly ObjectDictionary EnumConverters = new ObjectDictionary();
+
         private static readonly IReadOnlyDictionary<Type, IValueConverter> Converters = new Dictionary<Type, IValueConverter>
         {
-            { typeof(bool), new BoolValueConverter() },
-            { typeof(char), new CharValueConverter() },
-            { typeof(byte), new ByteValueConverter() },
-            { typeof(short), new ShortValueConverter() },
-            { typeof(int), new IntValueConverter() },
-            { typeof(long), new LongValueConverter() },
-            { typeof(float), new FloatValueConverter() },
-            { typeof(double), new DoubleValueConverter() },
-            { typeof(sbyte), new SByteValueConverter()},
-            { typeof(ushort), new UShortValueConverter() },
-            { typeof(uint), new UIntValueConverter() },
-            { typeof(ulong), new ULongValueConverter() },
-            { typeof(decimal), new DecimalValueConverter() },
-            { typeof(Half), new HalfValueConverter() },
-            { typeof(DateTime),new DateTimeValueConverter() },
-            { typeof(DateTimeOffset), new DateTimeOffsetValueConverter()},
-            { typeof(BigInteger), new BigIntegerValueConverter() },
-            { typeof(Guid), new GuidValueConverter()},
-            { typeof(Version), new VersionValueConverter() },
-            { typeof(TimeSpan), new TimeSpanValueConverter() },
-            { typeof(IPAddress), new IPAddressValueConverter()},
-            { typeof(IntPtr), new IntPtrValueConverter()},
-            { typeof(UIntPtr), new UIntPtrValueConverter()},
-            { typeof(string), new StringValueConverter() }
+            { typeof(bool),             new BoolValueConverter() },
+            { typeof(char),             new CharValueConverter() },
+            { typeof(byte),             new ByteValueConverter() },
+            { typeof(short),            new ShortValueConverter() },
+            { typeof(int),              new IntValueConverter() },
+            { typeof(long),             new LongValueConverter() },
+            { typeof(float),            new FloatValueConverter() },
+            { typeof(double),           new DoubleValueConverter() },
+            { typeof(sbyte),            new SByteValueConverter()},
+            { typeof(ushort),           new UShortValueConverter() },
+            { typeof(uint),             new UIntValueConverter() },
+            { typeof(ulong),            new ULongValueConverter() },
+            { typeof(decimal),          new DecimalValueConverter() },
+            { typeof(Half),             new HalfValueConverter() },
+            { typeof(DateTime),         new DateTimeValueConverter() },
+            { typeof(DateTimeOffset),   new DateTimeOffsetValueConverter()},
+            { typeof(BigInteger),       new BigIntegerValueConverter() },
+            { typeof(Guid),             new GuidValueConverter()},
+            { typeof(Version),          new VersionValueConverter() },
+            { typeof(TimeSpan),         new TimeSpanValueConverter() },
+            { typeof(IPAddress),        new IPAddressValueConverter()},
+            { typeof(IntPtr),           new IntPtrValueConverter()},
+            { typeof(UIntPtr),          new UIntPtrValueConverter()},
+            { typeof(string),           new StringValueConverter() }
         };
 
         /// <summary>
@@ -47,7 +50,13 @@ namespace FastCSV.Converters
         {
             if (type.IsEnum)
             {
-                return new EnumObjectValueConverter(type);
+                if (!EnumConverters.TryGetValue(type, out object? enumConverter))
+                {
+                    enumConverter = new EnumObjectValueConverter(type);
+                    EnumConverters.Add(type, enumConverter);
+                }
+
+                return (EnumObjectValueConverter)enumConverter!;
             }
 
             if (Converters.TryGetValue(type, out var converter))
