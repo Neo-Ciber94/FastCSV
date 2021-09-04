@@ -4,7 +4,7 @@ using FastCSV.Utils;
 
 namespace FastCSV.Converters
 {
-    public class EnumerableConverter<T> : IValueConverter<IEnumerable<T>>
+    public class EnumerableValueConverter<T> : IValueConverter<IEnumerable<T>>
     {
         private const string DefaultItemSuffix = "item";
 
@@ -12,7 +12,7 @@ namespace FastCSV.Converters
 
         public CsvFormat Format { get; }
 
-        public EnumerableConverter(CsvFormat format, string? itemSuffix = null)
+        public EnumerableValueConverter(CsvFormat format, string? itemSuffix = null)
         {
             Format = format;
             ItemSuffix = itemSuffix ?? DefaultItemSuffix;

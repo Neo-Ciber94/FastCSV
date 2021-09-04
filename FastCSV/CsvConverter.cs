@@ -9,6 +9,7 @@
     using System.Numerics;
     using System.Reflection;
     using System.Runtime.Serialization;
+    using FastCSV.Converters;
     using FastCSV.Utils;
 
     // Determine if a field/property will be a getter, setter of both.
@@ -90,13 +91,15 @@
                     return string.Empty;
                 }
 
-                // Special case, boolean ToString is capitalized
-                if (value.GetType() == typeof(bool))
+                Type type = value.GetType();
+                IValueConverter? converter = ValueConverters.GetConverter(type);
+
+                if (converter == null)
                 {
-                    return (bool)value ? "true" : "false";
+                    throw new InvalidOperationException($"No converter found for type {type}");
                 }
 
-                return value.ToString()?? string.Empty;
+                return converter.ToValue(value)?? string.Empty;
             }
         }
 
@@ -162,11 +165,7 @@
                 {
                     FieldInfo field = source.Left;
                     string csvValue = GetCsvValue(record, csvField, i);
-
-                    if (!CsvUtility.TryParse(csvValue, csvField.Type, out var value))
-                    {
-                        throw new InvalidOperationException($"Cannot convert '{csvValue}' to '{ csvField.Type}'");
-                    }
+                    object? value = ParseString(csvValue, csvField.Type);
 
                     field.SetValue(obj, value);
                 }
@@ -174,11 +173,7 @@
                 {
                     PropertyInfo prop = source.Right;
                     string csvValue = GetCsvValue(record, csvField, i);
-
-                    if (!CsvUtility.TryParse(csvValue, csvField.Type, out var value))
-                    {
-                        throw new InvalidOperationException($"Cannot convert '{csvValue}' to '{ csvField.Type}'");
-                    }
+                    object? value = ParseString(csvValue, csvField.Type);
 
                     prop.SetValue(obj, value);
                 }
@@ -201,6 +196,18 @@
                 }
 
                 return record.Header != null? record[field.Name]: record[index];
+            }
+
+            static object? ParseString(string s, Type type)
+            {
+                IValueConverter? converter = ValueConverters.GetConverter(type);
+
+                if (converter == null || !converter.TryParse(s, out object? value))
+                {
+                    throw new InvalidOperationException($"Cannot convert '{s}' to '{type}'");
+                }
+
+                return value;
             }
         }
 
@@ -302,7 +309,9 @@
                 || type == typeof(TimeSpan)
                 || type == typeof(IPAddress)
                 || type == typeof(Version)
-                || type == typeof(Guid);
+                || type == typeof(Guid)
+                || type == typeof(IntPtr)
+                || type == typeof(UIntPtr);
         }
 
         /// <summary>
