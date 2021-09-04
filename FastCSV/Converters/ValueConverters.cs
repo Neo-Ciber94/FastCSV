@@ -34,6 +34,8 @@ namespace FastCSV.Converters
             { typeof(Version), new VersionValueConverter() },
             { typeof(TimeSpan), new TimeSpanValueConverter() },
             { typeof(IPAddress), new IPAddressValueConverter()},
+            { typeof(IntPtr), new IntPtrValueConverter()},
+            { typeof(UIntPtr), new UIntPtrValueConverter()},
             { typeof(string), new StringValueConverter() }
         };
 
