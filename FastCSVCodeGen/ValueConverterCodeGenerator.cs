@@ -54,6 +54,8 @@ namespace FastCSV.Converters
             { typeof(Version), nameof(Version) },
             { typeof(TimeSpan), nameof(TimeSpan) },
             { typeof(IPAddress), nameof(IPAddress) },
+            { typeof(IntPtr), nameof(IntPtr) },
+            { typeof(UIntPtr), nameof(UIntPtr) },
         };
 
         public static void WriteTo(string path)
