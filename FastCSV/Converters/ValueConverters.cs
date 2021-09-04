@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FastCSV.Converters
 {
+    /// <summary>
+    /// Helper for <see cref="IValueConverter"/>.
+    /// </summary>
     public static class ValueConverters
     {
         private static readonly IReadOnlyDictionary<Type, IValueConverter> Converters = new Dictionary<Type, IValueConverter>
@@ -39,8 +38,18 @@ namespace FastCSV.Converters
             { typeof(string), new StringValueConverter() }
         };
 
+        /// <summary>
+        /// Gets a <see cref="IValueConverter"/> for the given type or null if not found.
+        /// </summary>
+        /// <param name="type">Type to get the converter</param>
+        /// <returns>A value converter from the given type or null</returns>
         public static IValueConverter? GetConverter(Type type)
         {
+            if (type.IsEnum)
+            {
+                return new EnumObjectValueConverter(type);
+            }
+
             if (Converters.TryGetValue(type, out var converter))
             {
                 return converter;

@@ -1,6 +1,9 @@
 ﻿
 namespace FastCSV.Converters
 {
+    /// <summary>
+    /// A value converter for <see cref="string"/>, it just forwards the value.
+    /// </summary>
     public class StringValueConverter : IValueConverter<string>
     {
         public string ToValue(string value)
