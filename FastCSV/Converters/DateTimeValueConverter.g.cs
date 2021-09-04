@@ -9,7 +9,7 @@ namespace FastCSV.Converters
     /// </summary>
     public class DateTimeValueConverter : IValueConverter<System.DateTime>
     {
-        public string? ToValue(System.DateTime value)
+        public string? ToStringValue(System.DateTime value)
         {
             return value.ToString();
         }

@@ -9,7 +9,7 @@ namespace FastCSV.Converters
     /// </summary>
     public class VersionValueConverter : IValueConverter<System.Version>
     {
-        public string? ToValue(System.Version value)
+        public string? ToStringValue(System.Version value)
         {
             return value.ToString();
         }

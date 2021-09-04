@@ -9,7 +9,7 @@ namespace FastCSV.Converters
     /// </summary>
     public class BoolValueConverter : IValueConverter<System.Boolean>
     {
-        public string? ToValue(System.Boolean value)
+        public string? ToStringValue(System.Boolean value)
         {
             return value? "true": "false";
         }

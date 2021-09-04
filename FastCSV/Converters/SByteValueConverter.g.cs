@@ -9,7 +9,7 @@ namespace FastCSV.Converters
     /// </summary>
     public class SByteValueConverter : IValueConverter<System.SByte>
     {
-        public string? ToValue(System.SByte value)
+        public string? ToStringValue(System.SByte value)
         {
             return value.ToString();
         }

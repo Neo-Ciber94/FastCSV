@@ -9,7 +9,7 @@ namespace FastCSV.Converters
     /// </summary>
     public class IntValueConverter : IValueConverter<System.Int32>
     {
-        public string? ToValue(System.Int32 value)
+        public string? ToStringValue(System.Int32 value)
         {
             return value.ToString();
         }

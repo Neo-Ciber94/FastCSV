@@ -33,7 +33,7 @@ namespace FastCSV.Converters
             return items.ToArray();
         }
 
-        public virtual string? ToValue(IEnumerable<T> value)
+        public virtual string? ToStringValue(IEnumerable<T> value)
         {
             string? result = null;
 

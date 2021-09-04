@@ -9,7 +9,7 @@ namespace FastCSV.Converters
     /// </summary>
     public class GuidValueConverter : IValueConverter<System.Guid>
     {
-        public string? ToValue(System.Guid value)
+        public string? ToStringValue(System.Guid value)
         {
             return value.ToString();
         }

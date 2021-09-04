@@ -9,7 +9,7 @@ namespace FastCSV.Converters
     /// </summary>
     public class DateTimeOffsetValueConverter : IValueConverter<System.DateTimeOffset>
     {
-        public string? ToValue(System.DateTimeOffset value)
+        public string? ToStringValue(System.DateTimeOffset value)
         {
             return value.ToString();
         }

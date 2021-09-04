@@ -19,7 +19,7 @@ namespace FastCSV.Converters
         /// </summary>
         /// <param name="value">The value to convert.</param>
         /// <returns>A string representation of the value.</returns>
-        public string? ToValue(object? value);
+        public string? ToStringValue(object? value);
     }
 
     /// <summary>
@@ -41,11 +41,11 @@ namespace FastCSV.Converters
         /// </summary>
         /// <param name="value">The value to convert.</param>
         /// <returns>A string representation of the value.</returns>
-        public string? ToValue(T value);
+        public string? ToStringValue(T value);
 
-        string? IValueConverter.ToValue(object? value)
+        string? IValueConverter.ToStringValue(object? value)
         {
-            return ToValue((T)value!);
+            return ToStringValue((T)value!);
         }
 
         bool IValueConverter.TryParse(string? s, out object? value)

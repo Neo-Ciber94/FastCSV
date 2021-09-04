@@ -99,7 +99,7 @@
                     throw new InvalidOperationException($"No converter found for type {type}");
                 }
 
-                return converter.ToValue(value)?? string.Empty;
+                return converter.ToStringValue(value)?? string.Empty;
             }
         }
 
