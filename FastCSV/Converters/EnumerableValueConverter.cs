@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using FastCSV.Utils;
 
 namespace FastCSV.Converters
@@ -12,9 +14,19 @@ namespace FastCSV.Converters
 
         public CsvFormat Format { get; }
 
-        public EnumerableValueConverter(CsvFormat format, string? itemSuffix = null)
+        public IValueConverter Converter { get; }
+
+        public EnumerableValueConverter(CsvFormat format, IValueConverter? converter = null, string? itemSuffix = null)
         {
+            converter ??= ValueConverters.GetConverter(typeof(T));
+
+            if (converter == null)
+            {
+                throw new InvalidOperationException($"No value converter for type {typeof(T)}");
+            }
+
             Format = format;
+            Converter = converter;
             ItemSuffix = itemSuffix ?? DefaultItemSuffix;
         }
 
@@ -33,24 +45,30 @@ namespace FastCSV.Converters
             return items.ToArray();
         }
 
-        public virtual string? ToStringValue(IEnumerable<T> value)
+        public virtual string? ToStringValue(IEnumerable<T> values)
         {
-            string? result = null;
-
-            foreach(var e in value)
+            int count = values.Count();
+            
+            if (count == 0)
             {
-                if (result == null)
-                {
-                    result = string.Empty;
-                }
+                return null;
             }
 
-            return result;
+            string[] stringValues = new string[count];
+            int i = 0;
+
+            foreach(T e in values)
+            {
+                stringValues[i++] = Converter.ToStringValue(e) ?? string.Empty;
+            }
+            
+
+            return CsvUtility.ToCsvString(stringValues, Format);
         }
 
-        public virtual bool TryParse(string? s, out IEnumerable<T> value)
+        public virtual bool TryParse(string? s, out IEnumerable<T> values)
         {
-            value = default!;
+            values = default!;
             IValueConverter? converter = ValueConverters.GetConverter(typeof(T));
 
             if (s == null || converter == null)
@@ -62,16 +80,16 @@ namespace FastCSV.Converters
             using MemoryStream memoryStream = CsvUtility.ToStream(s);
             using StreamReader reader = new StreamReader(memoryStream);
 
-            List<string>? values = CsvUtility.ReadRecord(reader, Format);
+            List<string>? csvValues = CsvUtility.ReadRecord(reader, Format);
 
-            if (values == null)
+            if (csvValues == null)
             {
                 return false;
             }
 
-            List<T> items = new List<T>(values.Count);
+            List<T> items = new List<T>(csvValues.Count);
 
-            foreach(string e in values)
+            foreach(string e in csvValues)
             {
                 if(!converter.TryParse(s, out object? obj))
                 {
@@ -81,7 +99,7 @@ namespace FastCSV.Converters
                 items.Add((T)obj!);
             }
 
-            value = items;
+            values = items;
             return true;
         }
     }
