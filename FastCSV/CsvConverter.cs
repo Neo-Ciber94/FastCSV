@@ -1,17 +1,17 @@
-﻿namespace FastCSV
-{
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Numerics;
-    using System.Reflection;
-    using System.Runtime.Serialization;
-    using FastCSV.Converters;
-    using FastCSV.Utils;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Numerics;
+using System.Reflection;
+using System.Runtime.Serialization;
+using FastCSV.Converters;
+using FastCSV.Utils;
 
+namespace FastCSV
+{
     // Determine if a field/property will be a getter, setter of both.
     internal enum Permission
     { /// <summary>
@@ -77,7 +77,7 @@
             {
                 string[] headerArray = GetHeader(type, options);
                 string header = CsvUtility.ToCsvString(headerArray, options.Format);
-                return CsvUtility.Join(new string[] { header, values });
+                return CsvUtility.JoinLines(new string[] { header, values });
             }
 
             return values;
@@ -131,12 +131,7 @@
 
             if (IsBuiltInType(type))
             {
-                if (!CsvUtility.TryParse(csv, type, out object? result))
-                {
-                    throw new InvalidCastException($"Cannot convert '{csv}' to {type}");
-                }
-
-                return result!;
+                return ParseString(csv, type)!;
             }
 
             options ??= CsvConverterOptions.Default;
@@ -197,18 +192,130 @@
 
                 return record.Header != null? record[field.Name]: record[index];
             }
+        }
 
-            static object? ParseString(string s, Type type)
+        /// <summary>
+        /// Converts the given value to a <see cref="IDictionary{TKey, TValue}"/>.
+        /// </summary>
+        /// <typeparam name="T">Type of the object.</typeparam>
+        /// <param name="value">The value to convert.</param>
+        /// <param name="options">Options used, if null will use the default options.</param>
+        /// <returns>A dictionary with the fields of the value.</returns>
+        public static IDictionary<string, object?> SerializeToDictionary<T>(T value, CsvConverterOptions? options = null)
+        {
+            return SerializeToDictionary(value!, typeof(T), options);
+        }
+
+        /// <summary>
+        /// Converts the given value to a <see cref="IDictionary{TKey, TValue}"/>.
+        /// </summary>
+        /// <param name="value">The value to convert.</param>
+        /// <param name="options">Options used, if null will use the default options.</param>
+        /// <returns>A dictionary with the fields of the value.</returns>
+        public static IDictionary<string, object?> SerializeToDictionary(object value, Type type, CsvConverterOptions? options = null)
+        {
+            if (value == null)
             {
-                IValueConverter? converter = ValueConverters.GetConverter(type);
+                throw new ArgumentNullException(nameof(value));
+            }
 
-                if (converter == null || !converter.TryParse(s, out object? value))
+            if (value.GetType() != type)
+            {
+                throw new ArgumentException($"Expected {type} but value type was {value.GetType()}");
+            }
+
+            options ??= CsvConverterOptions.Default;
+
+            if (!options.IncludeHeader)
+            {
+                throw new ArgumentException("Invalid options, header should always be include");
+            }
+
+            Dictionary<string, object?> result = new Dictionary<string, object?>();
+            List<CsvField> fields = GetFields(type, options, Permission.Read, value);
+
+            foreach(CsvField csvField in fields)
+            {
+                if (csvField.Ignore)
                 {
-                    throw new InvalidOperationException($"Cannot convert '{s}' to '{type}'");
+                    continue;
                 }
 
-                return value;
+                string key = csvField.Name;
+                object? obj = csvField.Value;
+                result.Add(key, obj);
             }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Converts the data in the given dictionary to an object of type <c>T</c>.
+        /// </summary>
+        /// <typeparam name="T">Type of the object.</typeparam>
+        /// <param name="data">The dictionary containing the data of the instance.</param>
+        /// <param name="options">Options used, if null will use the default options.</param>
+        /// <returns>An object of the given type using the values from the dictionary.</returns>
+        public static T DeserializeFromDictionary<T>(IReadOnlyDictionary<string, string> data, CsvConverterOptions? options = null)
+        {
+            return (T)DeserializeFromDictionary(data, typeof(T), options);
+        }
+
+        /// <summary>
+        /// Converts the data in the given dictionary to an object of the given type.
+        /// </summary>
+        /// <param name="data">The dictionary containing the data of the instance.</param>
+        /// <param name="type">Type of the object to construct.</param>
+        /// <param name="options">Options used, if null will use the default options.</param>
+        /// <returns>An object of the given type using the values from the dictionary.</returns>
+        public static object DeserializeFromDictionary(IReadOnlyDictionary<string, string> data, Type type, CsvConverterOptions? options = null)
+        {
+            if (IsBuiltInType(type))
+            {
+                const string BuiltInFieldName = "value";
+
+                if (!data.TryGetValue(BuiltInFieldName, out string? v) || data.Count != 1)
+                {
+                    throw new ArgumentException($"For builtin type '{nameof(data)}' should contains a single field named '{BuiltInFieldName}'");
+                }
+
+                return ParseString(v, type)!;
+            }
+
+            options ??= CsvConverterOptions.Default;
+            List<CsvField> csvFields = GetFields(type, options, Permission.Write, instance: null);
+            object result = FormatterServices.GetUninitializedObject(type);
+
+            foreach(var (key, value) in data)
+            {
+                CsvField? csvField = csvFields.FirstOrDefault(f => f.Name == key);
+
+                if (csvField == null)
+                {
+                    throw new InvalidOperationException($"Field '{key}' not found");
+                }
+
+                if (csvField.Ignore)
+                {
+                    continue;
+                }
+
+                Either<FieldInfo, PropertyInfo> source = csvField.Source;
+                object? obj = ParseString(value, csvField.Type);
+
+                if (source.IsLeft)
+                {
+                    FieldInfo field = source.Left;
+                    field.SetValue(obj, value);
+                }
+                else
+                {
+                    PropertyInfo prop = source.Right;
+                    prop.SetValue(obj, value);
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -287,7 +394,7 @@
                 Type t when t == typeof(uint) => "uint",
                 Type t when t == typeof(ulong) => "ulong",
                 Type t when t == typeof(string) => "string",
-                _ => type.Name.ToLower()
+                _ => type.Name
             };
         }
 
@@ -320,7 +427,7 @@
         /// <param name="type">The type<see cref="Type"/>.</param>
         /// <param name="options">The options<see cref="CsvConverterOptions"/>.</param>
         /// <param name="permission">The permission<see cref="Permission"/>.</param>
-        /// <param name="instance">The instance<see cref="object?"/>.</param>
+        /// <param name="instance">The instance of the object to get the values from.</param>
         /// <returns>The <see cref="List{CsvField}"/>.</returns>
         internal static List<CsvField> GetFields(Type type, CsvConverterOptions options, Permission permission, object? instance)
         {
@@ -399,6 +506,18 @@
 
                 return flags;
             }
+        }
+
+        internal static object? ParseString(string s, Type type)
+        {
+            IValueConverter? converter = ValueConverters.GetConverter(type);
+
+            if (converter == null || !converter.TryParse(s, out object? value))
+            {
+                throw new InvalidOperationException($"Cannot convert '{s}' to '{type}'");
+            }
+
+            return value;
         }
     }
 }
