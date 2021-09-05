@@ -155,21 +155,17 @@ namespace FastCSV
                 }
 
                 Either<FieldInfo, PropertyInfo> source = csvField.Source;
+                string csvValue = GetCsvValue(record, csvField, i);
+                object? value = ParseString(csvValue, csvField.Type);
 
                 if (source.IsLeft)
                 {
                     FieldInfo field = source.Left;
-                    string csvValue = GetCsvValue(record, csvField, i);
-                    object? value = ParseString(csvValue, csvField.Type);
-
                     field.SetValue(obj, value);
                 }
                 else
                 {
                     PropertyInfo prop = source.Right;
-                    string csvValue = GetCsvValue(record, csvField, i);
-                    object? value = ParseString(csvValue, csvField.Type);
-
                     prop.SetValue(obj, value);
                 }
             }
