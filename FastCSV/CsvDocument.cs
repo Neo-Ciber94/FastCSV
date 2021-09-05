@@ -124,7 +124,7 @@ namespace FastCSV
 
             if (!IsFlexible && length != Header.Length)
             {
-                throw new ArgumentException($"Invalid number of fields, expected {Header.Length} but {length} was get");
+                throw new ArgumentException($"Invalid number of fields, expected {Header.Length} but was {length}");
             }
 
             _records.Add(new CsvRecord(Header, values, Format));
@@ -176,7 +176,7 @@ namespace FastCSV
         }
 
         /// <summary>
-        /// Writes a records using a <see cref="Builder"/>
+        /// Writes a record using a <see cref="Builder"/>
         /// </summary>
         /// <param name="action">The action that provides the builder.</param>
         public void WriteFields(Action<Builder> action)
