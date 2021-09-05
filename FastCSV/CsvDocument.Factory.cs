@@ -104,10 +104,7 @@ namespace FastCSV
 
             return new CsvDocument(result, header, header.Format, flexible);
         }
-    }
 
-    public partial class CsvDocument<T>
-    {
         /// <summary>
         /// Creates a <see cref="CsvDocument{T}"/> from the given csv data.
         /// <para>
@@ -121,7 +118,7 @@ namespace FastCSV
         /// <param name="format">The format.</param>
         /// <param name="parser">The parser.</param>
         /// <returns>A csv document from the given data.</returns>
-        public static CsvDocument<T> FromCsv(string csv, CsvFormat? format = null, IEnumerable<IValueParser>? parsers = null)
+        public static CsvDocument<T> FromCsv<T>(string csv, CsvFormat? format = null, IEnumerable<IValueParser>? parsers = null)
         {
             List<T> list = new List<T>();
             MemoryStream memory = CsvUtility.ToStream(csv);
@@ -149,11 +146,11 @@ namespace FastCSV
         /// <param name="parser">The parser.</param>
         /// <returns>A csv document from the file at the given path.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument<T> FromPath(string path, CsvFormat? format = null, IEnumerable<IValueParser>? parsers = null)
+        public static CsvDocument<T> FromPath<T>(string path, CsvFormat? format = null, IEnumerable<IValueParser>? parsers = null)
         {
             using (StreamReader streamReader = new StreamReader(path))
             {
-                return FromCsv(streamReader.ReadToEnd(), format?? CsvFormat.Default, parsers);
+                return FromCsv<T>(streamReader.ReadToEnd(), format ?? CsvFormat.Default, parsers);
             }
         }
     }

@@ -79,7 +79,7 @@ namespace FastCSV.Tests
                     "Red,23\r\n" +
                     "Blue,24\r\n";
 
-            var document = CsvDocument<Person>.FromCsv(csv);
+            var document = CsvDocument.FromCsv<Person>(csv);
 
             Assert.AreEqual(2, document.Count);
             Assert.AreEqual(new Person { Name = "Red", Age = 23 }, document.GetValue(0));
@@ -104,7 +104,7 @@ namespace FastCSV.Tests
                 return true;
             });
 
-            var document = CsvDocument<Employee>.FromCsv(csv, parsers: new IValueParser[] { phoneNumberParser });
+            var document = CsvDocument.FromCsv<Employee>(csv, parsers: new IValueParser[] { phoneNumberParser });
 
             Assert.AreEqual(2, document.Count);
             Assert.AreEqual(new Employee("Red", 23, new PhoneNumber(2, 0, 0, 1, 2, 0, 0)), document.GetValue(0));
