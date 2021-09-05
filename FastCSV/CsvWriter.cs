@@ -200,7 +200,7 @@ namespace FastCSV
         /// </summary>
         /// <typeparam name="T">Type of the value</typeparam>
         /// <param name="value">The value to write.</param>
-        public void WriteWith<T>(T value) //FIXME: WriteValue
+        public void WriteValue<T>(T value)
         {
             List<string> values = CsvUtility.GetValues(value);
             WriteAll(values);
@@ -210,9 +210,10 @@ namespace FastCSV
         /// Writes the specified values asyncronously.
         /// </summary>
         /// <param name="values">The values.</param>
-        public async Task WriteAsync(params object[] values)
+        public Task WriteAsync(params object[] values)
         {
-            await Task.Run(() => Write(values));
+            Write(values);
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -220,9 +221,10 @@ namespace FastCSV
         /// </summary>
         /// <param name="values">The values.</param>
         /// <exception cref="ArgumentException">If the writer is flexible and attempt to write more fields than the previous one.</exception>
-        public async Task WriteAllAsync(IEnumerable<string> values) // FIXME: WriteValueAsync
+        public Task WriteAllAsync(IEnumerable<string> values)
         {
-            await Task.Run(() => WriteAll(values));
+            WriteAll(values);
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -230,9 +232,10 @@ namespace FastCSV
         /// </summary>
         /// <typeparam name="T">Type of the value</typeparam>
         /// <param name="value">The value to write.</param>
-        public async Task WriteWithAsync<T>(T value)
+        public Task WriteValueAsync<T>(T value)
         {
-            await Task.Run(() => WriteWith(value));
+            WriteValue(value);
+            return Task.CompletedTask;
         }
 
         protected void ThrowIfDisposed()
