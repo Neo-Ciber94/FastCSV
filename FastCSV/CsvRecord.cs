@@ -76,8 +76,8 @@ namespace FastCSV
         /// <returns></returns>
         public static CsvRecord From<T>(T value, CsvFormat format)
         {
-            var headerValues = CsvUtility.GetHeader<T>();
-            var values = CsvUtility.GetValues(value);
+            var headerValues = CsvConverter.GetHeader<T>();
+            var values = CsvConverter.GetValues(value);
 
             var header = new CsvHeader(headerValues, format);
             return new CsvRecord(header, values, format);

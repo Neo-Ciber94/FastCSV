@@ -137,7 +137,7 @@ namespace FastCSV
         /// <param name="value">The value.</param>
         public void WriteWith<T>(T value)
         {
-            List<string> values = CsvUtility.GetValues(value);
+            string[] values = CsvConverter.GetValues(value!);
             WriteAll(values);
         }
 
@@ -171,7 +171,7 @@ namespace FastCSV
         /// <param name="value">The value.</param>
         public void WriteAtWith<T>(int index, T value)
         {
-            var values = CsvUtility.GetValues(value);
+            var values = CsvConverter.GetValues(value);
             WriteAt(index, values);
         }
 
@@ -216,7 +216,7 @@ namespace FastCSV
         /// <param name="value">The value.</param>
         public void UpdateWith<T>(int index, T value)
         {
-            var values = CsvUtility.GetValues(value);
+            var values = CsvConverter.GetValues(value);
             Update(index, values);
         }
 

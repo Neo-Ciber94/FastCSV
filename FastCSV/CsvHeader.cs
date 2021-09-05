@@ -81,7 +81,7 @@ namespace FastCSV
         /// <returns>The header using the names of the public fields and properties of the specified type.</returns>
         public static CsvHeader FromType<T>(CsvFormat format)
         {
-            var values = CsvUtility.GetHeader<T>();
+            var values = CsvConverter.GetHeader<T>();
             return new CsvHeader(values, format);
         }
 

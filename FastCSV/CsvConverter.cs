@@ -317,10 +317,11 @@ namespace FastCSV
         /// <summary>
         /// Returns an array of the field values of the given object.
         /// </summary>
+        /// <typeparam name="T">Type of the value.</typeparam>
         /// <param name="value">The object to get the values.</param>
         /// <param name="options">Options used, if null will use the default options.</param>
         /// <returns>An array of the values of the given object.</returns>
-        public static string[] GetValues(object value, CsvConverterOptions? options = null)
+        public static string[] GetValues<T>(T value, CsvConverterOptions? options = null)
         {
             if (value == null)
             {
@@ -348,6 +349,18 @@ namespace FastCSV
             }
         }
 
+        /// <summary>
+        /// Returns an array of the header names of the given type. 
+        /// </summary>
+        /// <typeparam name="T">The type to get the header values from.</typeparam>
+        /// <param name="type">Type to extract the header fields.</param>
+        /// <param name="options">Options used, if null will use the default options.</param>
+        /// <returns>An array of the header values of the given type.</return
+        public static string[] GetHeader<T>(CsvConverterOptions? options = null)
+        {
+            return GetHeader(typeof(T), options);
+        }
+ 
         /// <summary>
         /// Returns an array of the header names of the given type.
         /// </summary>

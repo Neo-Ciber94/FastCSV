@@ -202,7 +202,7 @@ namespace FastCSV
         /// <param name="value">The value to write.</param>
         public void WriteValue<T>(T value)
         {
-            List<string> values = CsvUtility.GetValues(value);
+            string[] values = CsvConverter.GetValues(value);
             WriteAll(values);
         }
 

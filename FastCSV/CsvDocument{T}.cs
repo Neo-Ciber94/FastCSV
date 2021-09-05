@@ -27,7 +27,7 @@ namespace FastCSV
         /// <param name="format">The format.</param>
         public CsvDocument(CsvFormat format)
         {
-            Header = new CsvHeader(CsvUtility.GetHeader<T>(), format);
+            Header = new CsvHeader(CsvConverter.GetHeader<T>(), format);
             Format = format;
         }
 
@@ -44,7 +44,7 @@ namespace FastCSV
         /// <param name="format">The format.</param>
         public CsvDocument(IEnumerable<T> elements, CsvFormat format)
         {
-            Header = new CsvHeader(CsvUtility.GetHeader<T>(), format);
+            Header = new CsvHeader(CsvConverter.GetHeader<T>(), format);
             Format = format;
 
             foreach(var e in elements)

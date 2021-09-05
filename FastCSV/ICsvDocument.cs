@@ -54,6 +54,6 @@ namespace FastCSV
         /// Writes the contents of this document to file.
         /// </summary>
         /// <param name="path">The path.</param>
-        public void WriteContentsToFile(string path);
+        public void WriteContentsToFile(string path); // FIXME: WriteToStream(Stream stream) is more generic
     }
 }
