@@ -398,59 +398,6 @@ namespace FastCSV.Utils
         }
 
         /// <summary>
-        /// Converts the specified value to a dictionary, where the keys-value pair
-        /// represents the names of the public fields and properties and its values.
-        /// </summary>
-        /// <typeparam name="T">Type of the value.</typeparam>
-        /// <param name="value">The value.</param>
-        /// <returns>A dictionary with the values of the fields and properties of the value.</returns>
-        /// <exception cref="ArgumentException">If the value is null, and IEnumerable or don't contains public field or properties.</exception>
-        public static Dictionary<string, object?> ToDictionary<T>(T value)
-        {
-            if (value == null)
-            {
-                throw new ArgumentException(nameof(value));
-            }
-
-            Dictionary<string, object?> result = new Dictionary<string, object?>();
-            Type type = value!.GetType();
-
-            if (type.IsAssignableFrom(typeof(IEnumerable)))
-            {
-                throw new ArgumentException("Cannot convert an enumerable to dictionary. CsvUtility.ToDictionary should be call for each value");
-            }
-
-            if (type.IsPrimitive || type.IsEnum || type == typeof(string) || type == typeof(DateTime) || type == typeof(TimeSpan))
-            {
-                result.Add(type.Name, value);
-            }
-            else
-            {
-                var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
-                var props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
-
-                if (!fields.Any() && !props.Any())
-                {
-                    throw new ArgumentException($"Not public fields or properties available for type {typeof(T)}");
-                }
-
-                foreach (FieldInfo f in fields)
-                {
-                    object? e = f.GetValue(value);
-                    result.Add(f.Name, e);
-                }
-
-                foreach (PropertyInfo p in props)
-                {
-                    object? e = p.GetValue(value);
-                    result.Add(p.Name, e);
-                }
-            }
-
-            return result;
-        }
-
-        /// <summary>
         /// Creates the instance of the specified type using the values of the given <see cref="Dictionary{TKey, TValue}"/>.
         /// </summary>
         /// <typeparam name="T">Type of the value</typeparam>
@@ -816,7 +763,7 @@ namespace FastCSV.Utils
         /// </summary>
         /// <param name="values">The csv records to combine</param>
         /// <returns>A csv with the records separated by a newline.</returns>
-        public static string Join(IEnumerable<string> values)
+        public static string JoinLines(IEnumerable<string> values)
         {
             return string.Join('\n', values);
         }
