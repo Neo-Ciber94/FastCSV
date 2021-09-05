@@ -306,12 +306,12 @@ namespace FastCSV
                 if (source.IsLeft)
                 {
                     FieldInfo field = source.Left;
-                    field.SetValue(obj, value);
+                    field.SetValue(result, obj);
                 }
                 else
                 {
                     PropertyInfo prop = source.Right;
-                    prop.SetValue(obj, value);
+                    prop.SetValue(result, obj);
                 }
             }
 

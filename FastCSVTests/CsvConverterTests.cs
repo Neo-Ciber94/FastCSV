@@ -11,13 +11,13 @@ namespace FastCSV.Tests
     [TestFixture()]
     public class CsvConverterTests
     {
-        class Product
+        record Product
         {
             public string Name { get; set; }
             public decimal Price { get; set; }
         }
 
-        class OtherProduct
+        record OtherProduct
         {
             public int Id { get; set; }
             public bool Available { get; set; }
@@ -79,6 +79,52 @@ namespace FastCSV.Tests
             {
                 var product = CsvConverter.Deserialize(csv, typeof(Product));
             });
+        }
+
+        [Test()]
+        public void SerializeToDictionaryTest()
+        {
+            var product = new Product { Name = "Keyboard", Price = 1000m };
+            var dictionary = CsvConverter.SerializeToDictionary(product, typeof(Product));
+
+            Assert.AreEqual(dictionary["Name"], "Keyboard");
+            Assert.AreEqual(dictionary["Price"], 1000m);
+        }
+
+        [Test()]
+        public void SerializeToDictionaryGenericTest()
+        {
+            var product = new Product { Name = "Keyboard", Price = 1000m };
+            var dictionary = CsvConverter.SerializeToDictionary<Product>(product);
+
+            Assert.AreEqual(dictionary["Name"], "Keyboard");
+            Assert.AreEqual(dictionary["Price"], 1000m);
+        }
+
+        [Test()]
+        public void DeserializeFromDictionaryTest()
+        {
+            var dictionary = new Dictionary<string, string>
+            {
+                { "Name", "Keyboard" },
+                { "Price", "1000" }
+            };
+
+            var product = CsvConverter.DeserializeFromDictionary(dictionary, typeof(Product));
+            Assert.AreEqual(new Product { Name = "Keyboard", Price = 1000 }, product);
+        }
+
+        [Test()]
+        public void DeserializeFromDictionaryGenericTest()
+        {
+            var dictionary = new Dictionary<string, string>
+            {
+                { "Name", "Keyboard" },
+                { "Price", "1000" }
+            };
+
+            var product = CsvConverter.DeserializeFromDictionary<Product>(dictionary);
+            Assert.AreEqual(new Product { Name = "Keyboard", Price = 1000 }, product);
         }
 
         [Test()]
