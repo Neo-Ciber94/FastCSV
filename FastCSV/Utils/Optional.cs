@@ -76,6 +76,75 @@ namespace FastCSV.Utils
             return HasValue && EqualityComparer<T>.Default.Equals(_value, value);
         }
 
+        /// <summary>
+        /// Maps the values from this optional.
+        /// </summary>
+        /// <typeparam name="T">Type of the value.</typeparam>
+        /// <typeparam name="TResult">Type of the resulting optional.</typeparam>
+        /// <param name="ifSome"></param>
+        /// <param name="ifNone"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Optional<TResult> Match<TResult>(Func<T, TResult> ifSome, Action ifNone) where TResult : notnull
+        {
+            if (HasValue)
+            {
+                TResult result = ifSome(Value);
+                return new Optional<TResult>(result);
+            }
+            else
+            {
+                ifNone();
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Maps the value of this optional if have a value.
+        /// </summary>
+        /// <typeparam name="TResult">The resulting type of the value.</typeparam>
+        /// <param name="mapper">The function to map the value.</param>
+        /// <returns>An optional with the mapped value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Optional<TResult> Map<TResult>(Func<T, TResult> mapper) where TResult : notnull
+        {
+            if (HasValue)
+            {
+                TResult result = mapper(Value);
+                return new Optional<TResult>(result);
+            }
+            else
+            {
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Filters the value of this optional if have a value.
+        /// </summary>
+        /// <param name="predicate">The predicate to filter the value.</param>
+        /// <returns>The optional with the filtered value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Optional<T> Filter(Predicate<T> predicate)
+        {
+            if (HasValue)
+            {
+                T value = Value;
+                if (predicate(value))
+                {
+                    return this;
+                }
+                else
+                {
+                    return default;
+                }
+            }
+            else
+            {
+                return default;
+            }
+        }
+
         public override string ToString()
         {
             return HasValue ? $"Optional({_value})" : "None";
@@ -107,6 +176,11 @@ namespace FastCSV.Utils
             return !(left == right);
         }
 
+        public static implicit operator Optional<T>(Optional<Nothing> _)
+        {
+            return new Optional<T>();
+        }
+
         public static implicit operator Optional<T>(T value)
         {
             return new Optional<T>(value);
@@ -120,78 +194,51 @@ namespace FastCSV.Utils
 
     public static class Optional
     {
+        /// <summary>
+        /// Creates an <see cref="Optional{T}"/> from the given value.
+        /// </summary>
+        /// <typeparam name="T">Type of the value.</typeparam>
+        /// <param name="value">The value of the optional.</param>
+        /// <returns>An optional with the given value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Optional<T> Some<T>(T value) where T: notnull
         {
             return new Optional<T>(value);
         }
 
+        /// <summary>
+        /// Creates an <see cref="Optional{T}"/> with no value.
+        /// </summary>
+        /// <returns>An optional with no value.</returns>
+        public static Optional<Nothing> None()
+        {
+            /// Optional<Nothing> implicitly converts to an empty optional
+            return default;
+        }
+
+        /// <summary>
+        /// Creates an <see cref="Optional{T}"/> with no value.
+        /// </summary>
+        /// <typeparam name="T">Type of the optional</typeparam>
+        /// <returns>An optional with no value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Optional<T> None<T>() where T : notnull
         {
             return default;
         }
 
+        /// <summary>
+        /// Converts a nested optional into a single one.
+        /// </summary>
+        /// <typeparam name="T">Type of the optional value.</typeparam>
+        /// <param name="optional">The optional to flatten.</param>
+        /// <returns>An optional that may contains a value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Optional<T> Flatten<T>(this in Optional<Optional<T>> optional) where T : notnull
         {
             if (optional.HasValue)
             {
                 return optional.Value;
-            }
-            else
-            {
-                return default;
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Optional<TResult> Match<T, TResult>(this in Optional<T> optional, Func<T, TResult> ifSome, Action ifNone)
-            where T : notnull
-            where TResult : notnull
-        {
-            if (optional.HasValue)
-            {
-                TResult result = ifSome(optional.Value);
-                return new Optional<TResult>(result);
-            }
-            else
-            {
-                ifNone();
-                return default;
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Optional<TResult> Map<T, TResult>(this in Optional<T> optional, Func<T, TResult> mapper) 
-            where T : notnull 
-            where TResult : notnull
-        {
-            if (optional.HasValue)
-            {
-                TResult result = mapper(optional.Value);
-                return new Optional<TResult>(result);
-            }
-            else
-            {
-                return default;
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Optional<T> Filter<T>(this in Optional<T> optional, Predicate<T> predicate) where T : notnull
-        {
-            if (optional.HasValue)
-            {
-                T value = optional.Value;
-                if (predicate(value))
-                {
-                    return optional;
-                }
-                else
-                {
-                    return default;
-                }
             }
             else
             {
