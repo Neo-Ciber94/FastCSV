@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using FastCSV.Converters;
 using FastCSV.Utils;
 
 namespace FastCSV
@@ -34,9 +35,14 @@ namespace FastCSV
         /// <summary>
         /// Whether the field should be ignored or not.
         /// </summary>
-        public bool Ignore { get; set; }
+        public bool Ignore { get; }
 
-        public CsvField(string originalName, string name, object? value, Type type, Either<FieldInfo, PropertyInfo> source, bool ignore)
+        /// <summary>
+        /// The converter for this field.
+        /// </summary>
+        public IValueConverter? Converter { get;}
+
+        public CsvField(string originalName, string name, object? value, Type type, Either<FieldInfo, PropertyInfo> source, bool ignore, IValueConverter? valueConverter)
         {
             OriginalName = originalName;
             Name = name;
@@ -44,9 +50,10 @@ namespace FastCSV
             Type = type;
             Source = source;
             Ignore = ignore;
+            Converter = valueConverter;
         }
 
-        public CsvField(string name, object? value, Type type, Either<FieldInfo, PropertyInfo> source, bool ignore) 
-            : this(name, name, value, type, source, ignore) { }
+        public CsvField(string name, object? value, Type type, Either<FieldInfo, PropertyInfo> source, bool ignore, IValueConverter? valueConverter) 
+            : this(name, name, value, type, source, ignore, valueConverter) { }
     }
 }

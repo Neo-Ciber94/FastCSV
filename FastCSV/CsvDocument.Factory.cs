@@ -118,7 +118,7 @@ namespace FastCSV
         /// <param name="format">The format.</param>
         /// <param name="parser">The parser.</param>
         /// <returns>A csv document from the given data.</returns>
-        public static CsvDocument<T> FromCsv<T>(string csv, CsvFormat? format = null, IEnumerable<IValueParser>? parsers = null)
+        public static CsvDocument<T> FromCsv<T>(string csv, CsvFormat? format = null, CsvConverterOptions? options = null)
         {
             List<T> list = new List<T>();
             MemoryStream memory = CsvUtility.ToStream(csv);
@@ -130,7 +130,7 @@ namespace FastCSV
                 foreach (CsvRecord record in reader.ReadAll())
                 {
                     Dictionary<string, string> data = record.ToDictionary()!;
-                    T value = CsvUtility.CreateInstance<T>(data, parsers);
+                    T value = CsvConverter.DeserializeFromDictionary<T>(data, options);
                     list.Add(value);
                 }
             }
@@ -146,11 +146,11 @@ namespace FastCSV
         /// <param name="parser">The parser.</param>
         /// <returns>A csv document from the file at the given path.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument<T> FromPath<T>(string path, CsvFormat? format = null, IEnumerable<IValueParser>? parsers = null)
+        public static CsvDocument<T> FromPath<T>(string path, CsvFormat? format = null, CsvConverterOptions? options = null)
         {
             using (StreamReader streamReader = new StreamReader(path))
             {
-                return FromCsv<T>(streamReader.ReadToEnd(), format ?? CsvFormat.Default, parsers);
+                return FromCsv<T>(streamReader.ReadToEnd(), format ?? CsvFormat.Default, options);
             }
         }
     }

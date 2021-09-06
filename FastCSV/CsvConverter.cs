@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -67,8 +68,8 @@ namespace FastCSV
             options ??= CsvConverterOptions.Default;
 
             List<CsvField> fields = GetFields(type, options, Permission.Read, value);
-            string[] csvValues = fields.Where(e => !e.Ignore)
-                .Select((e) => ValueToString(e.Value))
+            string[] csvValues = fields.Where(f => !f.Ignore)
+                .Select((f) => ValueToString(f.Value, f.Converter))
                 .ToArray();
 
             string values = CsvUtility.ToCsvString(csvValues, options.Format);
@@ -81,26 +82,6 @@ namespace FastCSV
             }
 
             return values;
-
-            // Helper
-
-            static string ValueToString(object? value)
-            {
-                if (value == null)
-                {
-                    return string.Empty;
-                }
-
-                Type type = value.GetType();
-                IValueConverter? converter = ValueConverters.GetConverter(type);
-
-                if (converter == null)
-                {
-                    throw new InvalidOperationException($"No converter found for type {type}");
-                }
-
-                return converter.ToStringValue(value)?? string.Empty;
-            }
         }
 
         /// <summary>
@@ -156,7 +137,7 @@ namespace FastCSV
 
                 Either<FieldInfo, PropertyInfo> source = csvField.Source;
                 string csvValue = GetCsvValue(record, csvField, i);
-                object? value = ParseString(csvValue, csvField.Type);
+                object? value = ParseString(csvValue, csvField.Type, csvField.Converter);
 
                 if (source.IsLeft)
                 {
@@ -297,7 +278,7 @@ namespace FastCSV
                 }
 
                 Either<FieldInfo, PropertyInfo> source = csvField.Source;
-                object? obj = ParseString(value, csvField.Type);
+                object? obj = ParseString(value, csvField.Type, csvField.Converter);
 
                 if (source.IsLeft)
                 {
@@ -460,13 +441,17 @@ namespace FastCSV
 
                 foreach (var field in fields)
                 {
+                    CsvFieldAttribute? fieldAttribute = field.GetCustomAttribute<CsvFieldAttribute>();
+
                     string originalName = field.Name;
-                    string name = field.GetCustomAttribute<CsvFieldAttribute>()?.Name ?? originalName;
+                    string name = fieldAttribute?.Name ?? originalName;
                     Type fieldType = field.FieldType;
                     object? fieldValue = instance != null ? field.GetValue(instance) : null;
                     bool ignore = field.GetCustomAttribute<CsvIgnoreAttribute>() != null || field.GetCustomAttribute<NonSerializedAttribute>() != null;
+                    Either<FieldInfo, PropertyInfo> source = Either.FromLeft(field);
+                    IValueConverter? converter = GetValueConverter(fieldAttribute);
 
-                    CsvField csvField = new(originalName, name, fieldValue, fieldType, Either.FromLeft(field), ignore);
+                    CsvField csvField = new(originalName, name, fieldValue, fieldType, source, ignore, converter);
                     csvFields.Add(csvField);
                 }
             }
@@ -483,13 +468,17 @@ namespace FastCSV
 
             foreach (var prop in properties)
             {
+                CsvFieldAttribute? fieldAttribute = prop.GetCustomAttribute<CsvFieldAttribute>();
+
                 string originalName = prop.Name;
-                string name = prop.GetCustomAttribute<CsvFieldAttribute>()?.Name ?? originalName;
+                string name = fieldAttribute?.Name ?? originalName;
                 Type propType = prop.PropertyType;
                 object? propValue = instance != null ? prop.GetValue(instance) : null;
                 bool ignore = prop.GetCustomAttribute<CsvIgnoreAttribute>() != null || prop.GetCustomAttribute<NonSerializedAttribute>() != null;
+                Either<FieldInfo, PropertyInfo> source = Either.FromRight(prop);
+                IValueConverter? converter = GetValueConverter(fieldAttribute);
 
-                CsvField csvField = new(originalName, name, propValue, propType, Either.FromRight(prop), ignore);
+                CsvField csvField = new(originalName, name, propValue, propType, source, ignore, converter);
                 csvFields.Add(csvField);
             }
 
@@ -517,9 +506,9 @@ namespace FastCSV
             }
         }
 
-        internal static object? ParseString(string s, Type type)
+        internal static object? ParseString(string s, Type type, IValueConverter? converter = null)
         {
-            IValueConverter? converter = ValueConverters.GetConverter(type);
+            converter ??= ValueConverters.GetConverter(type);
 
             if (converter == null || !converter.TryParse(s, out object? value))
             {
@@ -527,6 +516,43 @@ namespace FastCSV
             }
 
             return value;
+        }
+
+        internal static string ValueToString(object? value, IValueConverter? converter = null)
+        {
+            if (value == null)
+            {
+                return string.Empty;
+            }
+
+            Type type = value.GetType();
+            converter ??= ValueConverters.GetConverter(type);
+
+            if (converter == null)
+            {
+                throw new InvalidOperationException($"No converter found for type {type}");
+            }
+
+            return converter.ToStringValue(value) ?? string.Empty;
+        }
+
+        internal static IValueConverter? GetValueConverter(CsvFieldAttribute? attribute)
+        {
+            if (attribute == null || attribute.Converter == null)
+            {
+                return null;
+            }
+
+            Type converterType = attribute.Converter;
+            ConstructorInfo? constructor = converterType.GetConstructor(Type.EmptyTypes);
+
+            if (constructor == null)
+            {
+                throw new InvalidOperationException($"No parameless public constructor available for converter {converterType}");
+            }
+
+            object converter = constructor.Invoke(Array.Empty<object>());
+            return (IValueConverter)converter;
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using FastCSV;
+using FastCSV.Converters;
 using FastCSV.Utils;
 using NUnit.Framework;
 
@@ -93,18 +94,7 @@ namespace FastCSV.Tests
                 "Red,23,200-1200\r\n" +
                 "Blue,24,233-5565\r\n";
 
-            var phoneNumberParser = new ValueParser(keys: "PhoneNumber", parser: (string key, string value, out object result) =>
-            {
-                var number = value.Replace("-", string.Empty)
-                    .ToCharArray()
-                    .Select(e => (byte)char.GetNumericValue(e))
-                    .ToArray();
-
-                result = new PhoneNumber(number).ToNullable();
-                return true;
-            });
-
-            var document = CsvDocument.FromCsv<Employee>(csv, parsers: new IValueParser[] { phoneNumberParser });
+            var document = CsvDocument.FromCsv<Employee>(csv);
 
             Assert.AreEqual(2, document.Count);
             Assert.AreEqual(new Employee("Red", 23, new PhoneNumber(2, 0, 0, 1, 2, 0, 0)), document.GetValue(0));
@@ -432,40 +422,13 @@ namespace FastCSV.Tests
          * TEST UTILITY CLASSES
          */
 
-        class Person : IEquatable<Person>
+        record Person : IEquatable<Person>
         {
             public string Name { get; set; }
             public int Age { get; set; }
-
-            public override bool Equals(object obj)
-            {
-                return Equals(obj as Person);
-            }
-
-            public bool Equals(Person other)
-            {
-                return other != null &&
-                       Name == other.Name &&
-                       Age == other.Age;
-            }
-
-            public override int GetHashCode()
-            {
-                return HashCode.Combine(Name, Age);
-            }
-
-            public static bool operator ==(Person left, Person right)
-            {
-                return EqualityComparer<Person>.Default.Equals(left, right);
-            }
-
-            public static bool operator !=(Person left, Person right)
-            {
-                return !(left == right);
-            }
         }
 
-        class Employee : IEquatable<Employee>
+        record Employee : IEquatable<Employee>
         {
             public Employee(string name, int age, PhoneNumber number)
             {
@@ -478,35 +441,8 @@ namespace FastCSV.Tests
 
             public int Age { get; set; }
 
+            [CsvField(Converter = typeof(PhoneNumberConverter))]
             public PhoneNumber? PhoneNumber { get; set; }
-
-            public override bool Equals(object obj)
-            {
-                return Equals(obj as Employee);
-            }
-
-            public bool Equals(Employee other)
-            {
-                return other != null &&
-                       Name == other.Name &&
-                       Age == other.Age &&
-                       EqualityComparer<PhoneNumber?>.Default.Equals(PhoneNumber, other.PhoneNumber);
-            }
-
-            public override int GetHashCode()
-            {
-                return HashCode.Combine(Name, Age, PhoneNumber);
-            }
-
-            public static bool operator ==(Employee left, Employee right)
-            {
-                return EqualityComparer<Employee>.Default.Equals(left, right);
-            }
-
-            public static bool operator !=(Employee left, Employee right)
-            {
-                return !(left == right);
-            }
         }
 
         struct PhoneNumber : IEquatable<PhoneNumber>
@@ -565,6 +501,32 @@ namespace FastCSV.Tests
             public static bool operator !=(PhoneNumber left, PhoneNumber right)
             {
                 return !(left == right);
+            }
+        }
+
+        class PhoneNumberConverter : IValueConverter<PhoneNumber>
+        {
+            public string ToStringValue(PhoneNumber value)
+            {
+                return value.ToString();
+            }
+
+            public bool TryParse(string s, out PhoneNumber value)
+            {
+                value = default;
+
+                byte[] values = s.ToCharArray()
+                    .Where(c => c != '-' && char.IsNumber(c))
+                    .Select(c => (byte)char.GetNumericValue(c))
+                    .ToArray();
+
+                if (values.Length != 7)
+                {
+                    return false;
+                }
+
+                value = new PhoneNumber(values);
+                return true;
             }
         }
     }

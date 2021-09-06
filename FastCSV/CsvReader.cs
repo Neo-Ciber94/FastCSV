@@ -186,7 +186,7 @@ namespace FastCSV
         /// <typeparam name="T">Type to cast the record to.</typeparam>
         /// <param name="parser">The parser.</param>
         /// <returns>An optional with the value or none is there is no more records to read.</returns>
-        public Optional<T> ReadAs<T>(IEnumerable<IValueParser>? parsers = null) where T: notnull
+        public Optional<T> ReadAs<T>(CsvConverterOptions? options = null) where T: notnull
         {
             Dictionary<string, string>? data = Read()?.ToDictionary();
 
@@ -195,7 +195,7 @@ namespace FastCSV
                 return Optional.None<T>();
             }
 
-            var result = CsvUtility.CreateInstance<T>(data, parsers);
+            var result = CsvConverter.DeserializeFromDictionary<T>(data, options);
             return Optional.Some(result);
         }
 
@@ -205,12 +205,12 @@ namespace FastCSV
         /// end the reader will be at the end of the file.
         /// </summary>
         /// <returns>An enumerable over the records of this reader csv.</returns>
-        public IEnumerable<T> ReadAllAs<T>(IEnumerable<IValueParser>? parsers = null)
+        public IEnumerable<T> ReadAllAs<T>(CsvConverterOptions? options = null)
         {
             return ReadAll().Select(record =>
             {
                 Dictionary<string, string> data = record.ToDictionary()!;
-                return CsvUtility.CreateInstance<T>(data, parsers);
+                return CsvConverter.DeserializeFromDictionary<T>(data, options);
             });
         }
             
