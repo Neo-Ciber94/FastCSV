@@ -295,7 +295,7 @@ namespace FastCSV.Utils
             // Min padding between 2 columns
             const int MinPadding = 5;
 
-            CsvHeader? header = records.First().Header;
+            CsvHeader? header = records.FirstOrDefault()?.Header;
 
             using ValueStringBuilder recordBuilder = new ValueStringBuilder(stackalloc char[64]);
             using ValueStringBuilder resultBuilder = new ValueStringBuilder(stackalloc char[256]);
