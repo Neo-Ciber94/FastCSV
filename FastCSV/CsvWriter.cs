@@ -238,6 +238,15 @@ namespace FastCSV
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Clears the buffers of this writes and ensures all the data is written.
+        /// </summary>
+        public void Flush()
+        {
+            ThrowIfDisposed();
+            _writer!.Flush();
+        }
+
         protected void ThrowIfDisposed()
         {
             if (_writer == null)
