@@ -223,6 +223,9 @@ namespace FastCSV.Utils
                         field = field.Trim();
                     }
 
+                    // Ensure the csv field is well formated
+                    field = FormatCsvString(field, format);
+
                     switch (style)
                     {
                         case QuoteStyle.Always:
@@ -238,10 +241,7 @@ namespace FastCSV.Utils
                                          .Replace("\n", string.Empty);
                             break;
                         case QuoteStyle.WhenNeeded:
-                            if (field.Contains(format.Quote) || field.Contains("\n"))
-                            {
-                                field = AddQuote(field);
-                            }
+                            // Field is formatted before
                             break;
                     }
 
@@ -260,24 +260,6 @@ namespace FastCSV.Utils
             }
 
             return stringBuilder.ToString();
-        }
-
-        /// <summary>
-        /// Gets a <see cref="MemoryStream"/> containing the specified <see cref="string"/> data.
-        /// </summary>
-        /// <param name="data">The data.</param>
-        /// <returns>A stream containing the specified data.</returns>
-        public static MemoryStream ToStream(string data)
-        {
-            MemoryStream memory = new MemoryStream(data.Length);
-            using (var writer = new StreamWriter(memory, leaveOpen: true))
-            {
-                writer.Write(data);
-                writer.Flush();
-                memory.Position = 0;
-            }
-
-            return memory;
         }
 
         /// <summary>
@@ -373,6 +355,55 @@ namespace FastCSV.Utils
         public static string JoinLines(IEnumerable<string> values)
         {
             return string.Join('\n', values);
+        }
+
+        /// <summary>
+        /// Gets a <see cref="MemoryStream"/> containing the specified <see cref="string"/> data.
+        /// </summary>
+        /// <param name="data">The data.</param>
+        /// <returns>A stream containing the specified data.</returns>
+        public static MemoryStream ToStream(string data)
+        {
+            MemoryStream memory = new MemoryStream(data.Length);
+            using (var writer = new StreamWriter(memory, leaveOpen: true))
+            {
+                writer.Write(data);
+                writer.Flush();
+                memory.Position = 0;
+            }
+
+            return memory;
+        }
+
+        // FIXME: This method allocates too much
+        private static string FormatCsvString(string s, CsvFormat format)
+        {
+            bool encloseWithQuotes = false;
+
+            if (s.Contains("\n"))
+            {
+                encloseWithQuotes = true;
+            }
+            
+            if (s.Contains(format.Delimiter))
+            {
+                encloseWithQuotes = true;
+            }
+
+            if (s.Contains(format.Quote))
+            {
+                encloseWithQuotes = true;
+
+                string doubleQuote = new string(format.Quote, 2);
+                s = s.Replace(format.Quote.ToString(), doubleQuote);
+            }
+
+            if (encloseWithQuotes)
+            {
+                s = $"{format.Quote}{s}{format.Quote}";
+            }
+
+            return s;
         }
     }
 }
