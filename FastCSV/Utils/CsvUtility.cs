@@ -7,7 +7,6 @@ using System.Text;
 
 namespace FastCSV.Utils
 {
-
     /// <summary>
     /// Utility class for work with CSV.
     /// </summary>
