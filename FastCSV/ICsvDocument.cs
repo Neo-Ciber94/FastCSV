@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 
 namespace FastCSV
 {
@@ -54,6 +55,6 @@ namespace FastCSV
         /// Writes the contents of this document to file.
         /// </summary>
         /// <param name="path">The path.</param>
-        public void WriteContentsToFile(string path); // FIXME: WriteToStream(Stream stream) is more generic
+        public void WriteContentsToFile(string path); // FIXME: WriteToStream(Stream destination) is more generic
     }
 }

@@ -82,7 +82,7 @@ namespace FastCSV.Tests
 
             using (var tempFile = new TempFile())
             {
-                CsvWriter.WriteFile(header, records, tempFile.FullName);
+                CsvWriter.WriteToFile(header, records, tempFile.FullName);
 
                 using (var reader = new StreamReader(tempFile.FullName))
                 {
@@ -106,7 +106,7 @@ namespace FastCSV.Tests
 
             using (var tempFile = new TempFile())
             {
-                CsvWriter.WriteFile(list, tempFile.FullName);
+                CsvWriter.WriteToFile(list, tempFile.FullName);
 
                 using (var reader = new StreamReader(tempFile.FullName))
                 {

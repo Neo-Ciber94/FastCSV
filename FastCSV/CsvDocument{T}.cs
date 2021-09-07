@@ -280,7 +280,7 @@ namespace FastCSV
         /// <param name="path">The file path.</param>
         public void WriteContentsToFile(string path)
         {
-            CsvWriter.WriteFile(Header, this, path);
+            CsvWriter.WriteToFile(Header, this, path);
         }
 
         /// <summary>
