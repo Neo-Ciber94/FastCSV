@@ -117,7 +117,7 @@ namespace FastCSV
 
             options ??= CsvConverterOptions.Default;
 
-            using MemoryStream stream = CsvUtility.ToStream(csv);
+            using MemoryStream stream = StreamHelper.ToMemoryStream(csv);
             using CsvReader reader = CsvReader.FromStream(stream, options.Format, options.IncludeHeader);
 
             // SAFETY: should be at least 1 record

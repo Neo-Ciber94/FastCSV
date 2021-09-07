@@ -27,7 +27,7 @@ namespace FastCSV
                 throw new ArgumentException("CSV is empty");
             }
 
-            using MemoryStream memory = CsvUtility.ToStream(csv);
+            using MemoryStream memory = StreamHelper.ToMemoryStream(csv);
 
             using (CsvReader reader = new CsvReader(new StreamReader(memory), format))
             {
@@ -121,7 +121,7 @@ namespace FastCSV
         public static CsvDocument<T> FromCsv<T>(string csv, CsvFormat? format = null, CsvConverterOptions? options = null)
         {
             List<T> list = new List<T>();
-            MemoryStream memory = CsvUtility.ToStream(csv);
+            MemoryStream memory = StreamHelper.ToMemoryStream(csv);
 
             format ??= CsvFormat.Default;
 

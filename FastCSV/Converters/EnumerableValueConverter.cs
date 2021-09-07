@@ -77,7 +77,7 @@ namespace FastCSV.Converters
             }
 
 
-            using MemoryStream memoryStream = CsvUtility.ToStream(s);
+            using MemoryStream memoryStream = StreamHelper.ToMemoryStream(s);
             using StreamReader reader = new StreamReader(memoryStream);
 
             List<string>? csvValues = CsvUtility.ReadRecord(reader, Format);
