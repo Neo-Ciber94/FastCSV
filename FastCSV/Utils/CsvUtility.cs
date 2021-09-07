@@ -386,6 +386,7 @@ namespace FastCSV.Utils
                 encloseWithQuotes = true;
             }
             
+            // Quick path to avoid extra allocations
             if (!containsQuote && !encloseWithQuotes)
             {
                 return s;
