@@ -391,7 +391,7 @@ namespace FastCSV.Utils
                 return s;
             }
 
-            StringBuilder stringBuilder = StringBuilderCache.Acquire();
+            StringBuilder stringBuilder = StringBuilderCache.Acquire(s.Length);
             stringBuilder.Append(s);
 
             if (containsQuote)
