@@ -13,7 +13,7 @@ using FastCSV.Utils;
 
 namespace FastCSV.Benchmarks
 {
-    record Box(int Number, int[] Values);
+    record Box(int Number, string[] Values);
 
     class Program
     {
@@ -21,9 +21,9 @@ namespace FastCSV.Benchmarks
         {
             // BenchmarkRunner.Run<ReadAllVsReadAllAsync>();
 
-            var converter = new EnumerableValueConverter<int>(CsvFormat.Default);
+            var converter = new EnumerableValueConverter<string>(CsvFormat.Default);
 
-            int[] values = new int[] { 13, 79, 40 };
+            var values = new string[] { "hello", "Ana, Storm", "Suki" };
 
             Console.WriteLine(ToString(converter.GetHeader(values)));
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace FastCSV.Utils
 {
@@ -375,17 +376,14 @@ namespace FastCSV.Utils
             return memory;
         }
 
-        // FIXME: This method allocates too much
         private static string FormatCsvString(string s, CsvFormat format)
         {
+            StringBuilder stringBuilder = StringBuilderCache.Acquire();
+            stringBuilder.Append(s);
+
             bool encloseWithQuotes = false;
 
-            if (s.Contains("\n"))
-            {
-                encloseWithQuotes = true;
-            }
-            
-            if (s.Contains(format.Delimiter))
+            if (s.Contains("\n") || s.Contains(format.Delimiter))
             {
                 encloseWithQuotes = true;
             }
@@ -395,15 +393,17 @@ namespace FastCSV.Utils
                 encloseWithQuotes = true;
 
                 string doubleQuote = new string(format.Quote, 2);
-                s = s.Replace(format.Quote.ToString(), doubleQuote);
+                stringBuilder.Replace(format.Quote.ToString(), doubleQuote);
             }
 
             if (encloseWithQuotes)
             {
-                s = $"{format.Quote}{s}{format.Quote}";
+                int length = stringBuilder.Length;
+                stringBuilder.Insert(0, format.Quote);
+                stringBuilder.Insert(length + 1, format.Quote);
             }
 
-            return s;
+            return StringBuilderCache.ToStringAndRelease(ref stringBuilder!);
         }
     }
 }
