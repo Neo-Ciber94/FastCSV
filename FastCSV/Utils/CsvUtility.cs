@@ -378,17 +378,23 @@ namespace FastCSV.Utils
 
         private static string FormatCsvString(string s, CsvFormat format)
         {
-            StringBuilder stringBuilder = StringBuilderCache.Acquire();
-            stringBuilder.Append(s);
-
             bool encloseWithQuotes = false;
+            bool containsQuote = s.Contains(format.Quote);
 
             if (s.Contains("\n") || s.Contains(format.Delimiter))
             {
                 encloseWithQuotes = true;
             }
+            
+            if (!containsQuote && !encloseWithQuotes)
+            {
+                return s;
+            }
 
-            if (s.Contains(format.Quote))
+            StringBuilder stringBuilder = StringBuilderCache.Acquire();
+            stringBuilder.Append(s);
+
+            if (containsQuote)
             {
                 encloseWithQuotes = true;
 
