@@ -59,7 +59,7 @@ namespace FastCSV.Utils
 
                 // Convert the CharEnumerator into an IIterator
                 // which allow to inspect the next elements
-                IIterator<char> enumerator = line.GetEnumerator().AsIterator();
+                IIterator<char> enumerator = line.GetEnumerator().ToIterator();
 
                 while (enumerator.MoveNext())
                 {

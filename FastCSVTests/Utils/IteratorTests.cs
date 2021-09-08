@@ -13,7 +13,7 @@ namespace FastCSV.Utils.Tests
         {
             var elements = new List<int> { 1, 2, 3, 4, 5 };
 
-            IIterator<int> enumerator = elements.GetEnumerator().AsIterator();
+            IIterator<int> enumerator = elements.GetEnumerator().ToIterator();
 
             Assert.AreEqual(1, enumerator.Peek.Value);
 

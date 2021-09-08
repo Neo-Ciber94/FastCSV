@@ -35,7 +35,7 @@ namespace FastCSV.Utils
         /// <typeparam name="T"></typeparam>
         /// <param name="enumerator">The enumerator.</param>
         /// <returns>An iterator over this enumerator</returns>
-        public static IIterator<T> AsIterator<T>(this IEnumerator<T> enumerator) where T : notnull
+        public static IIterator<T> ToIterator<T>(this IEnumerator<T> enumerator) where T : notnull
         {
             return new Iterator<T>(enumerator);
         }
