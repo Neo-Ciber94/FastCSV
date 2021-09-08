@@ -6,7 +6,6 @@ using BenchmarkDotNet.Attributes;
 
 namespace FastCSV.Benchmarks
 {
-    [ShortRunJob]
     [MemoryDiagnoser]
     [MinColumn, MaxColumn]
     public class ReadAllVsReadAllAsync

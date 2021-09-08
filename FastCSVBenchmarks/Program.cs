@@ -19,22 +19,7 @@ namespace FastCSV.Benchmarks
     {
         public static void Main()
         {
-            // BenchmarkRunner.Run<ReadAllVsReadAllAsync>();
-
-            var converter = new EnumerableValueConverter<string>(CsvFormat.Default);
-
-            var values = new string[] { "hello", "Ana, Storm", "Suki" };
-
-            Console.WriteLine(ToString(converter.GetHeader(values)));
-
-            string csv = converter.ToStringValue(values);
-            Console.WriteLine(csv);
-        }
-
-        static string ToString(IEnumerable enumerable)
-        {
-            var values = enumerable.Cast<object>().Select(e => e?.ToString());
-            return "[" + string.Join(", ", values) + "]";
+            BenchmarkRunner.Run<ReadAllVsReadAllAsync>();
         }
     }
 }
