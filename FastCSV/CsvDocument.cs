@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading.Tasks;
 using FastCSV.Utils;
 
 namespace FastCSV
@@ -314,13 +315,15 @@ namespace FastCSV
             }
         }
 
-        /// <summary>
-        /// Writes the content of this instance to a file.
-        /// </summary>
-        /// <param name="path">The file path.</param>
-        public void WriteContentsToFile(string path)
+        public void CopyTo(Stream destination)
         {
-            CsvWriter.WriteToFile(Header, _records, path);
+            CsvWriter.WriteToStream(Header, this, destination);
+        }
+
+        public Task CopyToAsync(Stream destination)
+        {
+            CopyTo(destination);
+            return Task.CompletedTask;
         }
 
         /// <summary>

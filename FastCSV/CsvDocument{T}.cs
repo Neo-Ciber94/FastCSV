@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using FastCSV.Utils;
 
 namespace FastCSV
@@ -274,13 +276,15 @@ namespace FastCSV
             return new CsvDocument<T>(_records.ToList(), Header.WithFormat(format), format);
         }
 
-        /// <summary>
-        /// Writes the content of this instance to a file.
-        /// </summary>
-        /// <param name="path">The file path.</param>
-        public void WriteContentsToFile(string path)
+        public void CopyTo(Stream destination)
         {
-            CsvWriter.WriteToFile(Header, this, path);
+            CsvWriter.WriteToStream(Header, this, destination);
+        }
+
+        public Task CopyToAsync(Stream destination)
+        {
+            CopyTo(destination);
+            return Task.CompletedTask;
         }
 
         /// <summary>

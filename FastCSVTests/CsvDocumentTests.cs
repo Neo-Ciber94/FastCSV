@@ -335,7 +335,7 @@ namespace FastCSV.Tests
 
             using(var tempFile = new TempFile())
             {
-                document.WriteContentsToFile(tempFile.FullName);
+                document.CopyToFile(tempFile.FullName);
 
                 using var reader = new StreamReader(tempFile.FullName);
                 Assert.AreEqual("name,age\r\nLight,18\r\nMisa,20\r\n", reader.ReadToEnd());

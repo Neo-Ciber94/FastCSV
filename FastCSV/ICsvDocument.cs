@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace FastCSV
 {
@@ -52,9 +53,15 @@ namespace FastCSV
         public CsvRecord this[int index] { get; }
 
         /// <summary>
-        /// Writes the contents of this document to file.
+        /// Copies the data of this document to the given stream.
         /// </summary>
-        /// <param name="path">The path.</param>
-        public void WriteContentsToFile(string path); // FIXME: WriteToStream(Stream destination) is more generic
+        /// <param name="destination">The destination of the data.</param>
+        public void CopyTo(Stream destination) { }
+
+        /// <summary>
+        /// Copies the data of this document to the given stream asynchronously.
+        /// </summary>
+        /// <param name="destination">The destination of the data.</param>
+        public Task CopyToAsync(Stream destination);
     }
 }
