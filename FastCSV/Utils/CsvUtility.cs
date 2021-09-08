@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using FastCSV.Collections;
 
 namespace FastCSV.Utils
 {
@@ -59,7 +60,7 @@ namespace FastCSV.Utils
 
                 // Convert the CharEnumerator into an IIterator
                 // which allow to inspect the next elements
-                IIterator<char> enumerator = line.GetEnumerator().ToIterator();
+                Iterator<char> enumerator = line.GetEnumerator().AsIterator();
 
                 while (enumerator.MoveNext())
                 {

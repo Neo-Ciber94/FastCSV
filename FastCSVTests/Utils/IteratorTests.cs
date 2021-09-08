@@ -1,7 +1,7 @@
 using NUnit.Framework;
-using FastCSV.Utils;
 using System.Collections.Generic;
 using System;
+using FastCSV.Collections;
 
 namespace FastCSV.Utils.Tests
 {
@@ -13,7 +13,7 @@ namespace FastCSV.Utils.Tests
         {
             var elements = new List<int> { 1, 2, 3, 4, 5 };
 
-            IIterator<int> enumerator = elements.GetEnumerator().ToIterator();
+            IIterator<int> enumerator = elements.GetEnumerator().AsIterator();
 
             Assert.AreEqual(1, enumerator.Peek.Value);
 

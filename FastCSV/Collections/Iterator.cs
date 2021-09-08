@@ -1,47 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using FastCSV.Utils;
 
-namespace FastCSV.Utils
+namespace FastCSV.Collections
 {
-    /// <summary>
-    /// Provides an iterator over elements of type T, and allows to check for the next element, if any.
-    /// </summary>
-    /// <typeparam name="T">Type of the elements to iterate</typeparam>
-    /// <seealso cref="System.Collections.Generic.IEnumerator{T}" />
-    public interface IIterator<T> : IEnumerator<T> where T: notnull
-    {
-        /// <summary>
-        /// Determines whether there is a next element.
-        /// </summary>
-        /// <returns>
-        ///   <c>true</c> if this iterator has a next value; otherwise, <c>false</c>.
-        /// </returns>
-        public bool HasNext();
-
-        /// <summary>
-        /// Gets the next element (if any) without move the iterator.
-        /// </summary>
-        /// <value>
-        /// An <see cref="Optional{T}"/> containing the next element or none.
-        /// </value>
-        public Optional<T> Peek { get; }
-    }
-
-    public static class IteratorExtensions
-    {
-        /// <summary>
-        /// Converts this enumerator into an <see cref="IIterator{T}"/>.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="enumerator">The enumerator.</param>
-        /// <returns>An iterator over this enumerator</returns>
-        public static IIterator<T> ToIterator<T>(this IEnumerator<T> enumerator) where T : notnull
-        {
-            return new Iterator<T>(enumerator);
-        }
-    }
-
-    internal class Iterator<T> : IIterator<T> where T : notnull
+    public struct Iterator<T> : IIterator<T> where T : notnull
     {
         private readonly IEnumerator<T> _enumerator;
         private Optional<T> _next;
@@ -51,6 +14,7 @@ namespace FastCSV.Utils
         {
             _enumerator = enumerator;
             _current = default!;
+            _next = default;
         }
 
         public T Current => _current;
@@ -76,7 +40,7 @@ namespace FastCSV.Utils
             return MoveNext(moving: true);
         }
 
-        protected bool MoveNext(bool moving)
+        private bool MoveNext(bool moving)
         {
             if (moving)
             {
