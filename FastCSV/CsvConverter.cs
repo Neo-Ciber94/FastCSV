@@ -442,6 +442,7 @@ namespace FastCSV
                 foreach (var field in fields)
                 {
                     CsvFieldAttribute? fieldAttribute = field.GetCustomAttribute<CsvFieldAttribute>();
+                    CsvValueConverterAttribute? converterAttribute = field.GetCustomAttribute<CsvValueConverterAttribute>();
 
                     string originalName = field.Name;
                     string name = fieldAttribute?.Name ?? originalName;
@@ -449,7 +450,7 @@ namespace FastCSV
                     object? fieldValue = instance != null ? field.GetValue(instance) : null;
                     bool ignore = field.GetCustomAttribute<CsvIgnoreAttribute>() != null || field.GetCustomAttribute<NonSerializedAttribute>() != null;
                     Either<FieldInfo, PropertyInfo> source = Either.FromLeft(field);
-                    IValueConverter? converter = GetValueConverter(fieldAttribute);
+                    IValueConverter? converter = GetValueConverter(converterAttribute);
 
                     CsvField csvField = new(originalName, name, fieldValue, fieldType, source, ignore, converter);
                     csvFields.Add(csvField);
@@ -469,6 +470,7 @@ namespace FastCSV
             foreach (var prop in properties)
             {
                 CsvFieldAttribute? fieldAttribute = prop.GetCustomAttribute<CsvFieldAttribute>();
+                CsvValueConverterAttribute? converterAttribute = prop.GetCustomAttribute<CsvValueConverterAttribute>();
 
                 string originalName = prop.Name;
                 string name = fieldAttribute?.Name ?? originalName;
@@ -476,7 +478,7 @@ namespace FastCSV
                 object? propValue = instance != null ? prop.GetValue(instance) : null;
                 bool ignore = prop.GetCustomAttribute<CsvIgnoreAttribute>() != null || prop.GetCustomAttribute<NonSerializedAttribute>() != null;
                 Either<FieldInfo, PropertyInfo> source = Either.FromRight(prop);
-                IValueConverter? converter = GetValueConverter(fieldAttribute);
+                IValueConverter? converter = GetValueConverter(converterAttribute);
 
                 CsvField csvField = new(originalName, name, propValue, propType, source, ignore, converter);
                 csvFields.Add(csvField);
@@ -536,14 +538,20 @@ namespace FastCSV
             return converter.ToStringValue(value) ?? string.Empty;
         }
 
-        internal static IValueConverter? GetValueConverter(CsvFieldAttribute? attribute)
+        internal static IValueConverter? GetValueConverter(CsvValueConverterAttribute? attribute)
         {
-            if (attribute == null || attribute.Converter == null)
+            if (attribute == null || attribute.ConverterType == null)
             {
                 return null;
             }
 
-            Type converterType = attribute.Converter;
+            Type converterType = attribute.ConverterType;
+            
+            if (!typeof(IValueConverter).IsAssignableFrom(converterType))
+            {
+                throw new ArgumentException($"Type {converterType} does not implements {typeof(IValueConverter)}");
+            }
+
             ConstructorInfo? constructor = converterType.GetConstructor(Type.EmptyTypes);
 
             if (constructor == null)

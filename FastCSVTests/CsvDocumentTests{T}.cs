@@ -441,7 +441,7 @@ namespace FastCSV.Tests
 
             public int Age { get; set; }
 
-            [CsvField(Converter = typeof(PhoneNumberConverter))]
+            [CsvValueConverter(typeof(PhoneNumberConverter))]
             public PhoneNumber? PhoneNumber { get; set; }
         }
 
