@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+
 namespace FastCSV.Utils
 {
     /// <summary>
