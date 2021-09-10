@@ -441,19 +441,7 @@ namespace FastCSV
 
                 foreach (var field in fields)
                 {
-                    CsvFieldAttribute? fieldAttribute = field.GetCustomAttribute<CsvFieldAttribute>();
-                    CsvValueConverterAttribute? converterAttribute = field.GetCustomAttribute<CsvValueConverterAttribute>();
-                    CsvNamingConvention? namingConvention = options.NamingConvention;
-
-                    string originalName = field.Name;
-                    string name = fieldAttribute?.Name ?? namingConvention?.Convert(originalName)?? originalName;
-                    Type fieldType = field.FieldType;
-                    object? fieldValue = instance != null ? field.GetValue(instance) : null;
-                    bool ignore = field.GetCustomAttribute<CsvIgnoreAttribute>() != null || field.GetCustomAttribute<NonSerializedAttribute>() != null;
-                    Either<FieldInfo, PropertyInfo> source = Either.FromLeft(field);
-                    IValueConverter? converter = GetValueConverter(converterAttribute);
-
-                    CsvField csvField = new(originalName, name, fieldValue, fieldType, source, ignore, converter);
+                    CsvField csvField = CreateCsvField(new PropertyOrField(field), options, instance);
                     csvFields.Add(csvField);
                 }
             }
@@ -469,20 +457,8 @@ namespace FastCSV
             }
 
             foreach (var prop in properties)
-            {
-                CsvFieldAttribute? fieldAttribute = prop.GetCustomAttribute<CsvFieldAttribute>();
-                CsvValueConverterAttribute? converterAttribute = prop.GetCustomAttribute<CsvValueConverterAttribute>();
-                CsvNamingConvention? namingConvention = options.NamingConvention;
-
-                string originalName = prop.Name;
-                string name = fieldAttribute?.Name ?? namingConvention?.Convert(originalName) ?? originalName;
-                Type propType = prop.PropertyType;
-                object? propValue = instance != null ? prop.GetValue(instance) : null;
-                bool ignore = prop.GetCustomAttribute<CsvIgnoreAttribute>() != null || prop.GetCustomAttribute<NonSerializedAttribute>() != null;
-                Either<FieldInfo, PropertyInfo> source = Either.FromRight(prop);
-                IValueConverter? converter = GetValueConverter(converterAttribute);
-
-                CsvField csvField = new(originalName, name, propValue, propType, source, ignore, converter);
+            {                
+                CsvField csvField = CreateCsvField(new PropertyOrField(prop), options, instance);
                 csvFields.Add(csvField);
             }
 
@@ -563,6 +539,29 @@ namespace FastCSV
 
             object converter = constructor.Invoke(Array.Empty<object>());
             return (IValueConverter)converter;
+        }
+
+        internal static CsvField CreateCsvField(PropertyOrField propertyOrField, CsvConverterOptions options, object? instance)
+        {
+            CsvFieldAttribute? fieldAttribute = propertyOrField.GetCustomAttribute<CsvFieldAttribute>();
+            CsvValueConverterAttribute? converterAttribute = propertyOrField.GetCustomAttribute<CsvValueConverterAttribute>();
+            CsvNamingConvention? namingConvention = options.NamingConvention;
+
+            string originalName = propertyOrField.Name;
+            string name = fieldAttribute?.Name ?? namingConvention?.Convert(originalName) ?? originalName;
+            Type fieldType = propertyOrField.Type;
+            object? fieldValue = instance != null ? propertyOrField.GetValue(instance) : null;
+            bool ignore = propertyOrField.GetCustomAttribute<CsvIgnoreAttribute>() != null || propertyOrField.GetCustomAttribute<NonSerializedAttribute>() != null;
+            IValueConverter? converter = GetValueConverter(converterAttribute);
+            
+            Either<FieldInfo, PropertyInfo> source = propertyOrField switch
+            {
+                var p when p.IsProperty => Either.FromRight(propertyOrField.Property!),
+                var f when f.IsField => Either.FromLeft(propertyOrField.Field!),
+                _ => throw new InvalidOperationException()
+            };
+
+            return new(originalName, name, fieldValue, fieldType, source, ignore, converter);
         }
     }
 }
