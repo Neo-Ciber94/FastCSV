@@ -443,9 +443,10 @@ namespace FastCSV
                 {
                     CsvFieldAttribute? fieldAttribute = field.GetCustomAttribute<CsvFieldAttribute>();
                     CsvValueConverterAttribute? converterAttribute = field.GetCustomAttribute<CsvValueConverterAttribute>();
+                    CsvNamingConvention? namingConvention = options.NamingConvention;
 
                     string originalName = field.Name;
-                    string name = fieldAttribute?.Name ?? originalName;
+                    string name = fieldAttribute?.Name ?? namingConvention?.Convert(originalName)?? originalName;
                     Type fieldType = field.FieldType;
                     object? fieldValue = instance != null ? field.GetValue(instance) : null;
                     bool ignore = field.GetCustomAttribute<CsvIgnoreAttribute>() != null || field.GetCustomAttribute<NonSerializedAttribute>() != null;
@@ -471,9 +472,10 @@ namespace FastCSV
             {
                 CsvFieldAttribute? fieldAttribute = prop.GetCustomAttribute<CsvFieldAttribute>();
                 CsvValueConverterAttribute? converterAttribute = prop.GetCustomAttribute<CsvValueConverterAttribute>();
+                CsvNamingConvention? namingConvention = options.NamingConvention;
 
                 string originalName = prop.Name;
-                string name = fieldAttribute?.Name ?? originalName;
+                string name = fieldAttribute?.Name ?? namingConvention?.Convert(originalName) ?? originalName;
                 Type propType = prop.PropertyType;
                 object? propValue = instance != null ? prop.GetValue(instance) : null;
                 bool ignore = prop.GetCustomAttribute<CsvIgnoreAttribute>() != null || prop.GetCustomAttribute<NonSerializedAttribute>() != null;

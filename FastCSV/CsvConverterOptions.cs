@@ -28,6 +28,11 @@
         public bool IncludeHeader { get; init; } = true;
 
         /// <summary>
+        /// Naming convention used.
+        /// </summary>
+        public CsvNamingConvention? NamingConvention { get; init; }
+
+        /// <summary>
         /// The delimiter of the format.
         /// </summary>
         public char Delimiter => Format.Delimiter;
