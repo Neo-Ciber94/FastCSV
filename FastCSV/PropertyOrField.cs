@@ -8,7 +8,7 @@ namespace FastCSV
     /// </summary>
     internal readonly struct PropertyOrField
     {
-        private const string NeitherTypeExceptionMessage = "value is neither a property or field";
+        private const string NeitherTypeExceptionMessage = "Value is neither a property or field";
 
         private readonly object _value;
 
