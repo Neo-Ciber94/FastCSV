@@ -13,7 +13,7 @@ namespace FastCSV.Converters
     {
         private static readonly ObjectDictionary Converters = new ObjectDictionary();
 
-        private static readonly IReadOnlyDictionary<Type, IValueConverter> DefaultConverters = new Dictionary<Type, IValueConverter>
+        private static readonly IReadOnlyDictionary<Type, IValueConverter> BuiltInConverters = new Dictionary<Type, IValueConverter>
         {
             { typeof(bool),             new BoolValueConverter() },
             { typeof(char),             new CharValueConverter() },
@@ -59,7 +59,7 @@ namespace FastCSV.Converters
                 return (EnumObjectValueConverter)enumConverter!;
             }
 
-            if (DefaultConverters.TryGetValue(type, out var converter))
+            if (BuiltInConverters.TryGetValue(type, out var converter))
             {
                 return converter;
             }
