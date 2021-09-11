@@ -64,7 +64,7 @@ namespace FastCSV.Converters
         {
             value = null;
 
-            if (s == null || EnumType.IsEnum)
+            if (s == null)
             {
                 return false;
             }

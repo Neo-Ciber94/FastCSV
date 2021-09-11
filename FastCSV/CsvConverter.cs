@@ -34,6 +34,8 @@ namespace FastCSV
     /// </summary>
     public static class CsvConverter
     {
+        private const string BuiltInTypeHeaderName = "value";
+
         /// <summary>
         /// Serialize the given value to a csv.
         /// </summary>
@@ -67,6 +69,19 @@ namespace FastCSV
 
             options ??= CsvConverterOptions.Default;
 
+            if (IsBuiltInType(type))
+            {
+                if (options.IncludeHeader)
+                {
+                    string s = ValueToString(value, null);
+                    return $"{BuiltInTypeHeaderName}\n{s}";
+                }
+                else
+                {
+                    return ValueToString(value, null);
+                }
+            }
+
             List<CsvField> fields = GetFields(type, options, Permission.Read, value);
             string[] csvValues = fields.Where(f => !f.Ignore)
                 .Select((f) => ValueToString(f.Value, f.Converter))
@@ -93,7 +108,7 @@ namespace FastCSV
         /// <returns>The resulting value using the csv.</returns>
         public static T Deserialize<T>(string csv, CsvConverterOptions? options = null)
         {
-            return (T)Deserialize(csv, typeof(T), options);
+            return (T)Deserialize(csv, typeof(T), options)!;
         }
 
         /// <summary>
@@ -103,19 +118,36 @@ namespace FastCSV
         /// <param name="type">Type of the resulting value.</param>
         /// <param name="options">Options used, if null will use the default options.</param>
         /// <returns>The resulting value using the csv.</returns>
-        public static object Deserialize(string csv, Type type, CsvConverterOptions? options = null)
+        public static object? Deserialize(string csv, Type type, CsvConverterOptions? options = null)
         {
             if (string.IsNullOrWhiteSpace(csv))
             {
                 throw new ArgumentException("csv cannot be empty", nameof(csv));
             }
 
+            options ??= CsvConverterOptions.Default;
+
             if (IsBuiltInType(type))
             {
-                return ParseString(csv, type)!;
-            }
+                if (options.IncludeHeader)
+                {
+                    using MemoryStream stream2 = StreamHelper.ToMemoryStream(csv);
+                    using CsvReader reader2 = CsvReader.FromStream(stream2, options.Format, options.IncludeHeader);
+                    CsvRecord singleRecord = reader2.Read()!;
+                    
+                    if (singleRecord.Length != 1)
+                    {
+                        throw new InvalidOperationException($"Expected 1 single field");
+                    }
 
-            options ??= CsvConverterOptions.Default;
+                    string s = singleRecord[0];
+                    return ParseString(s, type);
+                }
+                else
+                {
+                    return ParseString(csv, type);
+                }
+            }
 
             using MemoryStream stream = StreamHelper.ToMemoryStream(csv);
             using CsvReader reader = CsvReader.FromStream(stream, options.Format, options.IncludeHeader);
@@ -235,7 +267,7 @@ namespace FastCSV
         /// <returns>An object of the given type using the values from the dictionary.</returns>
         public static T DeserializeFromDictionary<T>(IReadOnlyDictionary<string, string> data, CsvConverterOptions? options = null)
         {
-            return (T)DeserializeFromDictionary(data, typeof(T), options);
+            return (T)DeserializeFromDictionary(data, typeof(T), options)!;
         }
 
         /// <summary>
@@ -245,15 +277,13 @@ namespace FastCSV
         /// <param name="type">Type of the object to construct.</param>
         /// <param name="options">Options used, if null will use the default options.</param>
         /// <returns>An object of the given type using the values from the dictionary.</returns>
-        public static object DeserializeFromDictionary(IReadOnlyDictionary<string, string> data, Type type, CsvConverterOptions? options = null)
+        public static object? DeserializeFromDictionary(IReadOnlyDictionary<string, string> data, Type type, CsvConverterOptions? options = null)
         {
             if (IsBuiltInType(type))
             {
-                const string BuiltInFieldName = "value";
-
-                if (!data.TryGetValue(BuiltInFieldName, out string? v) || data.Count != 1)
+                if (!data.TryGetValue(BuiltInTypeHeaderName, out string? v) || data.Count != 1)
                 {
-                    throw new ArgumentException($"For builtin type '{nameof(data)}' should contains a single field named '{BuiltInFieldName}'");
+                    throw new ArgumentException($"For builtin type '{nameof(data)}' should contains a single field named '{BuiltInTypeHeaderName}'");
                 }
 
                 return ParseString(v, type)!;
