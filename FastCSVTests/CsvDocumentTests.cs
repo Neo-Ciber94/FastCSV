@@ -380,11 +380,5 @@ namespace FastCSV.Tests
 
             Assert.IsFalse(enumerator.MoveNext());
         }
-
-        [Test()]
-        public void CsvDocumentTest3()
-        {
-
-        }
     }
 }
