@@ -9,13 +9,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		README.md = README.md
+		TODO.md = TODO.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FastCSVTests", "FastCsvTests\FastCSVTests.csproj", "{580909D2-946B-4274-9527-2FE6FCB39C8D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FastCSVBenchmarks", "FastCSVBenchmarks\FastCSVBenchmarks.csproj", "{28CD9515-BC2C-43A6-B5B2-8CF64A7D9027}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastCSVCodeGen", "FastCSVCodeGen\FastCSVCodeGen.csproj", "{52DDC770-EEDE-43E1-8257-7A8D6A3D6204}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FastCSVCodeGen", "FastCSVCodeGen\FastCSVCodeGen.csproj", "{52DDC770-EEDE-43E1-8257-7A8D6A3D6204}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
