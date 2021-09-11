@@ -479,9 +479,16 @@ namespace FastCSV
 
         internal static object? ParseString(string s, Type type, IValueConverter? converter = null)
         {
+            Type? nullableType = Nullable.GetUnderlyingType(type);
+
+            if (nullableType != null)
+            {
+                type = nullableType;
+            }
+
             converter ??= ValueConverters.GetConverter(type);
 
-            if (converter == null || !converter.TryParse(s, out object? value))
+            if (converter == null || !converter.CanConvert(type) || !converter.TryParse(s, out object? value))
             {
                 throw new InvalidOperationException($"Cannot convert '{s}' to '{type}'");
             }
@@ -497,9 +504,16 @@ namespace FastCSV
             }
 
             Type type = value.GetType();
+            Type? nullableType = Nullable.GetUnderlyingType(type);
+
+            if (nullableType != null)
+            {
+                type = nullableType;
+            }
+
             converter ??= ValueConverters.GetConverter(type);
 
-            if (converter == null)
+            if (converter == null || !converter.CanConvert(type))
             {
                 throw new InvalidOperationException($"No converter found for type {type}");
             }
