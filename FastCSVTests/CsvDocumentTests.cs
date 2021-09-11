@@ -99,8 +99,8 @@ namespace FastCSV.Tests
         public void WriteWithTest()
         {
             var document = new CsvDocument(new string[] { "name", "age" });
-            document.WriteWith(new { Name = "Light", Age = "18" });
-            document.WriteWith(new { Name = "Misa", Age = "20" });
+            document.WriteValue(new { Name = "Light", Age = "18" });
+            document.WriteValue(new { Name = "Misa", Age = "20" });
 
             Assert.IsFalse(document.IsEmpty);
             Assert.AreEqual(2, document.Count);
@@ -126,7 +126,7 @@ namespace FastCSV.Tests
             document.Write("Light", 18);
             document.Write("Misa", 20);
 
-            document.WriteAtWith(0, new { Name = "Ryuk", Age = 999 });
+            document.WriteValueAt(0, new { Name = "Ryuk", Age = 999 });
 
             Assert.IsFalse(document.IsEmpty);
             Assert.AreEqual(3, document.Count);
@@ -187,8 +187,8 @@ namespace FastCSV.Tests
         public void UpdateTest()
         {
             var document = new CsvDocument(new string[] { "name", "age" });
-            document.WriteWith(new { Name = "Light", Age = "18" });
-            document.WriteWith(new { Name = "Misa", Age = "20" });
+            document.WriteValue(new { Name = "Light", Age = "18" });
+            document.WriteValue(new { Name = "Misa", Age = "20" });
 
             document.Update(1, new string[] { "Misa", "17" });
             Assert.AreEqual(2, document.Count);
@@ -198,10 +198,10 @@ namespace FastCSV.Tests
         public void UpdateWithTest()
         {
             var document = new CsvDocument(new string[] { "name", "age" });
-            document.WriteWith(new { Name = "Light", Age = "18" });
-            document.WriteWith(new { Name = "Misa", Age = "20" });
+            document.WriteValue(new { Name = "Light", Age = "18" });
+            document.WriteValue(new { Name = "Misa", Age = "20" });
 
-            document.UpdateWith(1, new { Name = "Misa", Age = 17 });
+            document.UpdateValue(1, new { Name = "Misa", Age = 17 });
             Assert.AreEqual(2, document.Count);
         }
 
