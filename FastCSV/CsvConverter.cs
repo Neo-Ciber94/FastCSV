@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Numerics;
 using System.Reflection;
 using System.Runtime.Serialization;
 using FastCSV.Converters;
@@ -32,7 +29,7 @@ namespace FastCSV
     /// <summary>
     /// Provides a set of utilities for serialize and deserialize csv.
     /// </summary>
-    public static class CsvConverter
+    public static partial class CsvConverter
     {
         private const string BuiltInTypeHeaderName = "value";
 
@@ -391,11 +388,6 @@ namespace FastCSV
                 .ToArray();
         }
 
-        /// <summary>
-        /// The GetBuiltInTypeName.
-        /// </summary>
-        /// <param name="type">The type<see cref="Type"/>.</param>
-        /// <returns>The <see cref="string"/>.</returns>
         internal static string GetBuiltInTypeName(Type type)
         {
             return type switch
@@ -418,38 +410,6 @@ namespace FastCSV
             };
         }
 
-        /// <summary>
-        /// The IsBuiltInType.
-        /// </summary>
-        /// <param name="type">The type<see cref="Type"/>.</param>
-        /// <returns>The <see cref="bool"/>.</returns>
-        internal static bool IsBuiltInType(Type type)
-        {
-            return type.IsPrimitive
-                || type.IsEnum
-                || type == typeof(decimal)
-                || type == typeof(string)
-                || type == typeof(BigInteger)
-                || type == typeof(Half)
-                || type == typeof(DateTime)
-                || type == typeof(DateTimeOffset)
-                || type == typeof(TimeSpan)
-                || type == typeof(IPAddress)
-                || type == typeof(IPEndPoint)
-                || type == typeof(Version)
-                || type == typeof(Guid)
-                || type == typeof(IntPtr)
-                || type == typeof(UIntPtr);
-        }
-
-        /// <summary>
-        /// The GetFields.
-        /// </summary>
-        /// <param name="type">The type<see cref="Type"/>.</param>
-        /// <param name="options">The options<see cref="CsvConverterOptions"/>.</param>
-        /// <param name="permission">The permission<see cref="Permission"/>.</param>
-        /// <param name="instance">The instance of the object to get the values from.</param>
-        /// <returns>The <see cref="List{CsvField}"/>.</returns>
         internal static List<CsvField> GetFields(Type type, CsvConverterOptions options, Permission permission, object? instance)
         {
             List<CsvField> csvFields;

@@ -7,6 +7,9 @@ namespace FastCSV.Converters
 {
 	public static partial class ValueConverters
 	{
+		/// <summary>
+		/// Builtin types converters.
+		/// </summary>
 		private static readonly IReadOnlyDictionary<Type, IValueConverter> BuiltInConverters = new Dictionary<Type, IValueConverter>()
 		{
 			{ typeof(System.Boolean),                  new BoolValueConverter() },

@@ -35,7 +35,6 @@ namespace FastCSVCodeGen
             { typeof(UIntPtr), nameof(UIntPtr) },
         };
 
-
         static void Main()
         {
             string basePath = AppDomain.CurrentDomain.BaseDirectory;
@@ -44,7 +43,8 @@ namespace FastCSVCodeGen
             string convertersPath = @$"{path}\\Converters\\";
 
             ValueConverterCodeGenerator.WriteTo(convertersPath, Types);
-            BuiltInTypeCodeGenerator.WriteValueConverters(convertersPath, Types);
+            BuiltInTypeCodeGenerator.WriteTo_ValueConvertersBuiltInTypes(convertersPath, Types);
+            BuiltInTypeCodeGenerator.WriteTo_CsvConverterIsBuiltInType(path, Types);
 
             Console.ReadKey();
         }

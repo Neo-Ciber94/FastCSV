@@ -44,7 +44,7 @@ namespace FastCSV.Converters
                 };
 
                 contents = contents.Replace("{2}", valueToString);
-                CodeGenerator.WriteToFile(contents, path, $"{name}ValueConverter");
+                CodeGenerator.WriteToFile(contents, path, $"{name}ValueConverter", overwrite: true);
             }
         }
     }
