@@ -9,7 +9,7 @@ namespace FastCSV.Converters
     /// <summary>
     /// Helper for <see cref="IValueConverter"/>.
     /// </summary>
-    public static class ValueConverters
+    public static partial class ValueConverters
     {
         private static readonly ObjectDictionary Converters = new ObjectDictionary();
 
@@ -36,9 +36,10 @@ namespace FastCSV.Converters
             { typeof(Version),          new VersionValueConverter() },
             { typeof(TimeSpan),         new TimeSpanValueConverter() },
             { typeof(IPAddress),        new IPAddressValueConverter()},
+            { typeof(IPEndPoint),       new IPEndPointValueConverter() },
             { typeof(IntPtr),           new IntPtrValueConverter()},
             { typeof(UIntPtr),          new UIntPtrValueConverter()},
-            { typeof(string),           new StringValueConverter() }
+            { typeof(string),           new StringValueConverter() },
         };
 
         /// <summary>

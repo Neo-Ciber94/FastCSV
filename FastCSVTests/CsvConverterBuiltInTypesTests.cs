@@ -51,6 +51,7 @@ namespace FastCSVTests
             Assert.AreEqual("value\n10/9/2021 12:00:00 a. m. -04:00", CsvConverter.Serialize(new DateTimeOffset(new DateTime(2021, 9, 10))));
             Assert.AreEqual("value\n02:30:25", CsvConverter.Serialize(new TimeSpan(2, 30, 25)));
             Assert.AreEqual("value\n127.0.0.1", CsvConverter.Serialize(new IPAddress(new byte[] { 127, 0, 0, 1 })));
+            Assert.AreEqual("value\n127.0.0.1:8080", CsvConverter.Serialize(new IPEndPoint(new IPAddress(new byte[] { 127, 0, 0, 1 }), 8080)));
             Assert.AreEqual("value\n1.2.345", CsvConverter.Serialize(new Version(1, 2, 345)));
             Assert.AreEqual("value\n947e7968-13ba-4814-bd67-8243ce554fa4", CsvConverter.Serialize(new Guid("947e7968-13ba-4814-bd67-8243ce554fa4")));
             Assert.AreEqual("value\n123", CsvConverter.Serialize(new IntPtr(123)));
@@ -89,6 +90,7 @@ namespace FastCSVTests
             Assert.AreEqual(new DateTimeOffset(new DateTime(2021, 9, 10)), CsvConverter.Deserialize("value\n10/9/2021 12:00:00 a. m. -04:00", typeof(DateTimeOffset)));
             Assert.AreEqual(new TimeSpan(2, 30, 25), CsvConverter.Deserialize("value\n02:30:25", typeof(TimeSpan)));
             Assert.AreEqual(new IPAddress(new byte[] { 127, 0, 0, 1 }), CsvConverter.Deserialize("value\n127.0.0.1", typeof(IPAddress)));
+            Assert.AreEqual(new IPEndPoint(new IPAddress(new byte[] { 127, 0, 0, 1 }), 8080), CsvConverter.Deserialize("value\n127.0.0.1:8080", typeof(IPAddress)));
             Assert.AreEqual(new Version(1, 2, 345), CsvConverter.Deserialize("value\n1.2.345", typeof(Version)));
             Assert.AreEqual(new Guid("b5cc2c3e-1d62-433a-b1fe-bbec2fb694ac"), CsvConverter.Deserialize("value\nb5cc2c3e-1d62-433a-b1fe-bbec2fb694ac", typeof(Guid)));
             Assert.AreEqual(new IntPtr(123), CsvConverter.Deserialize("value\n123", typeof(IntPtr)));

@@ -435,6 +435,7 @@ namespace FastCSV
                 || type == typeof(DateTimeOffset)
                 || type == typeof(TimeSpan)
                 || type == typeof(IPAddress)
+                || type == typeof(IPEndPoint)
                 || type == typeof(Version)
                 || type == typeof(Guid)
                 || type == typeof(IntPtr)
