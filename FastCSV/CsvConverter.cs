@@ -498,7 +498,7 @@ namespace FastCSV
         {
             if (value != null && value.GetType() != type)
             {
-                throw new InvalidOperationException($"Type missmatch, expected {type} but was {value.GetType()}");
+                throw new ArgumentException($"Type missmatch, expected {type} but was {value.GetType()}");
             }
 
             if (NullableObject.IsNullableType(type))
