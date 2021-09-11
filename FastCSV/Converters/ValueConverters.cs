@@ -13,35 +13,6 @@ namespace FastCSV.Converters
     {
         private static readonly ObjectDictionary Converters = new ObjectDictionary();
 
-        private static readonly IReadOnlyDictionary<Type, IValueConverter> BuiltInConverters = new Dictionary<Type, IValueConverter>
-        {
-            { typeof(bool),             new BoolValueConverter() },
-            { typeof(char),             new CharValueConverter() },
-            { typeof(byte),             new ByteValueConverter() },
-            { typeof(short),            new ShortValueConverter() },
-            { typeof(int),              new IntValueConverter() },
-            { typeof(long),             new LongValueConverter() },
-            { typeof(float),            new FloatValueConverter() },
-            { typeof(double),           new DoubleValueConverter() },
-            { typeof(sbyte),            new SByteValueConverter()},
-            { typeof(ushort),           new UShortValueConverter() },
-            { typeof(uint),             new UIntValueConverter() },
-            { typeof(ulong),            new ULongValueConverter() },
-            { typeof(decimal),          new DecimalValueConverter() },
-            { typeof(Half),             new HalfValueConverter() },
-            { typeof(DateTime),         new DateTimeValueConverter() },
-            { typeof(DateTimeOffset),   new DateTimeOffsetValueConverter()},
-            { typeof(BigInteger),       new BigIntegerValueConverter() },
-            { typeof(Guid),             new GuidValueConverter()},
-            { typeof(Version),          new VersionValueConverter() },
-            { typeof(TimeSpan),         new TimeSpanValueConverter() },
-            { typeof(IPAddress),        new IPAddressValueConverter()},
-            { typeof(IPEndPoint),       new IPEndPointValueConverter() },
-            { typeof(IntPtr),           new IntPtrValueConverter()},
-            { typeof(UIntPtr),          new UIntPtrValueConverter()},
-            { typeof(string),           new StringValueConverter() },
-        };
-
         /// <summary>
         /// Gets a <see cref="IValueConverter"/> for the given type or null if not found.
         /// </summary>

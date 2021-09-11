@@ -10,8 +10,6 @@ namespace FastCSVCodeGen
     {
         private const string Template = @"#nullable enable
 
-////////////////// GENERATED CODE, DO NOT EDIT //////////////////
-
 namespace FastCSV.Converters
 {
     /// <summary>
@@ -31,40 +29,7 @@ namespace FastCSV.Converters
     }
 }
 ";
-        private static readonly IReadOnlyDictionary<Type, string> Types = new Dictionary<Type, string>
-        {
-            { typeof(bool), "Bool" },
-            { typeof(char), "Char" },
-            { typeof(byte), "Byte" },
-            { typeof(short), "Short" },
-            { typeof(int), "Int" },
-            { typeof(long), "Long" },
-            { typeof(float), "Float" },
-            { typeof(double), "Double" },
-            { typeof(sbyte), "SByte" },
-            { typeof(ushort), "UShort" },
-            { typeof(uint), "UInt" },
-            { typeof(ulong), "ULong" },
-            { typeof(decimal), "Decimal" },
-            { typeof(Half), nameof(Half) },
-            { typeof(DateTime), nameof(DateTime) },
-            { typeof(DateTimeOffset), nameof(DateTimeOffset) },
-            { typeof(BigInteger), nameof(BigInteger) },
-            { typeof(Guid), nameof(Guid) },
-            { typeof(Version), nameof(Version) },
-            { typeof(TimeSpan), nameof(TimeSpan) },
-            { typeof(IPAddress), nameof(IPAddress) },
-            { typeof(IPEndPoint), nameof(IPEndPoint) },
-            { typeof(IntPtr), nameof(IntPtr) },
-            { typeof(UIntPtr), nameof(UIntPtr) },
-        };
-
-        public static void WriteTo(string path)
-        {
-            WriteToInternal(path, Types);
-        }
-
-        private static void WriteToInternal(string path, IReadOnlyDictionary<Type, string> types)
+        public static void WriteTo(string path, IReadOnlyDictionary<Type, string> types)
         {
             foreach(var (type, name) in types)
             {
@@ -79,19 +44,7 @@ namespace FastCSV.Converters
                 };
 
                 contents = contents.Replace("{2}", valueToString);
-
-                string fileName = $"{path}/{name}ValueConverter.g.cs";
-
-                if (!Directory.Exists(path))
-                {
-                    Directory.CreateDirectory(path);
-                }
-
-                using (var writer = new StreamWriter(fileName))
-                {
-                    writer.WriteLine(contents);
-                    Console.WriteLine(fileName);
-                }
+                CodeGenerator.WriteToFile(contents, path, $"{name}ValueConverter");
             }
         }
     }

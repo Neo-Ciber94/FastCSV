@@ -1,6 +1,6 @@
-#nullable enable
-
 ////////////////// GENERATED CODE, DO NOT EDIT //////////////////
+
+#nullable enable
 
 namespace FastCSV.Converters
 {
@@ -20,4 +20,3 @@ namespace FastCSV.Converters
         }
     }
 }
-
