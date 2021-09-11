@@ -70,18 +70,18 @@ namespace FastCSV
             {
                 if (options.IncludeHeader)
                 {
-                    string s = ValueToString(value, null);
+                    string s = ValueToString(value, type, null);
                     return $"{BuiltInTypeHeaderName}\n{s}";
                 }
                 else
                 {
-                    return ValueToString(value, null);
+                    return ValueToString(value, type, null);
                 }
             }
 
             List<CsvField> fields = GetFields(type, options, Permission.Read, value);
             string[] csvValues = fields.Where(f => !f.Ignore)
-                .Select((f) => ValueToString(f.Value, f.Converter))
+                .Select((f) => ValueToString(f.Value, f.Type, f.Converter))
                 .ToArray();
 
             string values = CsvUtility.ToCsvString(csvValues, options.Format);
@@ -479,11 +479,9 @@ namespace FastCSV
 
         internal static object? ParseString(string s, Type type, IValueConverter? converter = null)
         {
-            Type? nullableType = Nullable.GetUnderlyingType(type);
-
-            if (nullableType != null)
+            if (NullableObject.IsNullableType(type))
             {
-                type = nullableType;
+                type = Nullable.GetUnderlyingType(type)!;
             }
 
             converter ??= ValueConverters.GetConverter(type);
@@ -496,19 +494,22 @@ namespace FastCSV
             return value;
         }
 
-        internal static string ValueToString(object? value, IValueConverter? converter = null)
+        internal static string ValueToString(object? value, Type type, IValueConverter? converter = null)
         {
-            if (value == null)
+            if (value != null && value.GetType() != type)
             {
-                return string.Empty;
+                throw new InvalidOperationException($"Type missmatch, expected {type} but was {value.GetType()}");
             }
 
-            Type type = value.GetType();
-            Type? nullableType = Nullable.GetUnderlyingType(type);
-
-            if (nullableType != null)
+            if (NullableObject.IsNullableType(type))
             {
-                type = nullableType;
+                var nullable = NullableObject.FromNullable(value);
+
+                if (nullable.HasValue)
+                {
+                    value = nullable.Value;
+                    type = value.GetType();
+                }
             }
 
             converter ??= ValueConverters.GetConverter(type);
