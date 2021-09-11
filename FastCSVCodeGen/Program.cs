@@ -22,6 +22,7 @@ namespace FastCSVCodeGen
             { typeof(uint), "UInt" },
             { typeof(ulong), "ULong" },
             { typeof(decimal), "Decimal" },
+            { typeof(string), "String" },
             { typeof(Half), nameof(Half) },
             { typeof(DateTime), nameof(DateTime) },
             { typeof(DateTimeOffset), nameof(DateTimeOffset) },

@@ -25,6 +25,7 @@ namespace FastCSV.Converters
 			{ typeof(System.UInt32),                   new UIntValueConverter() },
 			{ typeof(System.UInt64),                   new ULongValueConverter() },
 			{ typeof(System.Decimal),                  new DecimalValueConverter() },
+			{ typeof(System.String),                   new StringValueConverter() },
 			{ typeof(System.Half),                     new HalfValueConverter() },
 			{ typeof(System.DateTime),                 new DateTimeValueConverter() },
 			{ typeof(System.DateTimeOffset),           new DateTimeOffsetValueConverter() },

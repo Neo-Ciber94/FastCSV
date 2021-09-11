@@ -33,6 +33,11 @@ namespace FastCSV.Converters
         {
             foreach(var (type, name) in types)
             {
+                if (type == typeof(string))
+                {
+                    continue;
+                }
+
                 string contents = Template
                     .Replace("{0}", name)
                     .Replace("{1}", type.FullName);
