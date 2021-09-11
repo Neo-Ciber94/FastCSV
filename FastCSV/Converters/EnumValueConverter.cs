@@ -76,5 +76,10 @@ namespace FastCSV.Converters
 
             return true;
         }
+
+        public bool CanConvert(Type type)
+        {
+            return EnumType == type;
+        }
     }
 }

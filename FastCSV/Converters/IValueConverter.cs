@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace FastCSV.Converters
 {
     /// <summary>
@@ -6,6 +8,13 @@ namespace FastCSV.Converters
     /// </summary>
     public interface IValueConverter
     {
+        /// <summary>
+        /// Checks whether this converter can parse values from the given type.
+        /// </summary>
+        /// <param name="type">The type to check.</param>
+        /// <returns><c>true</c> if can parse a value from the given type, otherwise <c>false</c>.</returns>
+        public bool CanConvert(Type type);
+
         /// <summary>
         /// Attempts to parse a <see cref="string"/> to a specify value.
         /// </summary>
@@ -42,6 +51,11 @@ namespace FastCSV.Converters
         /// <param name="value">The value to convert.</param>
         /// <returns>A string representation of the value.</returns>
         public string? ToStringValue(T value);
+
+        bool IValueConverter.CanConvert(Type type)
+        {
+            return typeof(T) == type;
+        }
 
         string? IValueConverter.ToStringValue(object? value)
         {
