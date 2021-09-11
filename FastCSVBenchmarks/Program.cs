@@ -8,13 +8,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Running;
-using FastCSV.Converters;
-using FastCSV.Utils;
 
 namespace FastCSV.Benchmarks
 {
-    record Box(int Number, string[] Values);
-
     class Program
     {
         public static void Main()
