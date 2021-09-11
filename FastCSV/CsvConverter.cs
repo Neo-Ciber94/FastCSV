@@ -52,14 +52,9 @@ namespace FastCSV
         /// <param name="type">Type of the value.</param>
         /// <param name="options">Options used, if null will use the default options.</param>
         /// <returns>A csv string of the value.</returns>
-        public static string Serialize(object value, Type type, CsvConverterOptions? options = null)
+        public static string Serialize(object? value, Type type, CsvConverterOptions? options = null)
         {
-            if (value == null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
-
-            if (value.GetType() != type)
+            if (value != null && !EqualTypes(value.GetType(), type))
             {
                 throw new ArgumentException($"Expected {type} but value type was {value.GetType()}");
             }
@@ -130,8 +125,13 @@ namespace FastCSV
                 {
                     using MemoryStream stream2 = StreamHelper.ToMemoryStream(csv);
                     using CsvReader reader2 = CsvReader.FromStream(stream2, options.Format, options.IncludeHeader);
-                    CsvRecord singleRecord = reader2.Read()!;
+                    CsvRecord? singleRecord = reader2.Read();
                     
+                    if (singleRecord == null)
+                    {
+                        return ParseString(null, type);
+                    }
+
                     if (singleRecord.Length != 1)
                     {
                         throw new InvalidOperationException($"Expected 1 single field");
@@ -225,7 +225,7 @@ namespace FastCSV
                 throw new ArgumentNullException(nameof(value));
             }
 
-            if (value.GetType() != type)
+            if (!EqualTypes(value.GetType(), type))
             {
                 throw new ArgumentException($"Expected {type} but value type was {value.GetType()}");
             }
@@ -477,10 +477,15 @@ namespace FastCSV
             }
         }
 
-        internal static object? ParseString(string s, Type type, IValueConverter? converter = null)
+        internal static object? ParseString(string? s, Type type, IValueConverter? converter = null)
         {
             if (NullableObject.IsNullableType(type))
             {
+                if (string.IsNullOrEmpty(s))
+                {
+                    return CreateNullable(type);
+                }
+
                 type = Nullable.GetUnderlyingType(type)!;
             }
 
@@ -496,19 +501,23 @@ namespace FastCSV
 
         internal static string ValueToString(object? value, Type type, IValueConverter? converter = null)
         {
-            if (value != null && value.GetType() != type)
+            if (value != null && !EqualTypes(value.GetType(), type))
             {
                 throw new ArgumentException($"Type missmatch, expected {type} but was {value.GetType()}");
             }
 
             if (NullableObject.IsNullableType(type))
             {
-                var nullable = NullableObject.FromNullable(value);
+                var nullable = new NullableObject(value);
 
                 if (nullable.HasValue)
                 {
                     value = nullable.Value;
                     type = value.GetType();
+                }
+                else
+                {
+                    return string.Empty;
                 }
             }
 
@@ -568,6 +577,31 @@ namespace FastCSV
             };
 
             return new(originalName, name, fieldValue, fieldType, source, ignore, converter);
+        }
+
+        internal static bool EqualTypes(Type leftType, Type rightType)
+        {
+            if (NullableObject.IsNullableType(leftType))
+            {
+                leftType = Nullable.GetUnderlyingType(leftType)!;
+            }
+
+            if (NullableObject.IsNullableType(rightType))
+            {
+                rightType = Nullable.GetUnderlyingType(rightType)!;
+            }
+
+            return leftType == rightType;
+        }
+
+        internal static object CreateNullable(Type type)
+        {
+            if (!NullableObject.IsNullableType(type))
+            {
+                throw new InvalidOperationException($"Expected Nullable<> but was {type}");
+            }
+
+            return Activator.CreateInstance(type)!;
         }
     }
 }

@@ -52,6 +52,14 @@ namespace FastCSVCodeGen
 
                     b.Open("internal static bool IsBuiltInType(Type type)", b =>
                     {
+                        b.WriteLine("Type nullableType = Nullable.GetUnderlyingType(type);");
+                        b.Open("if (nullableType != null)", b =>
+                        {
+                            b.WriteLine("return IsBuiltInType(nullableType);");
+                        });
+
+                        b.WriteLine();
+
                         Type[] actualTypes = types.Where(t => !t.Key.IsPrimitive).Select(t => t.Key).ToArray();
 
                         b.WriteLine("return type.IsPrimitive");

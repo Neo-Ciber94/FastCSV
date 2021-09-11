@@ -13,6 +13,12 @@ namespace FastCSV
 		/// <returns>The <c>true</c> if can be serialize/deserialize with a default converter.</returns>
 		internal static bool IsBuiltInType(Type type)
 		{
+			Type nullableType = Nullable.GetUnderlyingType(type);
+			if (nullableType != null)
+			{
+				return IsBuiltInType(nullableType);
+			}
+			
 			return type.IsPrimitive
 				|| type.IsEnum
 				|| type == typeof(System.Decimal)

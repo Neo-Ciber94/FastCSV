@@ -18,7 +18,13 @@ namespace FastCSV.Converters
 
         public bool HasValue => hasValue;
 
-        public NullableObject(object nullableValue)
+        public NullableObject(object? value)
+        {
+            this.hasValue = value != null;
+            this.value = value;
+        }
+
+        public static NullableObject FromNullable(object nullableValue)
         {
             if (nullableValue == null)
             {
@@ -33,26 +39,17 @@ namespace FastCSV.Converters
             }
 
             PropertyInfo hasValueProperty = type.GetProperty(HasValuePropertyName)!;
-
-            hasValue = (bool)hasValueProperty.GetValue(nullableValue)!;
-            value = null;
+            bool hasValue = (bool)hasValueProperty.GetValue(nullableValue)!;
 
             if (hasValue)
             {
                 PropertyInfo valueProperty = type.GetProperty(ValuePropertyName)!;
-                value = valueProperty.GetValue(nullableValue);
-            }
-        }
-
-        public static NullableObject FromNullable(object? obj)
-        {
-            if (obj == null)
-            {
-                return default;
+                object value = valueProperty.GetValue(nullableValue)!;
+                return new NullableObject(value!);
             }
             else
             {
-                return new NullableObject(obj);
+                return default;
             }
         }
 
