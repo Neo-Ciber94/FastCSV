@@ -220,12 +220,7 @@ namespace FastCSV
         /// <returns>A dictionary with the fields of the value.</returns>
         public static IDictionary<string, object?> SerializeToDictionary(object value, Type type, CsvConverterOptions? options = null)
         {
-            if (value == null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
-
-            if (!EqualTypes(value.GetType(), type))
+            if (value != null && !EqualTypes(value.GetType(), type))
             {
                 throw new ArgumentException($"Expected {type} but value type was {value.GetType()}");
             }
@@ -235,6 +230,11 @@ namespace FastCSV
             if (!options.IncludeHeader)
             {
                 throw new ArgumentException("Invalid options, header should always be include");
+            }
+
+            if (IsBuiltInType(type))
+            {
+                return new Dictionary<string, object?> { { BuiltInTypeHeaderName, value } };
             }
 
             Dictionary<string, object?> result = new Dictionary<string, object?>();
