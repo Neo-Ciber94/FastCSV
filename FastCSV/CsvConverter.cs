@@ -483,7 +483,7 @@ namespace FastCSV
             {
                 if (string.IsNullOrEmpty(s))
                 {
-                    return CreateNullableDefault(type);
+                    return null;
                 }
 
                 type = Nullable.GetUnderlyingType(type)!;
@@ -592,16 +592,6 @@ namespace FastCSV
             }
 
             return leftType == rightType;
-        }
-
-        internal static object CreateNullableDefault(Type type)
-        {
-            if (!NullableObject.IsNullableType(type))
-            {
-                throw new InvalidOperationException($"Expected Nullable<> but was {type}");
-            }
-
-            return Activator.CreateInstance(type)!;
         }
     }
 }
