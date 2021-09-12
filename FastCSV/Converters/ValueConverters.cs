@@ -8,7 +8,7 @@ namespace FastCSV.Converters
     /// </summary>
     public static partial class ValueConverters
     {
-        private static readonly ObjectDictionary Converters = new ObjectDictionary();
+        private static readonly ObjectMap Converters = new ObjectMap();
 
         /// <summary>
         /// Gets a <see cref="IValueConverter"/> for the given type or null if not found.
@@ -19,7 +19,7 @@ namespace FastCSV.Converters
         {
             if (type.IsEnum)
             {
-                if (!Converters.TryGetValue(type, out object? enumConverter))
+                if (!Converters.TryGet(type, out object? enumConverter))
                 {
                     enumConverter = new EnumObjectValueConverter(type);
                     Converters.Add(type, enumConverter);
