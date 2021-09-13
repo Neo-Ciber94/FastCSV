@@ -192,36 +192,44 @@ namespace FastCSV
             CsvRecord record = reader.Read()!;
 
             List<CsvField> csvFields = GetFields(type, options, Permission.Write, null);
-            object obj = FormatterServices.GetUninitializedObject(type);
-
-            for (int i = 0; i < csvFields.Count; i++)
-            {
-                CsvField csvField = csvFields[i];
-
-                if (csvField.Ignore)
-                {
-                    continue;
-                }
-
-                Either<FieldInfo, PropertyInfo> source = csvField.Source;
-                string csvValue = GetCsvValue(record, csvField, i);
-                object? value = ParseString(csvValue, csvField.Type, csvField.Converter);
-
-                if (source.IsLeft)
-                {
-                    FieldInfo field = source.Left;
-                    field.SetValue(obj, value);
-                }
-                else
-                {
-                    PropertyInfo prop = source.Right;
-                    prop.SetValue(obj, value);
-                }
-            }
-
-            return obj;
+            return CreateInstance(csvFields, record, type, options);
 
             // Helper
+
+            // FIXME: Remove recursion for iteration
+            static object? CreateInstance(IList<CsvField> csvFields, CsvRecord record, Type type, CsvConverterOptions options)
+            {
+                object obj = FormatterServices.GetUninitializedObject(type);
+
+                for (int i = 0; i < csvFields.Count; i++)
+                {
+                    CsvField csvField = csvFields[i];
+
+                    if (csvField.Ignore)
+                    {
+                        continue;
+                    }
+
+                    Either<FieldInfo, PropertyInfo> source = csvField.Source;
+                    string csvValue = GetCsvValue(record, csvField, i);
+                    object? value = csvField.Children.Count > 0 ? 
+                        CreateInstance(csvField.Children, record, csvField.Type, options) : 
+                        ParseString(csvValue, csvField.Type, csvField.Converter);
+
+                    if (source.IsLeft)
+                    {
+                        FieldInfo field = source.Left;
+                        field.SetValue(obj, value);
+                    }
+                    else
+                    {
+                        PropertyInfo prop = source.Right;
+                        prop.SetValue(obj, value);
+                    }
+                }
+
+                return obj;
+            }
 
             static string GetCsvValue(CsvRecord record, CsvField field, int index)
             {
@@ -421,10 +429,41 @@ namespace FastCSV
                 return new string[] { GetBuiltInTypeName(type) };
             }
 
-            return GetFields(type, options ?? CsvConverterOptions.Default, Permission.Read, instance: null)
-                .Where(e => !e.Ignore)
-                .Select(e => e.Name)
-                .ToArray();
+            options ??= CsvConverterOptions.Default;
+
+            if (options.NestedObjectHandling == null)
+            {
+                return GetFields(type, options ?? CsvConverterOptions.Default, Permission.Read, instance: null)
+                    .Where(f => !f.Ignore)
+                    .Select(f => f.Name)
+                    .ToArray();
+            }
+
+            List<CsvField> fields = GetFields(type, options ?? CsvConverterOptions.Default, Permission.Read, instance: null);
+            List<string> values = new List<string>(fields.Count);
+            Stack<CsvField> stack = new Stack<CsvField>(fields.Count);
+            stack.PushRangeReverse(fields);
+
+            while(stack.Count > 0)
+            {
+                CsvField f = stack.Pop();
+
+                if (f.Ignore)
+                {
+                    continue;
+                }
+
+                if (f.Children.Count > 0)
+                {
+                    stack.PushRangeReverse(f.Children);
+                }
+                else
+                {
+                    values.Add(f.Name);
+                }
+            }
+
+            return values.ToArray();
         }
 
         internal static string GetBuiltInTypeName(Type type)

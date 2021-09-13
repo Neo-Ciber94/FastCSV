@@ -46,7 +46,7 @@ namespace FastCSV
         /// <summary>
         /// Children fields of this field.
         /// </summary>
-        public ICollection<CsvField> Children { get; set; } = new List<CsvField>();
+        public IList<CsvField> Children { get; set; } = new List<CsvField>();
 
         public CsvField(string originalName, string name, object? value, Type type, Either<FieldInfo, PropertyInfo> source, bool ignore, IValueConverter? valueConverter)
         {
