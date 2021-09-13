@@ -211,10 +211,18 @@ namespace FastCSV
                     }
 
                     Either<FieldInfo, PropertyInfo> source = csvField.Source;
-                    string csvValue = GetCsvValue(record, csvField, i);
-                    object? value = csvField.Children.Count > 0 ? 
-                        CreateInstance(csvField.Children, record, csvField.Type, options) : 
-                        ParseString(csvValue, csvField.Type, csvField.Converter);
+                    IList<CsvField> children = csvField.Children;
+                    object? value = null;
+
+                    if (children.Count > 0)
+                    {
+                        value = CreateInstance(csvField.Children, record, csvField.Type, options);
+                    }
+                    else
+                    {
+                        string csvValue = GetCsvValue(record, csvField, i);
+                        value = ParseString(csvValue, csvField.Type, csvField.Converter);
+                    }
 
                     if (source.IsLeft)
                     {
