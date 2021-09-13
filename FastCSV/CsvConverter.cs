@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using FastCSV.Collections;
 using FastCSV.Converters;
 using FastCSV.Utils;
 
@@ -75,6 +76,43 @@ namespace FastCSV
             }
 
             List<CsvField> fields = GetFields(type, options, Permission.Read, value);
+            bool handleNestedObjects = options.NestedObjectHandling != null;
+
+            if (handleNestedObjects)
+            {
+                List<CsvField> temp = new List<CsvField>(fields.Count);
+                Stack<CsvField> stack = new Stack<CsvField>();
+
+                foreach(var f in fields)
+                {
+                    if (f.Children.Count > 0)
+                    {
+                        stack.PushRangeReverse(f.Children);
+                    }
+                    else
+                    {
+                        temp.Add(f);
+                    }
+
+                    while(stack.Count > 0)
+                    {
+                        CsvField c = stack.Pop();
+                        
+                        if (c.Children.Count > 0)
+                        {
+                            stack.PushRangeReverse(c.Children);
+                        }
+                        else
+                        {
+                            temp.Add(c);
+                        }
+                    }
+                }
+
+                // Assign the new fields
+                fields = temp;
+            }
+
             string[] csvValues = fields.Where(f => !f.Ignore)
                 .Select((f) => ValueToString(f.Value, f.Type, f.Converter))
                 .ToArray();
@@ -148,6 +186,7 @@ namespace FastCSV
 
             using MemoryStream stream = StreamHelper.ToMemoryStream(csv);
             using CsvReader reader = CsvReader.FromStream(stream, options.Format, options.IncludeHeader);
+            bool handleNestedObjects = options.NestedObjectHandling != null;
 
             // SAFETY: should be at least 1 record
             CsvRecord record = reader.Read()!;
@@ -412,6 +451,20 @@ namespace FastCSV
 
         internal static List<CsvField> GetFields(Type type, CsvConverterOptions options, Permission permission, object? instance)
         {
+            int maxDepth = options.NestedObjectHandling?.MaxDepth ?? 0;
+            return GetFieldsInternal(type, options, permission, instance, 0, maxDepth);
+        }
+
+        internal static List<CsvField> GetFieldsInternal(Type type, CsvConverterOptions options, Permission permission, object? instance, int depth, int maxDepth)
+        {
+            // Determines if will handle nested objects
+            bool handleNestedObjects = options.NestedObjectHandling != null;
+
+            if (handleNestedObjects && depth > maxDepth)
+            {
+                throw new InvalidOperationException($"Reference depth exceeded, depth is {depth} but max was {maxDepth}");
+            }
+
             List<CsvField> csvFields;
 
             var propertyFlags = GetFlagsFromPermission(permission);
@@ -434,6 +487,11 @@ namespace FastCSV
                 {
                     CsvField csvField = CreateCsvField(new PropertyOrField(field), options, instance);
                     csvFields.Add(csvField);
+
+                    if (handleNestedObjects && !IsBuiltInType(field.FieldType) && csvField.Converter == null)
+                    {
+                        csvField.Children = GetFieldsInternal(field.FieldType, options, permission, csvField.Value, depth + 1, maxDepth);
+                    }
                 }
             }
             else
@@ -448,9 +506,14 @@ namespace FastCSV
             }
 
             foreach (var prop in properties)
-            {                
+            {
                 CsvField csvField = CreateCsvField(new PropertyOrField(prop), options, instance);
                 csvFields.Add(csvField);
+
+                if (handleNestedObjects && !IsBuiltInType(prop.PropertyType) && csvField.Converter == null)
+                {
+                    csvField.Children = GetFieldsInternal(prop.PropertyType, options, permission, csvField.Value, depth + 1, maxDepth);
+                }
             }
 
             return csvFields;
