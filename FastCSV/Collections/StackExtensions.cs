@@ -33,7 +33,7 @@ namespace FastCSV.Collections
         {
             if (items is IList<T> list)
             {
-                for (int i = list.Count - 1; i > 0; i--)
+                for (int i = list.Count - 1; i >= 0; i--)
                 {
                     stack.Push(list[i]);
                 }
