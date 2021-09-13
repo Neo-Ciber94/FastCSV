@@ -33,6 +33,11 @@
         public CsvNamingConvention? NamingConvention { get; init; }
 
         /// <summary>
+        /// Defines how handle nested objects.
+        /// </summary>
+        public NestedObjectHandling? NestedObjectHandling { get; init; }
+
+        /// <summary>
         /// The delimiter of the format.
         /// </summary>
         public char Delimiter => Format.Delimiter;

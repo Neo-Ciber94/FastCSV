@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using FastCSV.Converters;
 using FastCSV.Utils;
@@ -41,6 +42,11 @@ namespace FastCSV
         /// The converter for this field.
         /// </summary>
         public IValueConverter? Converter { get;}
+
+        /// <summary>
+        /// Children fields of this field.
+        /// </summary>
+        public ICollection<CsvField> Children { get; set; } = new List<CsvField>();
 
         public CsvField(string originalName, string name, object? value, Type type, Either<FieldInfo, PropertyInfo> source, bool ignore, IValueConverter? valueConverter)
         {
