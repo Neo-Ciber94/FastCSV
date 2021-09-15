@@ -45,19 +45,14 @@ namespace FastCSV.Converters
 
         public string? ToStringValue(object? value)
         {
-            if (value == null)
+            Type? enumType = value?.GetType();
+
+            if (enumType == null || !CanConvert(enumType))
             {
                 return null;
             }
 
-            Type type = value.GetType();
-
-            if (!type.IsEnum)
-            {
-                return null;
-            }
-
-            return Enum.GetName(type, value);
+            return Enum.GetName(enumType, value!);
         }
 
         public bool TryParse(string? s, out object? value)
