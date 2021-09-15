@@ -192,11 +192,137 @@ namespace FastCSV
             CsvRecord record = reader.Read()!;
 
             List<CsvField> csvFields = GetFields(type, options, Permission.Write, null);
+            Stack<object> objs = new Stack<object>();
+            Stack<CsvField> fields = new Stack<CsvField>();
+            Stack<CsvField> parents = new Stack<CsvField>();
+            fields.PushRangeReverse(csvFields);
+
+            objs.Push(FormatterServices.GetUninitializedObject(type));
+            int index = 0;
+
+            while (fields.Count > 0)
+            {
+                CsvField f = fields.Pop();
+
+                // Check if the current 'CsvField' is the parent of the last fields
+                bool isParent = parents.Count > 0 && object.ReferenceEquals(parents.Peek(), f);
+
+                if (f.Ignore)
+                {
+                    continue;
+                }
+
+                Either<FieldInfo, PropertyInfo> source = f.Source;
+                IList<CsvField> children = f.Children;
+
+                if (!isParent && children.Count > 0)
+                {
+                    // Adds the parent field
+                    fields.Push(f);
+                    parents.Push(f);
+
+                    // Adds all the children
+                    fields.PushRangeReverse(children);
+                    objs.Push(FormatterServices.GetUninitializedObject(f.Type));
+                }
+                else
+                {
+                    object? value;
+
+                    if (isParent)
+                    {
+                        value = objs.Pop();
+                        parents.Pop();
+                    }
+                    else
+                    {
+                        string csvValue = GetCsvValue(record, f, index++);
+                        value = ParseString(csvValue, f.Type, f.Converter);
+                    }
+
+                    object obj = objs.Peek();
+
+                    if (source.IsLeft)
+                    {
+                        FieldInfo field = source.Left;
+                        field.SetValue(obj, value);
+                    }
+                    else
+                    {
+                        PropertyInfo prop = source.Right;
+                        prop.SetValue(obj, value);
+                    }
+                }
+            }
+
+            return objs.Pop();
+
+            // Helper
+
+            static string GetCsvValue(CsvRecord record, CsvField field, int index)
+            {
+                if((uint)index > (uint)record.Length)
+                {
+                    throw new InvalidOperationException($"Record value out of range, index was {index} but length was {record.Length}");
+                }
+
+                if (record.Header != null && !record.Header.Contains(field.Name))
+                {
+                    throw new InvalidOperationException($"Cannot find \"{field.Name}\" value in the record");
+                }
+
+                return record.Header != null? record[field.Name]: record[index];
+            }
+        }
+
+        public static object? DeserializeRecursive(string csv, Type type, CsvConverterOptions? options = null)
+        {
+            if (string.IsNullOrWhiteSpace(csv))
+            {
+                throw new ArgumentException("csv cannot be empty", nameof(csv));
+            }
+
+            options ??= CsvConverterOptions.Default;
+
+            if (IsBuiltInType(type))
+            {
+                if (options.IncludeHeader)
+                {
+                    using MemoryStream stream2 = StreamHelper.ToMemoryStream(csv);
+                    using CsvReader reader2 = CsvReader.FromStream(stream2, options.Format, options.IncludeHeader);
+                    CsvRecord? singleRecord = reader2.Read();
+
+                    if (singleRecord == null)
+                    {
+                        return ParseString(null, type);
+                    }
+
+                    if (singleRecord.Length != 1)
+                    {
+                        throw new InvalidOperationException($"Expected 1 single field");
+                    }
+
+                    string s = singleRecord[0];
+                    return ParseString(s, type);
+                }
+                else
+                {
+                    return ParseString(csv, type);
+                }
+            }
+
+            using MemoryStream stream = StreamHelper.ToMemoryStream(csv);
+            using CsvReader reader = CsvReader.FromStream(stream, options.Format, options.IncludeHeader);
+            bool handleNestedObjects = options.NestedObjectHandling != null;
+
+            // SAFETY: should be at least 1 record
+            CsvRecord record = reader.Read()!;
+
+            List<CsvField> csvFields = GetFields(type, options, Permission.Write, null);
             return CreateInstance(csvFields, record, type, options);
 
             // Helper
 
-            // FIXME: Remove recursion for iteration
             static object? CreateInstance(IList<CsvField> csvFields, CsvRecord record, Type type, CsvConverterOptions options)
             {
                 object obj = FormatterServices.GetUninitializedObject(type);
@@ -241,7 +367,7 @@ namespace FastCSV
 
             static string GetCsvValue(CsvRecord record, CsvField field, int index)
             {
-                if((uint)index > (uint)record.Length)
+                if ((uint)index > (uint)record.Length)
                 {
                     throw new InvalidOperationException($"Record value out of range, index was {index} but length was {record.Length}");
                 }
@@ -251,9 +377,138 @@ namespace FastCSV
                     throw new InvalidOperationException($"Cannot find \"{field.Name}\" value in the record");
                 }
 
-                return record.Header != null? record[field.Name]: record[index];
+                return record.Header != null ? record[field.Name] : record[index];
             }
         }
+
+        public static object? DeserializeValueStack(string csv, Type type, CsvConverterOptions? options = null)
+        {
+            if (string.IsNullOrWhiteSpace(csv))
+            {
+                throw new ArgumentException("csv cannot be empty", nameof(csv));
+            }
+
+            options ??= CsvConverterOptions.Default;
+
+            if (IsBuiltInType(type))
+            {
+                if (options.IncludeHeader)
+                {
+                    using MemoryStream stream2 = StreamHelper.ToMemoryStream(csv);
+                    using CsvReader reader2 = CsvReader.FromStream(stream2, options.Format, options.IncludeHeader);
+                    CsvRecord? singleRecord = reader2.Read();
+
+                    if (singleRecord == null)
+                    {
+                        return ParseString(null, type);
+                    }
+
+                    if (singleRecord.Length != 1)
+                    {
+                        throw new InvalidOperationException($"Expected 1 single field");
+                    }
+
+                    string s = singleRecord[0];
+                    return ParseString(s, type);
+                }
+                else
+                {
+                    return ParseString(csv, type);
+                }
+            }
+
+            using MemoryStream stream = StreamHelper.ToMemoryStream(csv);
+            using CsvReader reader = CsvReader.FromStream(stream, options.Format, options.IncludeHeader);
+            bool handleNestedObjects = options.NestedObjectHandling != null;
+
+            // SAFETY: should be at least 1 record
+            CsvRecord record = reader.Read()!;
+
+            List<CsvField> csvFields = GetFields(type, options, Permission.Write, null);
+
+            using ValueStack<object> objs = new ValueStack<object>(1);
+            using ValueStack<CsvField> fields = new ValueStack<CsvField>(csvFields.Count);
+            using ValueStack<CsvField> parents = new ValueStack<CsvField>(1);
+            fields.PushRangeReverse(csvFields);
+
+            objs.Push(FormatterServices.GetUninitializedObject(type));
+            int index = 0;
+
+            while (fields.Length > 0)
+            {
+                CsvField f = fields.Pop();
+
+                // Check if the current 'CsvField' is the parent of the last fields
+                bool isParent = parents.Length > 0 && object.ReferenceEquals(parents.Peek(), f);
+
+                if (f.Ignore)
+                {
+                    continue;
+                }
+
+                Either<FieldInfo, PropertyInfo> source = f.Source;
+                IList<CsvField> children = f.Children;
+
+                if (!isParent && children.Count > 0)
+                {
+                    // Adds the parent field
+                    fields.Push(f);
+                    parents.Push(f);
+
+                    // Adds all the children
+                    fields.PushRangeReverse(children);
+                    objs.Push(FormatterServices.GetUninitializedObject(f.Type));
+                }
+                else
+                {
+                    object? value;
+
+                    if (isParent)
+                    {
+                        value = objs.Pop();
+                        parents.Pop();
+                    }
+                    else
+                    {
+                        string csvValue = GetCsvValue(record, f, index++);
+                        value = ParseString(csvValue, f.Type, f.Converter);
+                    }
+
+                    object obj = objs.Peek();
+
+                    if (source.IsLeft)
+                    {
+                        FieldInfo field = source.Left;
+                        field.SetValue(obj, value);
+                    }
+                    else
+                    {
+                        PropertyInfo prop = source.Right;
+                        prop.SetValue(obj, value);
+                    }
+                }
+            }
+
+            return objs.Pop();
+
+            // Helper
+
+            static string GetCsvValue(CsvRecord record, CsvField field, int index)
+            {
+                if ((uint)index > (uint)record.Length)
+                {
+                    throw new InvalidOperationException($"Record value out of range, index was {index} but length was {record.Length}");
+                }
+
+                if (record.Header != null && !record.Header.Contains(field.Name))
+                {
+                    throw new InvalidOperationException($"Cannot find \"{field.Name}\" value in the record");
+                }
+
+                return record.Header != null ? record[field.Name] : record[index];
+            }
+        }
+
 
         /// <summary>
         /// Converts the given value to a <see cref="IDictionary{TKey, TValue}"/>.
