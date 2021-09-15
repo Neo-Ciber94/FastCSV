@@ -43,7 +43,7 @@ namespace FastCSVTests
         }
 
         [Test]
-        public void DeserializeithoutHeaderTest()
+        public void DeserializeWithoutHeaderTest()
         {
             string csv = "Bat,200";
             Product product = (Product)CsvConverter.Deserialize(csv, typeof(Product), new CsvConverterOptions

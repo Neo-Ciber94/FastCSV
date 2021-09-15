@@ -43,18 +43,18 @@ namespace FastCSV.Utils
         /// Maps either the right and left value of this instance.
         /// </summary>
         /// <typeparam name="TResult">Type of the result.</typeparam>
-        /// <param name="foldLeft">Function to map the left value.</param>
-        /// <param name="foldRight">Function to map the right value.</param>
+        /// <param name="left">Function to map the left value.</param>
+        /// <param name="right">Function to map the right value.</param>
         /// <returns>Resulting value.</returns>
-        public TResult Fold<TResult>(Func<TLeft, TResult> foldLeft, Func<TRight, TResult> foldRight)
+        public TResult Fold<TResult>(Func<TLeft, TResult> left, Func<TRight, TResult> right)
         {
             if (IsRight)
             {
-                return foldRight(Right);
+                return right(Right);
             }
             else
             {
-                return foldLeft(Left);
+                return left(Left);
             }
         }
 
