@@ -11,6 +11,10 @@ using FastCSV.Utils;
 
 namespace FastCSV
 {
+    delegate void DeserializeCallback<TState>(CsvField field, object? value, TState state);
+
+    delegate void SerialieCallback<TState>(CsvField field, object? value, TState state);
+
     // Determine if a field/property will be a getter, setter of both.
     internal enum Permission
     { /// <summary>
@@ -75,48 +79,12 @@ namespace FastCSV
                 }
             }
 
-            List<CsvField> fields = GetFields(type, options, Permission.Read, value);
-            bool handleNestedObjects = options.NestedObjectHandling != null;
-
-            if (handleNestedObjects)
+            List<string> list = new List<string>();
+            List<string> csvValues = SerializeWith(value, type, options, list, (f, value, state) => 
             {
-                List<CsvField> temp = new List<CsvField>(fields.Count);
-                Stack<CsvField> stack = new Stack<CsvField>();
-
-                foreach(var f in fields)
-                {
-                    if (f.Children.Count > 0)
-                    {
-                        stack.PushRangeReverse(f.Children);
-                    }
-                    else
-                    {
-                        temp.Add(f);
-                    }
-
-                    while(stack.Count > 0)
-                    {
-                        CsvField c = stack.Pop();
-                        
-                        if (c.Children.Count > 0)
-                        {
-                            stack.PushRangeReverse(c.Children);
-                        }
-                        else
-                        {
-                            temp.Add(c);
-                        }
-                    }
-                }
-
-                // Assign the new fields
-                fields = temp;
-            }
-
-            string[] csvValues = fields.Where(f => !f.Ignore)
-                .Select((f) => ValueToString(f.Value, f.Type, f.Converter))
-                .ToArray();
-
+                string s = ValueToString(value, f.Type, f.Converter);
+                state.Add(s);
+            });
             string values = CsvUtility.ToCsvString(csvValues, options.Format);
 
             if (options.IncludeHeader)
@@ -184,96 +152,21 @@ namespace FastCSV
                 }
             }
 
-            using MemoryStream stream = StreamHelper.ToMemoryStream(csv);
-            using CsvReader reader = CsvReader.FromStream(stream, options.Format, options.IncludeHeader);
-            bool handleNestedObjects = options.NestedObjectHandling != null;
-
-            // SAFETY: should be at least 1 record
-            CsvRecord record = reader.Read()!;
-
-            List<CsvField> csvFields = GetFields(type, options, Permission.Write, null);
-            Stack<object> objs = new Stack<object>();
-            Stack<CsvField> fields = new Stack<CsvField>();
-            Stack<CsvField> parents = new Stack<CsvField>();
-            fields.PushRangeReverse(csvFields);
-
-            objs.Push(FormatterServices.GetUninitializedObject(type));
-            int index = 0;
-
-            while (fields.Count > 0)
+            object obj = FormatterServices.GetUninitializedObject(type);
+            return DeserializeWith(csv, type, options, obj, (f, value, state) =>
             {
-                CsvField f = fields.Pop();
-
-                // Check if the current 'CsvField' is the parent of the last fields
-                bool isParent = parents.Count > 0 && object.ReferenceEquals(parents.Peek(), f);
-
-                if (f.Ignore)
-                {
-                    continue;
-                }
-
                 Either<FieldInfo, PropertyInfo> source = f.Source;
-                IList<CsvField> children = f.Children;
-
-                if (!isParent && children.Count > 0)
+                if (source.IsLeft)
                 {
-                    // Adds the parent field
-                    fields.Push(f);
-                    parents.Push(f);
-
-                    // Adds all the children
-                    fields.PushRangeReverse(children);
-                    objs.Push(FormatterServices.GetUninitializedObject(f.Type));
+                    FieldInfo field = source.Left;
+                    field.SetValue(state, value);
                 }
                 else
                 {
-                    object? value;
-
-                    if (isParent)
-                    {
-                        // The object at the top of 'objs' is a field/property of the other object in the stack
-                        value = objs.Pop();
-                        parents.Pop();
-                    }
-                    else
-                    {
-                        string csvValue = GetCsvValue(record, f, index++);
-                        value = ParseString(csvValue, f.Type, f.Converter);
-                    }
-
-                    object obj = objs.Peek();
-
-                    if (source.IsLeft)
-                    {
-                        FieldInfo field = source.Left;
-                        field.SetValue(obj, value);
-                    }
-                    else
-                    {
-                        PropertyInfo prop = source.Right;
-                        prop.SetValue(obj, value);
-                    }
+                    PropertyInfo prop = source.Right;
+                    prop.SetValue(state, value);
                 }
-            }
-
-            return objs.Pop();
-
-            // Helper
-
-            static string GetCsvValue(CsvRecord record, CsvField field, int index)
-            {
-                if ((uint)index > (uint)record.Length)
-                {
-                    throw new InvalidOperationException($"Record value out of range, index was {index} but length was {record.Length}");
-                }
-
-                if (record.Header != null && !record.Header.Contains(field.Name))
-                {
-                    throw new InvalidOperationException($"Cannot find \"{field.Name}\" value in the record");
-                }
-
-                return record.Header != null ? record[field.Name] : record[index];
-            }
+            });
         }
 
         /// <summary>
@@ -314,21 +207,10 @@ namespace FastCSV
             }
 
             Dictionary<string, object?> result = new Dictionary<string, object?>();
-            List<CsvField> fields = GetFields(type, options, Permission.Read, value);
-
-            foreach(CsvField csvField in fields)
+            return SerializeWith(value, type, options, result, (f, value, state) =>
             {
-                if (csvField.Ignore)
-                {
-                    continue;
-                }
-
-                string key = csvField.Name;
-                object? obj = csvField.Value;
-                result.Add(key, obj);
-            }
-
-            return result;
+                result.Add(f.Name, value);
+            });
         }
 
         /// <summary>
@@ -455,7 +337,7 @@ namespace FastCSV
         {
             if (IsBuiltInType(type))
             {
-                return new string[] { GetBuiltInTypeName(type) };
+                return new string[] { BuiltInTypeHeaderName };
             }
 
             options ??= CsvConverterOptions.Default;
@@ -495,26 +377,178 @@ namespace FastCSV
             return values.ToArray();
         }
 
-        internal static string GetBuiltInTypeName(Type type)
+        internal static TState DeserializeWith<TState>(string csv, Type type, CsvConverterOptions options, TState state, DeserializeCallback<TState> action)
         {
-            return type switch
+            if (string.IsNullOrWhiteSpace(csv))
             {
-                Type t when t == typeof(bool) => "bool",
-                Type t when t == typeof(char) => "char",
-                Type t when t == typeof(byte) => "byte",
-                Type t when t == typeof(short) => "short",
-                Type t when t == typeof(int) => "int",
-                Type t when t == typeof(long) => "long",
-                Type t when t == typeof(float) => "float",
-                Type t when t == typeof(double) => "double",
-                Type t when t == typeof(decimal) => "decimal",
-                Type t when t == typeof(sbyte) => "sbyte",
-                Type t when t == typeof(ushort) => "ushort",
-                Type t when t == typeof(uint) => "uint",
-                Type t when t == typeof(ulong) => "ulong",
-                Type t when t == typeof(string) => "string",
-                _ => type.Name
-            };
+                throw new ArgumentException("csv cannot be empty", nameof(csv));
+            }
+
+            if (IsBuiltInType(type))
+            {
+                throw new Exception();
+            }
+
+            using MemoryStream stream = StreamHelper.ToMemoryStream(csv);
+            using CsvReader reader = CsvReader.FromStream(stream, options.Format, options.IncludeHeader);
+            bool handleNestedObjects = options.NestedObjectHandling != null;
+
+            // SAFETY: should be at least 1 record
+            CsvRecord record = reader.Read()!;
+
+            List<CsvField> csvFields = GetFields(type, options, Permission.Write, null);
+            Stack<object> objs = new Stack<object>();
+            Stack<CsvField> fields = new Stack<CsvField>();
+            Stack<CsvField> parents = new Stack<CsvField>();
+            fields.PushRangeReverse(csvFields);
+            int index = 0;
+
+            while (fields.Count > 0)
+            {
+                CsvField f = fields.Pop();
+
+                // Check if the current 'CsvField' is the parent of the last fields
+                bool isParent = parents.Count > 0 && object.ReferenceEquals(parents.Peek(), f);
+
+                if (f.Ignore)
+                {
+                    continue;
+                }
+
+                Either<FieldInfo, PropertyInfo> source = f.Source;
+                IList<CsvField> children = f.Children;
+
+                if (!isParent && children.Count > 0)
+                {
+                    // Adds the parent field
+                    fields.Push(f);
+                    parents.Push(f);
+
+                    // Adds all the children
+                    fields.PushRangeReverse(children);
+                    objs.Push(FormatterServices.GetUninitializedObject(f.Type));
+                }
+                else
+                {
+                    object? value;
+
+                    if (isParent)
+                    {
+                        // The object at the top of 'objs' is a field/property of the other object in the stack
+                        value = objs.Pop();
+                        parents.Pop();
+                    }
+                    else
+                    {
+                        string csvValue = GetCsvValue(record, f, index++);
+                        value = ParseString(csvValue, f.Type, f.Converter);
+                    }
+
+                    if (objs.Count > 0)
+                    {
+                        object result = objs.Peek();
+
+                        if (source.IsLeft)
+                        {
+                            FieldInfo field = source.Left;
+                            field.SetValue(result, value);
+                        }
+                        else
+                        {
+                            PropertyInfo prop = source.Right;
+                            prop.SetValue(result, value);
+                        }
+                    }
+                    else
+                    {
+                        action(f, value, state);
+                    }
+                }
+            }
+
+            return state;
+
+            // Helper
+
+            static string GetCsvValue(CsvRecord record, CsvField field, int index)
+            {
+                if ((uint)index > (uint)record.Length)
+                {
+                    throw new InvalidOperationException($"Record value out of range, index was {index} but length was {record.Length}");
+                }
+
+                if (record.Header != null && !record.Header.Contains(field.Name))
+                {
+                    throw new InvalidOperationException($"Cannot find \"{field.Name}\" value in the record");
+                }
+
+                return record.Header != null ? record[field.Name] : record[index];
+            }
+        }
+
+        internal static TState SerializeWith<TState>(object? value, Type type, CsvConverterOptions options, TState state, SerialieCallback<TState> action)
+        {
+            if (value != null && !EqualTypes(value.GetType(), type))
+            {
+                throw new ArgumentException($"Expected {type} but value type was {value.GetType()}");
+            }
+
+            if (IsBuiltInType(type))
+            {
+                throw new Exception();
+            }
+
+            List<CsvField> fields = GetFields(type, options, Permission.Read, value);
+            bool handleNestedObjects = options.NestedObjectHandling != null;
+
+            if (handleNestedObjects)
+            {
+                List<CsvField> temp = new List<CsvField>(fields.Count);
+                Stack<CsvField> stack = new Stack<CsvField>();
+
+                foreach (var f in fields)
+                {
+                    if (f.Children.Count > 0)
+                    {
+                        stack.PushRangeReverse(f.Children);
+                    }
+                    else
+                    {
+                        temp.Add(f);
+                    }
+
+                    while (stack.Count > 0)
+                    {
+                        CsvField c = stack.Pop();
+
+                        if (c.Children.Count > 0)
+                        {
+                            stack.PushRangeReverse(c.Children);
+                        }
+                        else
+                        {
+                            temp.Add(c);
+                        }
+                    }
+                }
+
+                // Assign the new fields
+                fields = temp;
+            }
+
+            for (int i = 0; i < fields.Count; i++)
+            {
+                var f = fields[i];
+
+                if (f.Ignore)
+                {
+                    continue;
+                }
+
+                action(f, f.Value, state);
+            }
+
+            return state;
         }
 
         internal static List<CsvField> GetFields(Type type, CsvConverterOptions options, Permission permission, object? instance)
