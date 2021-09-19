@@ -16,7 +16,7 @@ namespace FastCSV.Converters
 
         public bool TryParse(string? s, out System.IntPtr value)
         {
-            return System.IntPtr.TryParse(s, out value);
+            return System.IntPtr.TryParse(s!, out value!);
         }
     }
 }

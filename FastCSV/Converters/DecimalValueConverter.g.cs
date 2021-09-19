@@ -16,7 +16,7 @@ namespace FastCSV.Converters
 
         public bool TryParse(string? s, out System.Decimal value)
         {
-            return System.Decimal.TryParse(s, out value);
+            return System.Decimal.TryParse(s!, out value!);
         }
     }
 }

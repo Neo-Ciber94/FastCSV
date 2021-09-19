@@ -16,7 +16,7 @@ namespace FastCSV.Converters
 
         public bool TryParse(string? s, out System.Net.IPAddress value)
         {
-            return System.Net.IPAddress.TryParse(s, out value);
+            return System.Net.IPAddress.TryParse(s!, out value!);
         }
     }
 }

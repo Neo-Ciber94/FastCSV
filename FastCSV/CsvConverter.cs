@@ -75,12 +75,12 @@ namespace FastCSV
                 }
             }
 
-            using ValueList<CsvField> fields = SerializeInternal(value, type, options);
+            using ValueList<CsvSerializedField> fields = SerializeInternal(value, type, options);
             List<string> csvValues = new List<string>(fields.Length);
 
             foreach(var f in fields)
             {
-                string s = ValueToString(f.Value, f.Type, f.Converter);
+                string s = ValueToString(f.Value, f.ElementType, f.Field.Converter);
                 csvValues.Add(s);
             }
 
@@ -88,9 +88,19 @@ namespace FastCSV
 
             if (options.IncludeHeader)
             {
-                string[] headerArray = GetHeader(type, options);
+                string[] headerArray = new string[fields.Length];
+
+                for(int i = 0; i < fields.Length; i++)
+                {
+                    headerArray[i] = fields[i].Key;
+                }
+
                 string header = CsvUtility.ToCsvString(headerArray, options.Format);
                 return CsvUtility.JoinLines(new string[] { header, values });
+
+                //string[] headerArray = GetHeader(type, options);
+                //string header = CsvUtility.ToCsvString(headerArray, options.Format);
+                //return CsvUtility.JoinLines(new string[] { header, values });
             }
 
             return values;
@@ -209,12 +219,12 @@ namespace FastCSV
                 return new Dictionary<string, object?> { { BuiltInTypeHeaderName, value } };
             }
 
-            using ValueList<CsvField> csvFields = SerializeInternal(value, type, options);
+            using ValueList<CsvSerializedField> csvFields = SerializeInternal(value, type, options);
             Dictionary<string, object?> result = new Dictionary<string, object?>();
 
             foreach(var f in csvFields)
             {
-                result.Add(f.Name, f.Value);
+                result.Add(f.Key, f.Value);
             }
 
             return result;
@@ -385,7 +395,7 @@ namespace FastCSV
             return values.ToArray();
         }
 
-        internal static ValueList<CsvField> SerializeInternal(object? value, Type type, CsvConverterOptions options)
+        internal static ValueList<CsvSerializedField> SerializeInternal(object? value, Type type, CsvConverterOptions options)
         {
             if (value != null && !EqualTypes(value.GetType(), type))
             {
@@ -399,8 +409,9 @@ namespace FastCSV
 
             List<CsvField> csvFields = GetFields(type, options, Permission.Read, value);
             bool handleNestedObjects = options.NestedObjectHandling != null;
+            bool handleArrays = options.ArrayHandling != null;
 
-            ValueList<CsvField> items = new(csvFields.Count);
+            ValueList<CsvSerializedField> items = new(csvFields.Count);
 
             if (handleNestedObjects)
             {
@@ -446,7 +457,21 @@ namespace FastCSV
                     continue;
                 }
 
-                items.Add(f);
+                if (handleArrays && f.Value is IEnumerable enumerable)
+                {
+                    string itemName = options.ArrayHandling!.ItemName;
+                    Type elementType = f.Type.GetArrayOrEnumerableElementType()!; 
+                    int itemIndex = 0;
+
+                    foreach(var item in enumerable)
+                    {
+                        items.Add(new CsvSerializedField(f, $"{itemName}{++itemIndex}", item, elementType));
+                    }
+                }
+                else
+                {
+                    items.Add(new CsvSerializedField(f, f.Name, f.Value, f.Type));
+                }
             }
 
             return items;
@@ -467,6 +492,7 @@ namespace FastCSV
             using MemoryStream stream = StreamHelper.ToMemoryStream(csv);
             using CsvReader reader = CsvReader.FromStream(stream, options.Format, options.IncludeHeader);
             bool handleNestedObjects = options.NestedObjectHandling != null;
+            bool handleArrays = options.ArrayHandling != null;
 
             // SAFETY: should be at least 1 record
             CsvRecord record = reader.Read()!;
