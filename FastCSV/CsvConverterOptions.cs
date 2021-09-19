@@ -38,6 +38,11 @@
         public NestedObjectHandling? NestedObjectHandling { get; init; }
 
         /// <summary>
+        /// Defines how handle array objects.
+        /// </summary>
+        public ArrayHandling? ArrayHandling { get; init; }
+
+        /// <summary>
         /// The delimiter of the format.
         /// </summary>
         public char Delimiter => Format.Delimiter;
@@ -56,5 +61,26 @@
         /// Whether ignore or not whitespaces when deserializing.
         /// </summary>
         public bool IgnoreWhitespace => Format.IgnoreWhitespace;
+    }
+
+    public record ArrayHandling
+    {
+        public static ArrayHandling Default { get; } = new ArrayHandling();
+
+        private readonly string _itemName = "item";
+
+        public string ItemName
+        {
+            get => _itemName;
+            init
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    throw new System.Exception($"{nameof(ItemName)} cannot be empty");
+                }
+
+                _itemName = value;
+            }
+        }
     }
 }

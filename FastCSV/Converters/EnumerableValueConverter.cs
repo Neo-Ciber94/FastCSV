@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,48 +7,50 @@ using FastCSV.Utils;
 
 namespace FastCSV.Converters
 {
-    public class EnumerableValueConverter<T> : IValueConverter<IEnumerable<T>>
+    public class EnumerableValueConverter : IValueConverter<IEnumerable>
     {
-        private const string DefaultItemSuffix = "item";
+        private const string DefaultItemName = "item";
 
-        public string ItemSuffix { get; }
+        public string ItemName { get; }
 
         public CsvFormat Format { get; }
 
         public IValueConverter Converter { get; }
 
-        public EnumerableValueConverter(CsvFormat format, IValueConverter? converter = null, string? itemSuffix = null)
-        {
-            converter ??= ValueConverters.GetConverter(typeof(T));
+        public Type ElementType { get; }
 
-            if (converter == null)
+        public EnumerableValueConverter(CsvFormat format, Type elementType, IValueConverter? converter = null, string? itemName = null)
+        {
+            IValueConverter? c = converter?? ValueConverters.GetConverter(elementType);
+
+            if (c == null)
             {
-                throw new InvalidOperationException($"No value converter for type {typeof(T)}");
+                throw new InvalidOperationException($"No value converter for type {elementType}");
             }
 
             Format = format;
-            Converter = converter;
-            ItemSuffix = itemSuffix ?? DefaultItemSuffix;
+            Converter = c;
+            ElementType = elementType;
+            ItemName = itemName ?? DefaultItemName;
         }
 
-        public virtual string[] GetHeader(IEnumerable<T> values)
+        public bool CanConvert(Type type)
         {
-            List<string> items = new List<string>();
-
-            int i = 0;
-
-            foreach(var e in values)
-            {
-                string name = $"{ItemSuffix}{++i}";
-                items.Add(name);
-            }
-
-            return items.ToArray();
+            return true;
         }
 
-        public virtual string? ToStringValue(IEnumerable<T> values)
+        public virtual string[] GetHeader(IEnumerable values)
         {
-            int count = values.Count();
+            // Returns: item1,item2,item3,item4, ...
+            return values
+                .Cast<object>()
+                .Select((value, index) => $"{ItemName}{index + 1}")
+                .ToArray();
+        }
+
+        public virtual string? ToStringValue(IEnumerable values)
+        {
+            int count = values.Cast<object>().Count();
             
             if (count == 0)
             {
@@ -57,7 +60,7 @@ namespace FastCSV.Converters
             string[] stringValues = new string[count];
             int i = 0;
 
-            foreach(T e in values)
+            foreach(var e in values)
             {
                 stringValues[i++] = Converter.ToStringValue(e) ?? string.Empty;
             }
@@ -66,16 +69,14 @@ namespace FastCSV.Converters
             return CsvUtility.ToCsvString(stringValues, Format);
         }
 
-        public virtual bool TryParse(string? s, out IEnumerable<T> values)
+        public virtual bool TryParse(string? s, out IEnumerable values)
         {
             values = default!;
-            IValueConverter? converter = ValueConverters.GetConverter(typeof(T));
 
-            if (s == null || converter == null)
+            if (s == null)
             {
                 return false;
             }
-
 
             using MemoryStream memoryStream = StreamHelper.ToMemoryStream(s);
             using StreamReader reader = new StreamReader(memoryStream);
@@ -87,16 +88,16 @@ namespace FastCSV.Converters
                 return false;
             }
 
-            List<T> items = new List<T>(csvValues.Count);
+            List<object> items = new List<object>(csvValues.Count);
 
             foreach(string e in csvValues)
             {
-                if(!converter.TryParse(s, out object? obj))
+                if(!Converter.TryParse(s, out object? obj))
                 {
                     return false;
                 }
 
-                items.Add((T)obj!);
+                items.Add(obj!);
             }
 
             values = items;
