@@ -21,7 +21,7 @@ namespace FastCSV.Utils
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static bool IsArrayOrEnumerable(this Type type)
+        public static bool IsCollectionOfElements(this Type type)
         {
             return type.IsArray || typeof(IEnumerable).IsAssignableFrom(type);
         }
@@ -31,21 +31,23 @@ namespace FastCSV.Utils
         /// </summary>
         /// <param name="type">Type to check</param>
         /// <returns></returns>
-        public static Type? GetArrayOrEnumerableElementType(this Type type)
+        public static Type? GetCollectionElementType(this Type type)
         {
             if (type.IsArray)
             {
                 return type.GetElementType()!;
             }
 
-            if (typeof(IEnumerable).IsAssignableFrom(type))
+            if (!typeof(IEnumerable).IsAssignableFrom(type) || type.IsGenericTypeDefinition)
             {
                 return null;
             }
 
-            if (type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            var generics = type.GetGenericArguments();
+
+            if (generics.Length == 1)
             {
-                return type.GetGenericArguments()[0];
+                return generics[0];
             }
 
             return typeof(object);

@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using FastCSV.Collections;
 using FastCSV.Converters;
+using FastCSV.Converters.Internal;
 using FastCSV.Utils;
 
 namespace FastCSV
@@ -460,7 +461,7 @@ namespace FastCSV
                 if (handleArrays && f.Value is IEnumerable enumerable)
                 {
                     string itemName = options.ArrayHandling!.ItemName;
-                    Type elementType = f.Type.GetArrayOrEnumerableElementType()!; 
+                    Type elementType = f.Type.GetCollectionElementType()!; 
                     int itemIndex = 0;
 
                     foreach(var item in enumerable)
@@ -487,6 +488,11 @@ namespace FastCSV
             if (IsBuiltInType(type))
             {
                 throw new ArgumentException($"Cannot deserialize the builtin type {type}");
+            }
+
+            if (!options.IncludeHeader && options.ArrayHandling != null)
+            {
+                throw new InvalidOperationException($"IncludeHeader must be true when deserializing arrays");
             }
 
             using MemoryStream stream = StreamHelper.ToMemoryStream(csv);
@@ -543,8 +549,23 @@ namespace FastCSV
                     }
                     else
                     {
-                        string csvValue = GetCsvValue(record, f, index++);
-                        value = ParseString(csvValue, f.Type, f.Converter);
+                        if (f.Type.IsCollectionOfElements() && handleArrays)
+                        {
+                            var collectionDeserializer = CsvCollectionDeserializer.GetConverterForType(f.Type);
+                            if (collectionDeserializer == null)
+                            {
+                                throw new InvalidOperationException($"No deserializer for type {f.Type}");
+                            }
+
+                            var deserializedCollection = collectionDeserializer.Convert(record, f, options.ArrayHandling!, index);
+                            value = deserializedCollection.Collection;
+                            index += deserializedCollection.Length;
+                        }
+                        else
+                        {
+                            string csvValue = GetCsvValue(record, f, index++);
+                            value = ParseString(csvValue, f.Type, f.Converter);
+                        }
                     }
 
                     if (objs.Count > 0)
