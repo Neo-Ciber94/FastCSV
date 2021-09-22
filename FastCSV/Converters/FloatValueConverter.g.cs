@@ -9,7 +9,7 @@ namespace FastCSV.Converters
     /// </summary>
     public class FloatValueConverter : IValueConverter<System.Single>
     {
-        public string? ToStringValue(System.Single value)
+        public string? Read(System.Single value)
         {
             return value.ToString();
         }

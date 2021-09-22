@@ -9,7 +9,7 @@ namespace FastCSV.Converters
     /// </summary>
     public class DoubleValueConverter : IValueConverter<System.Double>
     {
-        public string? ToStringValue(System.Double value)
+        public string? Read(System.Double value)
         {
             return value.ToString();
         }

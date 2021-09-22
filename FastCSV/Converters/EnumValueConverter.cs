@@ -8,7 +8,7 @@ namespace FastCSV.Converters
     /// <typeparam name="TEnum"></typeparam>
     public class EnumValueConverter<TEnum> : IValueConverter<TEnum> where TEnum : struct, Enum
     {
-        public string? ToStringValue(TEnum value)
+        public string? Read(TEnum value)
         {
             return Enum.GetName(value);
         }
@@ -43,7 +43,7 @@ namespace FastCSV.Converters
             EnumType = enumType;
         }
 
-        public string? ToStringValue(object? value)
+        public string? Read(object? value)
         {
             Type? enumType = value?.GetType();
 

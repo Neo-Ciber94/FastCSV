@@ -9,7 +9,7 @@ namespace FastCSV.Converters
     /// </summary>
     public class HalfValueConverter : IValueConverter<System.Half>
     {
-        public string? ToStringValue(System.Half value)
+        public string? Read(System.Half value)
         {
             return value.ToString();
         }

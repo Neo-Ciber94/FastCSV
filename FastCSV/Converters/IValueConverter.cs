@@ -24,11 +24,11 @@ namespace FastCSV.Converters
         public bool TryParse(string? s, out object? value);
 
         /// <summary>
-        /// Converts the value to <see cref="string"/>.
+        /// Reads the value as <see cref="string"/>.
         /// </summary>
         /// <param name="value">The value to convert.</param>
         /// <returns>A string representation of the value.</returns>
-        public string? ToStringValue(object? value);
+        public string? Read(object? value);
     }
 
     /// <summary>
@@ -46,22 +46,25 @@ namespace FastCSV.Converters
         public bool TryParse(string? s, out T value);
 
         /// <summary>
-        /// Converts the value to <see cref="string"/>.
+        /// Reads the value as <see cref="string"/>.
         /// </summary>
         /// <param name="value">The value to convert.</param>
         /// <returns>A string representation of the value.</returns>
-        public string? ToStringValue(T value);
+        public string? Read(T value);
 
+        /// <inheritdoc/>
         bool IValueConverter.CanConvert(Type type)
         {
             return typeof(T) == type;
         }
 
-        string? IValueConverter.ToStringValue(object? value)
+        /// <inheritdoc/>
+        string? IValueConverter.Read(object? value)
         {
-            return ToStringValue((T)value!);
+            return Read((T)value!);
         }
 
+        /// <inheritdoc/>
         bool IValueConverter.TryParse(string? s, out object? value)
         {
             value = null;

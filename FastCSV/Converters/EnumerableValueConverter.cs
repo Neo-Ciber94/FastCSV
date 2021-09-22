@@ -48,7 +48,7 @@ namespace FastCSV.Converters
                 .ToArray();
         }
 
-        public virtual string? ToStringValue(IEnumerable values)
+        public virtual string? Read(IEnumerable values)
         {
             int count = values.Cast<object>().Count();
             
@@ -62,7 +62,7 @@ namespace FastCSV.Converters
 
             foreach(var e in values)
             {
-                stringValues[i++] = Converter.ToStringValue(e) ?? string.Empty;
+                stringValues[i++] = Converter.Read(e) ?? string.Empty;
             }
             
 

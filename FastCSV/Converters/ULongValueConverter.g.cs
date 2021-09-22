@@ -9,7 +9,7 @@ namespace FastCSV.Converters
     /// </summary>
     public class ULongValueConverter : IValueConverter<System.UInt64>
     {
-        public string? ToStringValue(System.UInt64 value)
+        public string? Read(System.UInt64 value)
         {
             return value.ToString();
         }

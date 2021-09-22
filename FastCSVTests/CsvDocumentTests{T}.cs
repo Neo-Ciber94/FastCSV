@@ -506,7 +506,7 @@ namespace FastCSV.Tests
 
         class PhoneNumberConverter : IValueConverter<PhoneNumber>
         {
-            public string ToStringValue(PhoneNumber value)
+            public string Read(PhoneNumber value)
             {
                 return value.ToString();
             }

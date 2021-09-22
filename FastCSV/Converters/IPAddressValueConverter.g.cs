@@ -9,7 +9,7 @@ namespace FastCSV.Converters
     /// </summary>
     public class IPAddressValueConverter : IValueConverter<System.Net.IPAddress>
     {
-        public string? ToStringValue(System.Net.IPAddress value)
+        public string? Read(System.Net.IPAddress value)
         {
             return value.ToString();
         }

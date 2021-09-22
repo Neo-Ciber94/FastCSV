@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Numerics;
 
 namespace FastCSVCodeGen
 {
@@ -17,7 +14,7 @@ namespace FastCSV.Converters
     /// </summary>
     public class {0}ValueConverter : IValueConverter<{1}>
     {
-        public string? ToStringValue({1} value)
+        public string? Read({1} value)
         {
             return {2};
         }

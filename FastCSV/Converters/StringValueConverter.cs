@@ -6,7 +6,7 @@ namespace FastCSV.Converters
     /// </summary>
     public class StringValueConverter : IValueConverter<string>
     {
-        public string ToStringValue(string value)
+        public string Read(string value)
         {
             return value;
         }

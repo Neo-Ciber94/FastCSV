@@ -752,7 +752,7 @@ namespace FastCSV
                 throw new InvalidOperationException($"No converter found for type {type}");
             }
 
-            return converter.ToStringValue(value) ?? string.Empty;
+            return converter.Read(value) ?? string.Empty;
         }
 
         internal static IValueConverter? GetValueConverter(CsvValueConverterAttribute? attribute)
