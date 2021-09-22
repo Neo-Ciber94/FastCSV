@@ -41,9 +41,14 @@ namespace FastCSV.Converters.Internal
                 {
                     ReadOnlySpan<char> numberString = s.AsSpan()[itemName.Length..];
 
-                    if (!int.TryParse(numberString, out int count) || count != (itemCount + 1))
+                    if (!int.TryParse(numberString, out int count))
                     {
                         break;
+                    }
+
+                    if (count != (itemCount + 1))
+                    {
+                        throw new InvalidOperationException($"Invalid item order, expected {itemCount + 1} but was {count}");
                     }
 
                     itemCount += 1;
