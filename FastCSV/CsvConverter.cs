@@ -410,7 +410,7 @@ namespace FastCSV
 
             List<CsvField> csvFields = GetFields(type, options, Permission.Read, value);
             bool handleNestedObjects = options.NestedObjectHandling != null;
-            bool handleArrays = options.ArrayHandling != null;
+            bool handleCollections = options.CollectionHandling != null;
 
             ValueList<CsvSerializedField> items = new(csvFields.Count);
 
@@ -458,9 +458,9 @@ namespace FastCSV
                     continue;
                 }
 
-                if (handleArrays && f.Value is IEnumerable enumerable)
+                if (handleCollections && f.Value is IEnumerable enumerable)
                 {
-                    string itemName = options.ArrayHandling!.ItemName;
+                    string itemName = options.CollectionHandling!.ItemName;
                     Type elementType = f.Type.GetCollectionElementType()!; 
                     int itemIndex = 0;
 
@@ -490,7 +490,7 @@ namespace FastCSV
                 throw new ArgumentException($"Cannot deserialize the builtin type {type}");
             }
 
-            if (!options.IncludeHeader && options.ArrayHandling != null)
+            if (!options.IncludeHeader && options.CollectionHandling != null)
             {
                 throw new InvalidOperationException($"IncludeHeader must be true when deserializing arrays");
             }
@@ -498,7 +498,7 @@ namespace FastCSV
             using MemoryStream stream = StreamHelper.ToMemoryStream(csv);
             using CsvReader reader = CsvReader.FromStream(stream, options.Format, options.IncludeHeader);
             bool handleNestedObjects = options.NestedObjectHandling != null;
-            bool handleArrays = options.ArrayHandling != null;
+            bool handleCollections = options.CollectionHandling != null;
 
             // SAFETY: should be at least 1 record
             CsvRecord record = reader.Read()!;
@@ -549,7 +549,7 @@ namespace FastCSV
                     }
                     else
                     {
-                        if (f.Type.IsCollectionOfElements() && handleArrays)
+                        if (f.Type.IsCollectionOfElements() && handleCollections)
                         {
                             var collectionDeserializer = CsvCollectionDeserializer.GetConverterForType(f.Type);
                             if (collectionDeserializer == null)
@@ -557,7 +557,7 @@ namespace FastCSV
                                 throw new InvalidOperationException($"No deserializer for type {f.Type}");
                             }
 
-                            var deserializedCollection = collectionDeserializer.Convert(record, f, options.ArrayHandling!, index);
+                            var deserializedCollection = collectionDeserializer.Convert(record, f, options.CollectionHandling!, index);
                             value = deserializedCollection.Collection;
                             index += deserializedCollection.Length;
                         }

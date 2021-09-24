@@ -20,7 +20,7 @@ namespace FastCSV.Converters.Internal
         /// <param name="arrayHandling">The array handling options.</param>
         /// <param name="startIndex">The index on the record where the collection start.</param>
         /// <returns>The deserialed collection.</returns>
-        internal CsvDeserializedCollection Convert(CsvRecord record, CsvField field, ArrayHandling arrayHandling, int startIndex)
+        internal CsvDeserializedCollection Convert(CsvRecord record, CsvField field, CollectionHandling arrayHandling, int startIndex)
         {
             Type elementType = field.Type.GetCollectionElementType()!;
             string itemName = arrayHandling.ItemName;
