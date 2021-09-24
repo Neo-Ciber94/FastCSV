@@ -13,6 +13,11 @@ namespace FastCSV.Collections
         /// Single element list to throw the same exception message as List<T>
         private static readonly List<T> _SingleElementList = new List<T> { default(T)! };
 
+        /// <summary>
+        /// Gets an empty <see cref="ValueOrList{T}"/>.
+        /// </summary>
+        public static ValueOrList<T> Empty { get; } = new ValueOrList<T>(Array.Empty<T>());
+
         private object _value;
 
         /// <summary>
@@ -96,6 +101,7 @@ namespace FastCSV.Collections
             {
                 list = new List<T>(2);
                 list.Add((T)_value);
+                _value = list;
             }
 
             list.Add(item);
@@ -111,6 +117,7 @@ namespace FastCSV.Collections
             {
                 if (index != 0)
                 {
+                    // Throw exception
                     _SingleElementList.Insert(index, item);
                 }
 
@@ -146,6 +153,7 @@ namespace FastCSV.Collections
             {
                 if (index != 0)
                 {
+                    // Throw exception
                     _SingleElementList.RemoveAt(index);
                 }
                 else
@@ -179,6 +187,23 @@ namespace FastCSV.Collections
             }
         }
 
+        public int IndexOf(T item)
+        {
+            if (_value is List<T> list)
+            {
+                return list.IndexOf(item);
+            }
+            else
+            {
+                if (EqualityComparer<T>.Default.Equals(item, (T)_value))
+                {
+                    return 0;
+                }
+
+                return -1;
+            }
+        }
+
         public void CopyTo(T[] array, int arrayIndex)
         {
             if (_value is List<T> list)
@@ -188,23 +213,6 @@ namespace FastCSV.Collections
             else
             {
                 array[arrayIndex] = (T)_value;
-            }
-        }
-
-        public int IndexOf(T item)
-        {
-            if (_value is List<T> list)
-            {
-                return list.IndexOf(item);
-            }
-            else
-            {
-                if(EqualityComparer<T>.Default.Equals(item, (T)_value))
-                {
-                    return 0;
-                }
-
-                return -1;
             }
         }
 
