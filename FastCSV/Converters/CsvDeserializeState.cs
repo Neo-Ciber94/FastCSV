@@ -9,7 +9,7 @@ namespace FastCSV.Converters
     /// </summary>
     public struct CsvDeserializeState
     {
-        private readonly IReadOnlyList<CsvField> _fields;
+        private readonly IReadOnlyList<CsvPropertyInfo> _fields;
         private int _columnIndex;
 
         public CsvConverterOptions Options { get; }
@@ -18,7 +18,7 @@ namespace FastCSV.Converters
 
         public int ColumnIndex => _columnIndex;
 
-        internal CsvDeserializeState(CsvConverterOptions options, CsvRecord record, IReadOnlyList<CsvField> fields, int columnIndex)
+        internal CsvDeserializeState(CsvConverterOptions options, CsvRecord record, IReadOnlyList<CsvPropertyInfo> fields, int columnIndex)
         {
             Options = options;
             Record = record;

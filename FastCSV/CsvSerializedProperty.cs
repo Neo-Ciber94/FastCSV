@@ -9,14 +9,14 @@ namespace FastCSV
     /// 
     /// <para/>
     /// This is required for special cases for example serializing an array or enumerable,
-    /// the actual <see cref="CsvField"/> type will be the array but the actual serialized value will be one element of the container.
+    /// the actual <see cref="CsvPropertyInfo"/> type will be the array but the actual serialized value will be one element of the container.
     /// </summary>
-    internal readonly struct CsvSerializedField
+    internal readonly struct CsvSerializedProperty
     {
         /// <summary>
         /// Source field.
         /// </summary>
-        public CsvField Field { get; }
+        public CsvPropertyInfo Field { get; }
 
         /// <summary>
         /// Name of the serialized field.
@@ -38,7 +38,7 @@ namespace FastCSV
         /// </summary>
         public bool IsFromArray => Field.Type.IsCollectionOfElements();
 
-        public CsvSerializedField(CsvField field, string key, object? value, Type elementType)
+        public CsvSerializedProperty(CsvPropertyInfo field, string key, object? value, Type elementType)
         {
             Field = field;
             Key = key;
