@@ -140,9 +140,9 @@ namespace FastCSV
             {
                 if (options.IncludeHeader)
                 {
-                    using MemoryStream stream2 = StreamHelper.ToMemoryStream(csv);
-                    using CsvReader reader2 = CsvReader.FromStream(stream2, options.Format, options.IncludeHeader);
-                    CsvRecord? singleRecord = reader2.Read();
+                    using MemoryStream stream = StreamHelper.ToMemoryStream(csv);
+                    using CsvReader reader = CsvReader.FromStream(stream, options.Format, options.IncludeHeader);
+                    CsvRecord? singleRecord = reader.Read();
 
                     if (singleRecord == null)
                     {
@@ -727,7 +727,7 @@ namespace FastCSV
             return converter.Read(value) ?? string.Empty;
         }
 
-        internal static IValueConverter? GetValueConverter(CsvValueConverterAttribute? attribute)
+        internal static IValueConverter? GetValueConverterFromAttribute(CsvValueConverterAttribute? attribute)
         {
             if (attribute == null || attribute.ConverterType == null)
             {
@@ -763,7 +763,7 @@ namespace FastCSV
             Type fieldType = member.GetMemberType();
             object? fieldValue = instance != null ? member.GetValue(instance) : null;
             bool ignore = member.GetCustomAttribute<CsvIgnoreAttribute>() != null || member.GetCustomAttribute<NonSerializedAttribute>() != null;
-            IValueConverter? converter = GetValueConverter(converterAttribute);
+            IValueConverter? converter = GetValueConverterFromAttribute(converterAttribute);
 
             return new(originalName, name, fieldValue, fieldType, member, ignore, converter);
         }
