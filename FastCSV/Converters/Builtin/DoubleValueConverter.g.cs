@@ -2,7 +2,7 @@
 
 #nullable enable
 
-namespace FastCSV.Converters
+namespace FastCSV.Converters.Builtin
 {
     /// <summary>
     /// A value converter for <see cref="System.Double"/>.
@@ -14,9 +14,9 @@ namespace FastCSV.Converters
             return value.ToString();
         }
 
-        public bool TryParse(string? s, out System.Double value)
+        public bool TryParse(System.ReadOnlySpan<char> s, out System.Double value)
         {
-            return System.Double.TryParse(s!, out value!);
+            return System.Double.TryParse(s, out value!);
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace FastCSV.Converters
+namespace FastCSV.Converters.Collections
 {
     /// <summary>
     /// Provides a mechanism for serialize a collection of values.

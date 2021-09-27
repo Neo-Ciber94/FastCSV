@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace FastCSV.Converters
+namespace FastCSV.Converters.Collections
 {
     /// <summary>
     /// Provides a mechanism for get collection converters.

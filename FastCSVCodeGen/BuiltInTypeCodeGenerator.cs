@@ -11,7 +11,8 @@ namespace FastCSVCodeGen
             var codeGen = new CodeGenerator();
             
             codeGen.WriteLine("using System;");
-            codeGen.WriteLine("using System.Collections.Generic;\n");
+            codeGen.WriteLine("using System.Collections.Generic;");
+            codeGen.WriteLine("using FastCSV.Converters.Builtin;\n");
 
             codeGen.Open("namespace FastCSV.Converters", b =>
             {

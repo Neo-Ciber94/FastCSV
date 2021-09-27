@@ -1,4 +1,5 @@
-﻿
+﻿using System;
+
 namespace FastCSV.Converters
 {
     /// <summary>
@@ -11,10 +12,10 @@ namespace FastCSV.Converters
             return value;
         }
 
-        public bool TryParse(string? s, out string value)
+        public bool TryParse(ReadOnlySpan<char> s, out string value)
         {
-            value = s?? string.Empty;
-            return s != null;
+            value = s.ToString();
+            return true;
         }
     }
 }

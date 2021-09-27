@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 
 namespace FastCSV.Converters
 {
@@ -21,7 +20,7 @@ namespace FastCSV.Converters
         /// <param name="s">The string to parse.</param>
         /// <param name="value">The resulting value.</param>
         /// <returns><c>true</c> if the value can be parse, otherwise <c>false</c>.</returns>
-        public bool TryParse(string? s, out object? value);
+        public bool TryParse(ReadOnlySpan<char> s, out object? value);
 
         /// <summary>
         /// Reads the value as <see cref="string"/>.
@@ -43,7 +42,7 @@ namespace FastCSV.Converters
         /// <param name="s">The string to parse.</param>
         /// <param name="value">The resulting value.</param>
         /// <returns><c>true</c> if the value can be parse, otherwise <c>false</c>.</returns>
-        public bool TryParse(string? s, out T value);
+        public bool TryParse(ReadOnlySpan<char> s, out T value);
 
         /// <summary>
         /// Reads the value as <see cref="string"/>.
@@ -65,7 +64,7 @@ namespace FastCSV.Converters
         }
 
         /// <inheritdoc/>
-        bool IValueConverter.TryParse(string? s, out object? value)
+        bool IValueConverter.TryParse(ReadOnlySpan<char> s, out object? value)
         {
             value = null;
 

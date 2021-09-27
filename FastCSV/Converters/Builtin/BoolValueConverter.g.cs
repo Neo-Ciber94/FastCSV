@@ -2,7 +2,7 @@
 
 #nullable enable
 
-namespace FastCSV.Converters
+namespace FastCSV.Converters.Builtin
 {
     /// <summary>
     /// A value converter for <see cref="System.Boolean"/>.
@@ -14,9 +14,9 @@ namespace FastCSV.Converters
             return value? "true": "false";
         }
 
-        public bool TryParse(string? s, out System.Boolean value)
+        public bool TryParse(System.ReadOnlySpan<char> s, out System.Boolean value)
         {
-            return System.Boolean.TryParse(s!, out value!);
+            return System.Boolean.TryParse(s, out value!);
         }
     }
 }

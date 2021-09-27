@@ -2,7 +2,7 @@
 
 #nullable enable
 
-namespace FastCSV.Converters
+namespace FastCSV.Converters.Builtin
 {
     /// <summary>
     /// A value converter for <see cref="System.Int64"/>.
@@ -14,9 +14,9 @@ namespace FastCSV.Converters
             return value.ToString();
         }
 
-        public bool TryParse(string? s, out System.Int64 value)
+        public bool TryParse(System.ReadOnlySpan<char> s, out System.Int64 value)
         {
-            return System.Int64.TryParse(s!, out value!);
+            return System.Int64.TryParse(s, out value!);
         }
     }
 }

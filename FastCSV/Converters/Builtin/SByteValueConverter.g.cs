@@ -2,7 +2,7 @@
 
 #nullable enable
 
-namespace FastCSV.Converters
+namespace FastCSV.Converters.Builtin
 {
     /// <summary>
     /// A value converter for <see cref="System.SByte"/>.
@@ -14,9 +14,9 @@ namespace FastCSV.Converters
             return value.ToString();
         }
 
-        public bool TryParse(string? s, out System.SByte value)
+        public bool TryParse(System.ReadOnlySpan<char> s, out System.SByte value)
         {
-            return System.SByte.TryParse(s!, out value!);
+            return System.SByte.TryParse(s, out value!);
         }
     }
 }

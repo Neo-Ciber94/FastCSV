@@ -2,7 +2,7 @@
 
 #nullable enable
 
-namespace FastCSV.Converters
+namespace FastCSV.Converters.Builtin
 {
     /// <summary>
     /// A value converter for <see cref="System.Numerics.BigInteger"/>.
@@ -14,9 +14,9 @@ namespace FastCSV.Converters
             return value.ToString();
         }
 
-        public bool TryParse(string? s, out System.Numerics.BigInteger value)
+        public bool TryParse(System.ReadOnlySpan<char> s, out System.Numerics.BigInteger value)
         {
-            return System.Numerics.BigInteger.TryParse(s!, out value!);
+            return System.Numerics.BigInteger.TryParse(s, out value!);
         }
     }
 }
