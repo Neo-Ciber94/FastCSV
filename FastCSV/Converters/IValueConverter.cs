@@ -5,15 +5,8 @@ namespace FastCSV.Converters
     /// <summary>
     /// Provides a mechanism for converts a value from and to <see cref="string"/>.
     /// </summary>
-    public interface IValueConverter
+    public interface IValueConverter : ICsvValueConverter
     {
-        /// <summary>
-        /// Checks whether this converter can parse values from the given type.
-        /// </summary>
-        /// <param name="type">The type to check.</param>
-        /// <returns><c>true</c> if can parse a value from the given type, otherwise <c>false</c>.</returns>
-        public bool CanConvert(Type type);
-
         /// <summary>
         /// Attempts to parse a <see cref="string"/> to a specify value.
         /// </summary>
@@ -28,6 +21,23 @@ namespace FastCSV.Converters
         /// <param name="value">The value to convert.</param>
         /// <returns>A string representation of the value.</returns>
         public string? Read(object? value);
+
+        bool ICsvValueConverter.TryDeserialize(out object? result, Type elementType, ref CsvDeserializeState state)
+        {
+            return TryParse(state.Read(), out result);
+        }
+
+        bool ICsvValueConverter.TrySerialize(object? value, Type elementType, ref CsvSerializeState state)
+        {
+            string? result = Read(value);
+            if (result == null)
+            {
+                return false;
+            }
+
+            state.Write(result);
+            return true;
+        }
     }
 
     /// <summary>
@@ -52,7 +62,7 @@ namespace FastCSV.Converters
         public string? Read(T value);
 
         /// <inheritdoc/>
-        bool IValueConverter.CanConvert(Type type)
+        bool ICsvValueConverter.CanConvert(Type type)
         {
             return typeof(T) == type;
         }

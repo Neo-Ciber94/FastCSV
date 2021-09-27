@@ -34,9 +34,9 @@ namespace FastCSV.Converters.Collections
         /// <returns>The converter for the given type.</returns>
         public abstract ICsvValueConverter GetConverter(Type elementType);
 
-        public abstract void Serialize(TCollection value, ref CsvSerializeState state);
+        public abstract bool TrySerialize(TCollection value, ref CsvSerializeState state);
 
-        public bool Deserialize(out TCollection value, ref CsvDeserializeState state)
+        public bool TryDeserialize(out TCollection value, ref CsvDeserializeState state)
         {
             var collectionHandling = state.Options.CollectionHandling;
             Debug.Assert(collectionHandling is not null, "CollectionHandling is not enable");
@@ -77,7 +77,7 @@ namespace FastCSV.Converters.Collections
 
                 var converter = GetConverter(typeToConvert);
 
-                if (!converter.Deserialize(out object? element, typeToConvert, ref state))
+                if (!converter.TryDeserialize(out object? element, typeToConvert, ref state))
                 {
                     throw new InvalidOperationException($"Could not convert {element} to {typeToConvert}");
                 }

@@ -34,6 +34,8 @@ namespace FastCSV
     /// </summary>
     public static partial class CsvConverter
     {
+        public static string Null { get; } = string.Empty;
+
         private const string BuiltInTypeHeaderName = "value";
 
         /// <summary>
