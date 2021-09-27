@@ -56,7 +56,7 @@ namespace FastCSV.Converters.Collections
             while (index < record.Length)
             {
                 string itemName = collectionHandling.ItemName;
-                Type typeToConvert = state.ElementType;
+                Type typeToConvert = state.CurrentElementType;
 
                 if (!header[index].StartsWith(itemName))
                 {

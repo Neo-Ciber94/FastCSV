@@ -42,14 +42,14 @@ namespace FastCSV
         public bool Ignore { get; }
 
         /// <summary>
-        /// The converter for this field.
+        /// The converter for this property.
         /// </summary>
         public IValueConverter? Converter { get;}
 
         /// <summary>
         /// Children fields of this field.
         /// </summary>
-        public IList<CsvPropertyInfo> Children { get; set; } = new List<CsvPropertyInfo>();
+        public IReadOnlyList<CsvPropertyInfo> Children { get; set; } = new List<CsvPropertyInfo>();
 
         /// <summary>
         /// Whether this instance is a property.

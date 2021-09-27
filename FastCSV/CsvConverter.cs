@@ -512,7 +512,7 @@ namespace FastCSV
                 }
 
                 MemberInfo member = p.Member;
-                IList<CsvPropertyInfo> children = p.Children;
+                IReadOnlyList<CsvPropertyInfo> children = p.Children;
 
                 if (!isParent && children.Count > 0)
                 {

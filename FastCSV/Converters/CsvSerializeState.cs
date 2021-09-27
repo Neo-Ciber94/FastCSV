@@ -19,7 +19,7 @@ namespace FastCSV.Converters
         /// </summary>
         public ReadOnlyValueOrList<string> Serialized => _serialized;
 
-        internal CsvSerializeState(CsvConverterOptions options)
+        public CsvSerializeState(CsvConverterOptions options)
         {
             Options = options;;
             _serialized = ValueOrList<string>.Empty;
@@ -39,7 +39,7 @@ namespace FastCSV.Converters
         /// </summary>
         public void WriteNull()
         {
-            _serialized.Add(string.Empty);
+            _serialized.Add(CsvConverter.Null);
         }
     }
 }
