@@ -41,10 +41,11 @@ namespace FastCSVCodeGen
             string basePath = AppDomain.CurrentDomain.BaseDirectory;
             string path = @$"{basePath}..\..\..\..\FastCSV\\";
 
-            string convertersPath = @$"{path}\\Converters\\Builtin";
+            string convertersPath = @$"{path}\\Converters";
+            string convertersBuiltinPath = @$"{convertersPath}\\Builtin";
 
-            ValueConverterCodeGenerator.WriteTo(convertersPath, Types);
-            BuiltInTypeCodeGenerator.WriteTo_ValueConvertersBuiltInTypes(path, Types);
+            ValueConverterCodeGenerator.WriteTo(convertersBuiltinPath, Types);
+            BuiltInTypeCodeGenerator.WriteTo_DefaultValueConverterProviderBuiltInTypes(convertersPath, Types);
             BuiltInTypeCodeGenerator.WriteTo_CsvConverterIsBuiltInType(path, Types);
 
             Console.ReadKey();
