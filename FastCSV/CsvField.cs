@@ -4,6 +4,7 @@ using System.Reflection;
 using FastCSV.Converters;
 using FastCSV.Utils;
 
+// CsvMemberInfo
 namespace FastCSV
 {
     internal record CsvField
@@ -31,7 +32,7 @@ namespace FastCSV
         /// <summary>
         /// Source of the value with is either a field or an property.
         /// </summary>
-        public Either<FieldInfo, PropertyInfo> Source { get; }
+        public MemberInfo Member { get; }
 
         /// <summary>
         /// Whether the field should be ignored or not.
@@ -48,18 +49,22 @@ namespace FastCSV
         /// </summary>
         public IList<CsvField> Children { get; set; } = new List<CsvField>();
 
-        public CsvField(string originalName, string name, object? value, Type type, Either<FieldInfo, PropertyInfo> source, bool ignore, IValueConverter? valueConverter)
+        public bool IsProperty => Member is PropertyInfo;
+
+        public bool IsField => Member is FieldInfo;
+
+        public CsvField(string originalName, string name, object? value, Type type, MemberInfo member, bool ignore, IValueConverter? valueConverter)
         {
             OriginalName = originalName;
             Name = name;
             Value = value;
             Type = type;
-            Source = source;
+            Member = member;
             Ignore = ignore;
             Converter = valueConverter;
         }
 
-        public CsvField(string name, object? value, Type type, Either<FieldInfo, PropertyInfo> source, bool ignore, IValueConverter? valueConverter) 
-            : this(name, name, value, type, source, ignore, valueConverter) { }
+        public CsvField(string name, object? value, Type type, MemberInfo member, bool ignore, IValueConverter? valueConverter) 
+            : this(name, name, value, type, member, ignore, valueConverter) { }
     }
 }

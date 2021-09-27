@@ -1,31 +1,32 @@
-﻿using System;
+﻿using FastCSV.Collections;
+using FastCSV.Converters;
+using FastCSV.Converters.Internal;
+using FastCSV.Utils;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-using FastCSV.Collections;
-using FastCSV.Converters;
-using FastCSV.Converters.Internal;
-using FastCSV.Utils;
 
 namespace FastCSV
 {
     // Determine if a field/property will be a getter, setter of both.
     internal enum Permission
-    { /// <summary>
-      /// Defines the Read.
-      /// </summary>
-        Read,
+    { 
         /// <summary>
-        /// Defines the Write.
+        /// Defines the getter.
         /// </summary>
-        Write,
+        Getter,
         /// <summary>
-        /// Defines the ReadWrite.
+        /// Defines the setter.
         /// </summary>
-        ReadWrite
+        Setter,
+        /// <summary>
+        /// Defines the getter and setter.
+        /// </summary>
+        GetterAndGetter
     }
 
     /// <summary>
@@ -79,7 +80,7 @@ namespace FastCSV
             using ValueList<CsvSerializedField> fields = SerializeInternal(value, type, options);
             List<string> csvValues = new List<string>(fields.Length);
 
-            foreach(var f in fields)
+            foreach (var f in fields)
             {
                 string s = ValueToString(f.Value, f.ElementType, f.Field.Converter);
                 csvValues.Add(s);
@@ -91,7 +92,7 @@ namespace FastCSV
             {
                 string[] headerArray = new string[fields.Length];
 
-                for(int i = 0; i < fields.Length; i++)
+                for (int i = 0; i < fields.Length; i++)
                 {
                     headerArray[i] = fields[i].Key;
                 }
@@ -165,19 +166,10 @@ namespace FastCSV
             using ValueList<KeyValuePair<CsvField, object?>> fields = DeserializeInternal(csv, type, options);
             object obj = FormatterServices.GetUninitializedObject(type);
 
-            foreach(var (f, value) in fields)
+            foreach (var (f, value) in fields)
             {
-                Either<FieldInfo, PropertyInfo> source = f.Source;
-                if (source.IsLeft)
-                {
-                    FieldInfo field = source.Left;
-                    field.SetValue(obj, value);
-                }
-                else
-                {
-                    PropertyInfo prop = source.Right;
-                    prop.SetValue(obj, value);
-                }
+                MemberInfo member = f.Member;
+                member.SetValue(obj, value);
             }
 
             return obj;
@@ -223,7 +215,7 @@ namespace FastCSV
             using ValueList<CsvSerializedField> csvFields = SerializeInternal(value, type, options);
             Dictionary<string, object?> result = new Dictionary<string, object?>();
 
-            foreach(var f in csvFields)
+            foreach (var f in csvFields)
             {
                 result.Add(f.Key, f.Value);
             }
@@ -264,7 +256,7 @@ namespace FastCSV
 
             options ??= CsvConverterOptions.Default;
 
-            List<CsvField> csvFields = GetFields(type, options, Permission.Write, instance: null);
+            List<CsvField> csvFields = GetFields(type, options, Permission.Setter, instance: null);
             object result = FormatterServices.GetUninitializedObject(type);
 
             foreach (var (key, value) in data)
@@ -281,19 +273,9 @@ namespace FastCSV
                     continue;
                 }
 
-                Either<FieldInfo, PropertyInfo> source = csvField.Source;
+                MemberInfo member = csvField.Member;
                 object? obj = ParseString(value, csvField.Type, csvField.Converter);
-
-                if (source.IsLeft)
-                {
-                    FieldInfo field = source.Left;
-                    field.SetValue(result, obj);
-                }
-                else
-                {
-                    PropertyInfo prop = source.Right;
-                    prop.SetValue(result, obj);
-                }
+                member.SetValue(result, obj);
             }
 
             return result;
@@ -327,7 +309,7 @@ namespace FastCSV
             }
             else
             {
-                return GetFields(type, options ?? CsvConverterOptions.Default, Permission.Read, instance: value)
+                return GetFields(type, options ?? CsvConverterOptions.Default, Permission.Getter, instance: value)
                     .Where(e => !e.Ignore)
                     .Select(e => e.Value?.ToString() ?? string.Empty)
                     .ToArray();
@@ -345,7 +327,7 @@ namespace FastCSV
         {
             return GetHeader(typeof(T), options);
         }
- 
+
         /// <summary>
         /// Returns an array of the header names of the given type.
         /// </summary>
@@ -363,18 +345,18 @@ namespace FastCSV
 
             if (options.NestedObjectHandling == null)
             {
-                return GetFields(type, options ?? CsvConverterOptions.Default, Permission.Read, instance: null)
+                return GetFields(type, options ?? CsvConverterOptions.Default, Permission.Getter, instance: null)
                     .Where(f => !f.Ignore)
                     .Select(f => f.Name)
                     .ToArray();
             }
 
-            List<CsvField> fields = GetFields(type, options ?? CsvConverterOptions.Default, Permission.Read, instance: null);
+            List<CsvField> fields = GetFields(type, options ?? CsvConverterOptions.Default, Permission.Getter, instance: null);
             List<string> values = new List<string>(fields.Count);
             Stack<CsvField> stack = new Stack<CsvField>(fields.Count);
             stack.PushRangeReverse(fields);
 
-            while(stack.Count > 0)
+            while (stack.Count > 0)
             {
                 CsvField f = stack.Pop();
 
@@ -408,7 +390,7 @@ namespace FastCSV
                 throw new ArgumentException($"Cannot serialize the builtin type {type}");
             }
 
-            List<CsvField> csvFields = GetFields(type, options, Permission.Read, value);
+            List<CsvField> csvFields = GetFields(type, options, Permission.Getter, value);
             bool handleNestedObjects = options.NestedObjectHandling != null;
             bool handleCollections = options.CollectionHandling != null;
 
@@ -461,10 +443,10 @@ namespace FastCSV
                 if (handleCollections && f.Value is IEnumerable enumerable)
                 {
                     string itemName = options.CollectionHandling!.ItemName;
-                    Type elementType = f.Type.GetCollectionElementType()!; 
+                    Type elementType = f.Type.GetCollectionElementType()!;
                     int itemIndex = 0;
 
-                    foreach(var item in enumerable)
+                    foreach (var item in enumerable)
                     {
                         items.Add(new CsvSerializedField(f, $"{itemName}{++itemIndex}", item, elementType));
                     }
@@ -503,7 +485,7 @@ namespace FastCSV
             // SAFETY: should be at least 1 record
             CsvRecord record = reader.Read()!;
 
-            List<CsvField> csvFields = GetFields(type, options, Permission.Write, null);
+            List<CsvField> csvFields = GetFields(type, options, Permission.Setter, null);
             Stack<object> objs = new Stack<object>();
             Stack<CsvField> fields = new Stack<CsvField>();
             Stack<CsvField> parents = new Stack<CsvField>();
@@ -524,7 +506,7 @@ namespace FastCSV
                     continue;
                 }
 
-                Either<FieldInfo, PropertyInfo> source = f.Source;
+                MemberInfo member = f.Member;
                 IList<CsvField> children = f.Children;
 
                 if (!isParent && children.Count > 0)
@@ -571,17 +553,7 @@ namespace FastCSV
                     if (objs.Count > 0)
                     {
                         object result = objs.Peek();
-
-                        if (source.IsLeft)
-                        {
-                            FieldInfo field = source.Left;
-                            field.SetValue(result, value);
-                        }
-                        else
-                        {
-                            PropertyInfo prop = source.Right;
-                            prop.SetValue(result, value);
-                        }
+                        member.SetValue(result, value);
                     }
                     else
                     {
@@ -646,7 +618,7 @@ namespace FastCSV
 
                 foreach (var field in fields)
                 {
-                    CsvField csvField = CreateCsvField(new PropertyOrField(field), options, instance);
+                    CsvField csvField = CreateCsvField(field, options, instance);
                     csvFields.Add(csvField);
 
                     if (handleNestedObjects && !IsBuiltInType(field.FieldType) && csvField.Converter == null)
@@ -668,7 +640,7 @@ namespace FastCSV
 
             foreach (var prop in properties)
             {
-                CsvField csvField = CreateCsvField(new PropertyOrField(prop), options, instance);
+                CsvField csvField = CreateCsvField(prop, options, instance);
                 csvFields.Add(csvField);
 
                 if (handleNestedObjects && !IsBuiltInType(prop.PropertyType) && csvField.Converter == null)
@@ -686,13 +658,13 @@ namespace FastCSV
                 var flags = BindingFlags.Public | BindingFlags.Instance;
                 switch (permission)
                 {
-                    case Permission.Read:
+                    case Permission.Getter:
                         flags |= BindingFlags.GetField;
                         break;
-                    case Permission.Write:
+                    case Permission.Setter:
                         flags |= BindingFlags.SetField;
                         break;
-                    case Permission.ReadWrite:
+                    case Permission.GetterAndGetter:
                         flags |= BindingFlags.GetField | BindingFlags.SetField;
                         break;
                 }
@@ -763,7 +735,7 @@ namespace FastCSV
             }
 
             Type converterType = attribute.ConverterType;
-            
+
             if (!typeof(IValueConverter).IsAssignableFrom(converterType))
             {
                 throw new ArgumentException($"Type {converterType} does not implements {typeof(IValueConverter)}");
@@ -780,27 +752,20 @@ namespace FastCSV
             return (IValueConverter)converter;
         }
 
-        internal static CsvField CreateCsvField(PropertyOrField propertyOrField, CsvConverterOptions options, object? instance)
+        internal static CsvField CreateCsvField(MemberInfo member, CsvConverterOptions options, object? instance)
         {
-            CsvFieldAttribute? fieldAttribute = propertyOrField.GetCustomAttribute<CsvFieldAttribute>();
-            CsvValueConverterAttribute? converterAttribute = propertyOrField.GetCustomAttribute<CsvValueConverterAttribute>();
+            CsvFieldAttribute? fieldAttribute = member.GetCustomAttribute<CsvFieldAttribute>();
+            CsvValueConverterAttribute? converterAttribute = member.GetCustomAttribute<CsvValueConverterAttribute>();
             CsvNamingConvention? namingConvention = options.NamingConvention;
 
-            string originalName = propertyOrField.Name;
+            string originalName = member.Name;
             string name = fieldAttribute?.Name ?? namingConvention?.Convert(originalName) ?? originalName;
-            Type fieldType = propertyOrField.Type;
-            object? fieldValue = instance != null ? propertyOrField.GetValue(instance) : null;
-            bool ignore = propertyOrField.GetCustomAttribute<CsvIgnoreAttribute>() != null || propertyOrField.GetCustomAttribute<NonSerializedAttribute>() != null;
+            Type fieldType = member.GetMemberType();
+            object? fieldValue = instance != null ? member.GetValue(instance) : null;
+            bool ignore = member.GetCustomAttribute<CsvIgnoreAttribute>() != null || member.GetCustomAttribute<NonSerializedAttribute>() != null;
             IValueConverter? converter = GetValueConverter(converterAttribute);
-            
-            Either<FieldInfo, PropertyInfo> source = propertyOrField switch
-            {
-                var p when p.IsProperty => Either.FromRight(propertyOrField.Property!),
-                var f when f.IsField => Either.FromLeft(propertyOrField.Field!),
-                _ => throw new InvalidOperationException()
-            };
 
-            return new(originalName, name, fieldValue, fieldType, source, ignore, converter);
+            return new(originalName, name, fieldValue, fieldType, member, ignore, converter);
         }
 
         internal static bool EqualTypes(Type leftType, Type rightType)
