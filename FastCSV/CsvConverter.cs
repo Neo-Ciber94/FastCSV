@@ -765,12 +765,12 @@ namespace FastCSV
 
             string originalName = member.Name;
             string name = fieldAttribute?.Name ?? namingConvention?.Convert(originalName) ?? originalName;
-            Type fieldType = member.GetMemberType();
-            object? fieldValue = instance != null ? member.GetValue(instance) : null;
+            Type type = member.GetMemberType();
+            object? value = instance != null ? member.GetValue(instance) : null;
             bool ignore = member.GetCustomAttribute<CsvIgnoreAttribute>() != null || member.GetCustomAttribute<NonSerializedAttribute>() != null;
             IValueConverter? converter = GetValueConverterFromAttribute(converterAttribute);
 
-            return new(originalName, name, fieldValue, fieldType, member, ignore, converter);
+            return new(originalName, name, value, type, member, ignore, converter);
         }
 
         internal static bool EqualTypes(Type leftType, Type rightType)
