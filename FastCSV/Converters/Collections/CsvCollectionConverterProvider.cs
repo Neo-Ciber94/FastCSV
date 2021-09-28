@@ -6,14 +6,9 @@ namespace FastCSV.Converters.Collections
     /// <summary>
     /// Provides a mechanism for get collection converters.
     /// </summary>
-    public abstract class CsvCollectionConverterProvider
+    public abstract class CsvCollectionConverterProvider : CsvValueConverterProvider
     {
-        /// <summary>
-        /// Gets an <see cref="CsvCollectionConverter{TCollection, TElement}"/> for the given type.
-        /// </summary>
-        /// <param name="collectionType">The type of the collection.</param>
-        /// <returns>The collection converter or null.</returns>
-        public abstract ICsvValueConverter? GetCollectionConverter(Type collectionType);
+        public static CsvCollectionConverterProvider Collections { get; } = new DefaultCsvCollectionConverterProvider();
     }
 
     internal class DefaultCsvCollectionConverterProvider : CsvCollectionConverterProvider
@@ -22,10 +17,10 @@ namespace FastCSV.Converters.Collections
 
         public DefaultCsvCollectionConverterProvider()
         {
-            // Initialize the _converters
+            // Initialize the _converters   
         }
 
-        public override ICsvValueConverter? GetCollectionConverter(Type collectionType)
+        public override ICsvValueConverter? GetConverter(Type collectionType)
         {
             if (_converters.TryGetValue(collectionType, out ICsvValueConverter? collectionConverter))
             {

@@ -41,8 +41,13 @@ namespace FastCSV.Converters.Collections
             var collectionHandling = state.Options.CollectionHandling;
             Debug.Assert(collectionHandling is not null, "CollectionHandling is not enable");
 
-            var record = state.Record;
-            var header = record.Header;
+            if (state.Record == null)
+            {
+                throw new ArgumentException("Collection converter requires to read a CsvRecord");
+            }
+
+            CsvRecord record = state.Record;
+            CsvHeader? header = record.Header;
 
             if (header == null)
             {
