@@ -1,6 +1,5 @@
 ﻿using FastCSV.Collections;
 using FastCSV.Converters;
-using FastCSV.Converters.Internal;
 using FastCSV.Utils;
 using System;
 using System.Collections;
@@ -72,43 +71,49 @@ namespace FastCSV
 
             if (IsBuiltInType(type))
             {
+                CsvSerializeState builtInState = new CsvSerializeState(options, 1);
+
                 if (options.IncludeHeader)
                 {
-                    string s = ValueToString(value, type, null);
-                    return $"{BuiltInTypeHeaderName}\n{s}";
+                    ValueToString(value, type, ref builtInState, null);
+                    return $"{BuiltInTypeHeaderName}\n{builtInState.Serialized[0]}";
                 }
                 else
                 {
-                    return ValueToString(value, type, null);
+                    ValueToString(value, type, ref builtInState, null);
+                    return builtInState.Serialized[0];
                 }
             }
 
-            using ValueList<CsvSerializedProperty> fields = SerializeInternal(value, type, options);
-            List<string> csvValues = new List<string>(fields.Length);
+            using ValueList<CsvSerializedProperty> props = SerializeInternal(value, type, options);
+            CsvSerializeState state = new CsvSerializeState(options, props.Length);
 
-            foreach (var f in fields)
+            foreach (var p in props)
             {
-                string s = ValueToString(f.Value, f.ElementType, f.Field.Converter);
-                csvValues.Add(s);
+                var prop = p.Property;
+                var obj = prop.Value;
+                var elementType = prop.Type;
+                var converter = prop.Converter ?? CsvValueConverterProvider.Default.GetConverter(elementType);
+                
+                if (converter == null || !converter.CanConvert(elementType) || !converter.TrySerialize(obj, elementType, ref state))
+                {
+                    throw new InvalidOperationException($"Cannot convert '{obj}' to '{elementType}'");
+                }
             }
 
-            string values = CsvUtility.ToCsvString(csvValues, options.Format);
+            string values = CsvUtility.ToCsvString(state.Serialized, options.Format);
 
             if (options.IncludeHeader)
             {
-                string[] headerArray = new string[fields.Length];
+                string[] headerArray = new string[props.Length];
 
-                for (int i = 0; i < fields.Length; i++)
+                for (int i = 0; i < props.Length; i++)
                 {
-                    headerArray[i] = fields[i].Key;
+                    headerArray[i] = props[i].Name;
                 }
 
                 string header = CsvUtility.ToCsvString(headerArray, options.Format);
                 return CsvUtility.JoinLines(new string[] { header, values });
-
-                //string[] headerArray = GetHeader(type, options);
-                //string header = CsvUtility.ToCsvString(headerArray, options.Format);
-                //return CsvUtility.JoinLines(new string[] { header, values });
             }
 
             return values;
@@ -152,7 +157,8 @@ namespace FastCSV
 
                     if (singleRecord == null)
                     {
-                        return ParseString(null, type);
+                        var builtinState = new CsvDeserializeState(options, type, CsvConverter.Null);
+                        return ParseString(null, type, ref builtinState);
                     }
 
                     if (singleRecord.Length != 1)
@@ -161,18 +167,20 @@ namespace FastCSV
                     }
 
                     string s = singleRecord[0];
-                    return ParseString(s, type);
+                    var builtinStateFromRecord = new CsvDeserializeState(options, type, s);
+                    return ParseString(s, type, ref builtinStateFromRecord);
                 }
                 else
                 {
-                    return ParseString(csv, type);
+                    var builtinStateNoHeader = new CsvDeserializeState(options, type, csv);
+                    return ParseString(csv, type, ref builtinStateNoHeader);
                 }
             }
 
-            using ValueList<KeyValuePair<CsvPropertyInfo, object?>> fields = DeserializeInternal(csv, type, options);
+            using ValueList<KeyValuePair<CsvPropertyInfo, object?>> props = DeserializeInternal(csv, type, options);
             object obj = FormatterServices.GetUninitializedObject(type);
 
-            foreach (var (p, value) in fields)
+            foreach (var (p, value) in props)
             {
                 p.SetValue(obj, value);
             }
@@ -222,7 +230,7 @@ namespace FastCSV
 
             foreach (var p in csvProps)
             {
-                result.Add(p.Key, p.Value);
+                result.Add(p.Name, p.Value);
             }
 
             return result;
@@ -249,6 +257,8 @@ namespace FastCSV
         /// <returns>An object of the given type using the values from the dictionary.</returns>
         public static object? DeserializeFromDictionary(IReadOnlyDictionary<string, string> data, Type type, CsvConverterOptions? options = null)
         {
+            options ??= CsvConverterOptions.Default;
+
             if (IsBuiltInType(type))
             {
                 if (!data.TryGetValue(BuiltInTypeHeaderName, out string? v) || data.Count != 1)
@@ -256,30 +266,30 @@ namespace FastCSV
                     throw new ArgumentException($"For builtin type '{nameof(data)}' should contains a single field named '{BuiltInTypeHeaderName}'");
                 }
 
-                return ParseString(v, type)!;
+                var builtinState = new CsvDeserializeState(options, type, v);
+                return ParseString(v, type, ref builtinState)!;
             }
-
-            options ??= CsvConverterOptions.Default;
 
             List<CsvPropertyInfo> csvProps = GetCsvProperties(type, options, Permission.Setter, instance: null);
             object result = FormatterServices.GetUninitializedObject(type);
 
             foreach (var (key, value) in data)
             {
-                CsvPropertyInfo? csvProperty = csvProps.FirstOrDefault(f => f.Name == key);
+                CsvPropertyInfo? p = csvProps.FirstOrDefault(f => f.Name == key);
 
-                if (csvProperty == null)
+                if (p == null)
                 {
                     throw new InvalidOperationException($"Field '{key}' not found");
                 }
 
-                if (csvProperty.Ignore)
+                if (p.Ignore)
                 {
                     continue;
                 }
 
-                MemberInfo member = csvProperty.Member;
-                object? obj = ParseString(value, csvProperty.Type, csvProperty.Converter);
+                MemberInfo member = p.Member;
+                var state = new CsvDeserializeState(options, p.Type, value);
+                object? obj = ParseString(value, p.Type, ref state, p.Converter);
                 member.SetValue(result, obj);
             }
 
@@ -491,6 +501,8 @@ namespace FastCSV
             CsvRecord record = reader.Read()!;
 
             List<CsvPropertyInfo> csvProps = GetCsvProperties(type, options, Permission.Setter, null);
+            CsvDeserializeState state = new CsvDeserializeState(options, record, csvProps, 0);
+
             Stack<object> objs = new Stack<object>();
             Stack<CsvPropertyInfo> props = new Stack<CsvPropertyInfo>();
             Stack<CsvPropertyInfo> parents = new Stack<CsvPropertyInfo>();
@@ -536,23 +548,26 @@ namespace FastCSV
                     }
                     else
                     {
-                        if (p.Type.IsCollectionOfElements() && handleCollections)
-                        {
-                            var collectionDeserializer = CsvCollectionDeserializer.GetConverterForType(p.Type);
-                            if (collectionDeserializer == null)
-                            {
-                                throw new InvalidOperationException($"No deserializer for type {p.Type}");
-                            }
+                        //if (p.Type.IsCollectionOfElements() && handleCollections)
+                        //{
+                        //    var collectionDeserializer = CsvCollectionDeserializer.GetConverterForType(p.Type);
+                        //    if (collectionDeserializer == null)
+                        //    {
+                        //        throw new InvalidOperationException($"No deserializer for type {p.Type}");
+                        //    }
 
-                            var deserializedCollection = collectionDeserializer.Convert(record, p, options.CollectionHandling!, index);
-                            value = deserializedCollection.Collection;
-                            index += deserializedCollection.Length;
-                        }
-                        else
-                        {
-                            string csvValue = GetCsvValue(record, p, index++);
-                            value = ParseString(csvValue, p.Type, p.Converter);
-                        }
+                        //    var deserializedCollection = collectionDeserializer.Convert(record, p, options.CollectionHandling!, index);
+                        //    value = deserializedCollection.Collection;
+                        //    index += deserializedCollection.Length;
+                        //}
+                        //else
+                        //{
+                        //    string csvValue = GetCsvValue(record, p, index++);
+                        //    value = ParseString(csvValue, p.Type, ref state, p.Converter);
+                        //}
+
+                        string csvValue = GetCsvValue(record, p, index++);
+                        value = ParseString(csvValue, p.Type, ref state, p.Converter);
                     }
 
                     if (objs.Count > 0)
@@ -590,10 +605,10 @@ namespace FastCSV
         internal static List<CsvPropertyInfo> GetCsvProperties(Type type, CsvConverterOptions options, Permission permission, object? instance)
         {
             int maxDepth = options.NestedObjectHandling?.MaxDepth ?? 0;
-            return GetFieldsInternal(type, options, permission, instance, 0, maxDepth);
+            return GetCsvPropertiesInternal(type, options, permission, instance, 0, maxDepth);
         }
 
-        internal static List<CsvPropertyInfo> GetFieldsInternal(Type type, CsvConverterOptions options, Permission permission, object? instance, int depth, int maxDepth)
+        internal static List<CsvPropertyInfo> GetCsvPropertiesInternal(Type type, CsvConverterOptions options, Permission permission, object? instance, int depth, int maxDepth)
         {
             // Determines if will handle nested objects
             bool handleNestedObjects = options.NestedObjectHandling != null;
@@ -628,7 +643,7 @@ namespace FastCSV
 
                     if (handleNestedObjects && !IsBuiltInType(field.FieldType) && csvProp.Converter == null)
                     {
-                        csvProp.Children = GetFieldsInternal(field.FieldType, options, permission, csvProp.Value, depth + 1, maxDepth);
+                        csvProp.Children = GetCsvPropertiesInternal(field.FieldType, options, permission, csvProp.Value, depth + 1, maxDepth);
                     }
                 }
             }
@@ -650,7 +665,7 @@ namespace FastCSV
 
                 if (handleNestedObjects && !IsBuiltInType(prop.PropertyType) && csvProp.Converter == null)
                 {
-                    csvProp.Children = GetFieldsInternal(prop.PropertyType, options, permission, csvProp.Value, depth + 1, maxDepth);
+                    csvProp.Children = GetCsvPropertiesInternal(prop.PropertyType, options, permission, csvProp.Value, depth + 1, maxDepth);
                 }
             }
 
@@ -678,7 +693,7 @@ namespace FastCSV
             }
         }
 
-        internal static object? ParseString(string? s, Type type, IValueConverter? converter = null)
+        internal static object? ParseString(string? s, Type type, ref CsvDeserializeState state, ICsvValueConverter? converter = null)
         {
             if (NullableObject.IsNullableType(type))
             {
@@ -690,9 +705,9 @@ namespace FastCSV
                 type = Nullable.GetUnderlyingType(type)!;
             }
 
-            converter ??= ValueConverters.GetConverter(type);
+            converter ??= CsvValueConverterProvider.Default.GetConverter(type);
 
-            if (converter == null || !converter.CanConvert(type) || !converter.TryParse(s, out object? value))
+            if (converter == null || !converter.CanConvert(type) || !converter.TryDeserialize(out object? value, type, ref state))
             {
                 throw new InvalidOperationException($"Cannot convert '{s}' to '{type}'");
             }
@@ -700,7 +715,7 @@ namespace FastCSV
             return value;
         }
 
-        internal static string ValueToString(object? value, Type type, IValueConverter? converter = null)
+        internal static void ValueToString(object? value, Type type, ref CsvSerializeState state, ICsvValueConverter? converter = null)
         {
             if (value != null && !EqualTypes(value.GetType(), type))
             {
@@ -718,18 +733,17 @@ namespace FastCSV
                 }
                 else
                 {
-                    return string.Empty;
+                    state.WriteNull();
+                    return;
                 }
             }
 
-            converter ??= ValueConverters.GetConverter(type);
+            converter ??= CsvValueConverterProvider.Default.GetConverter(type);
 
-            if (converter == null || !converter.CanConvert(type))
+            if (converter == null || !converter.CanConvert(type) || !converter.TrySerialize(value, type, ref state))
             {
                 throw new InvalidOperationException($"No converter found for type {type}");
             }
-
-            return converter.Read(value) ?? string.Empty;
         }
 
         internal static IValueConverter? GetValueConverterFromAttribute(CsvValueConverterAttribute? attribute)

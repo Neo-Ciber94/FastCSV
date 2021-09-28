@@ -1,4 +1,5 @@
 ﻿using FastCSV.Collections;
+using System.Collections.Generic;
 
 namespace FastCSV.Converters
 {
@@ -7,7 +8,7 @@ namespace FastCSV.Converters
     /// </summary>
     public struct CsvSerializeState
     {
-        private readonly ValueOrList<string> _serialized;
+        internal readonly List<string> _serialized;
 
         /// <summary>
         /// Options used for serialization.
@@ -17,12 +18,12 @@ namespace FastCSV.Converters
         /// <summary>
         /// Gets a readonly list of the current serialized values.
         /// </summary>
-        public ReadOnlyValueOrList<string> Serialized => _serialized;
+        public IReadOnlyList<string> Serialized => _serialized;
 
-        public CsvSerializeState(CsvConverterOptions options)
+        public CsvSerializeState(CsvConverterOptions options, int capacity = 0)
         {
             Options = options;;
-            _serialized = ValueOrList<string>.Empty;
+            _serialized = new List<string>(capacity);
         }
 
         /// <summary>

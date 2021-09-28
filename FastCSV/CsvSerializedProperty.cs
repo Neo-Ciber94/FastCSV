@@ -16,12 +16,12 @@ namespace FastCSV
         /// <summary>
         /// Source field.
         /// </summary>
-        public CsvPropertyInfo Field { get; }
+        public CsvPropertyInfo Property { get; }
 
         /// <summary>
         /// Name of the serialized field.
         /// </summary>
-        public string Key { get; }
+        public string Name { get; }
 
         /// <summary>
         /// Actual value of the field.
@@ -36,12 +36,12 @@ namespace FastCSV
         /// <summary>
         /// Whether is this field come from an <see cref="Array"/> or <see cref="IEnumerable"/>.
         /// </summary>
-        public bool IsFromArray => Field.Type.IsCollectionOfElements();
+        public bool IsFromArray => Property.Type.IsCollectionOfElements();
 
-        public CsvSerializedProperty(CsvPropertyInfo field, string key, object? value, Type elementType)
+        public CsvSerializedProperty(CsvPropertyInfo field, string name, object? value, Type elementType)
         {
-            Field = field;
-            Key = key;
+            Property = field;
+            Name = name;
             Value = value;
             ElementType = elementType;
         }

@@ -44,7 +44,7 @@ namespace FastCSV
         /// <summary>
         /// The converter for this property.
         /// </summary>
-        public IValueConverter? Converter { get;}
+        public ICsvValueConverter? Converter { get;}
 
         /// <summary>
         /// Children fields of this field.

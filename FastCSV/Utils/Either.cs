@@ -40,6 +40,26 @@ namespace FastCSV.Utils
         public TRight Right => IsRight ? (TRight)_value : throw new InvalidOperationException("value is left");
 
         /// <summary>
+        /// Gets the left value or the default.
+        /// </summary>
+        /// <param name="defaultValue">The default value if left is not available.</param>
+        /// <returns></returns>
+        public TLeft LeftOrDefault(TLeft defaultValue = default!)
+        {
+            return IsLeft ? Left : defaultValue!;
+        }
+
+        /// <summary>
+        /// Gets the right value or the default.
+        /// </summary>
+        /// <param name="defaultValue">The default value if right is not available.</param>
+        /// <returns></returns>
+        public TRight RightOrDefault(TRight defaultValue = default!)
+        {
+            return IsRight ? Right : defaultValue!;
+        }
+
+        /// <summary>
         /// Maps either the right and left value of this instance.
         /// </summary>
         /// <typeparam name="TResult">Type of the result.</typeparam>
