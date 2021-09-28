@@ -32,6 +32,13 @@ namespace FastCSV.Converters
         /// </summary>
         public int ColumnIndex => _columnIndex;
 
+        /// <summary>
+        /// Constructs a new <see cref="CsvDeserializeState"/>.
+        /// </summary>
+        /// <param name="options">The csv options used for this state.</param>
+        /// <param name="record">The record to get the values.</param>
+        /// <param name="props">The properties.</param>
+        /// <param name="columnIndex">The start index.</param>
         public CsvDeserializeState(CsvConverterOptions options, CsvRecord record, IReadOnlyList<CsvPropertyInfo> props, int columnIndex)
         {
             if (props.Count == 0)
@@ -51,6 +58,12 @@ namespace FastCSV.Converters
             _source = Either.FromRight(record);
         }
 
+        /// <summary>
+        /// Constructs a new <see cref="CsvDeserializeState"/>.
+        /// </summary>
+        /// <param name="options">The csv options used for this state.</param>
+        /// <param name="type">Type of the element to convert.</param>
+        /// <param name="data">The data to convert.</param>
         public CsvDeserializeState(CsvConverterOptions options, Type type, string data)
         {
             Options = options;
