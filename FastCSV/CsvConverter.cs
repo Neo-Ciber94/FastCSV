@@ -71,7 +71,7 @@ namespace FastCSV
 
             if (IsBuiltInType(type))
             {
-                CsvSerializeState builtInState = new CsvSerializeState(options, 1);
+                CsvSerializeState builtInState = new CsvSerializeState(options, capacity: 1);
 
                 if (options.IncludeHeader)
                 {
@@ -86,14 +86,14 @@ namespace FastCSV
             }
 
             using ValueList<CsvSerializedProperty> props = SerializeInternal(value, type, options);
-            CsvSerializeState state = new CsvSerializeState(options, props.Length);
+            CsvSerializeState state = new CsvSerializeState(options, capacity: props.Length);
 
             foreach (var p in props)
             {
-                var prop = p.Property;
-                var obj = prop.Value;
-                var elementType = prop.Type;
-                var converter = prop.Converter ?? CsvValueConverterProvider.Default.GetConverter(elementType);
+                CsvPropertyInfo prop = p.Property;
+                object? obj = prop.Value;
+                Type elementType = prop.Type;
+                ICsvValueConverter? converter = state.Converter = GetConverter(p.ElementType, options, prop.Converter);
                 
                 if (converter == null || !converter.CanConvert(elementType) || !converter.TrySerialize(obj, elementType, ref state))
                 {
@@ -548,24 +548,6 @@ namespace FastCSV
                     }
                     else
                     {
-                        //if (p.Type.IsCollectionOfElements() && handleCollections)
-                        //{
-                        //    var collectionDeserializer = CsvCollectionDeserializer.GetConverterForType(p.Type);
-                        //    if (collectionDeserializer == null)
-                        //    {
-                        //        throw new InvalidOperationException($"No deserializer for type {p.Type}");
-                        //    }
-
-                        //    var deserializedCollection = collectionDeserializer.Convert(record, p, options.CollectionHandling!, index);
-                        //    value = deserializedCollection.Collection;
-                        //    index += deserializedCollection.Length;
-                        //}
-                        //else
-                        //{
-                        //    string csvValue = GetCsvValue(record, p, index++);
-                        //    value = ParseString(csvValue, p.Type, ref state, p.Converter);
-                        //}
-
                         string csvValue = GetCsvValue(record, p, index++);
                         value = ParseString(csvValue, p.Type, ref state, p.Converter);
                     }
@@ -705,7 +687,7 @@ namespace FastCSV
                 type = Nullable.GetUnderlyingType(type)!;
             }
 
-            converter ??= CsvValueConverterProvider.Default.GetConverter(type);
+            converter = GetConverter(type, state.Options, converter);
 
             if (converter == null || !converter.CanConvert(type) || !converter.TryDeserialize(out object? value, type, ref state))
             {
@@ -738,12 +720,32 @@ namespace FastCSV
                 }
             }
 
-            converter ??= CsvValueConverterProvider.Default.GetConverter(type);
+            converter = GetConverter(type, state.Options, converter);
 
             if (converter == null || !converter.CanConvert(type) || !converter.TrySerialize(value, type, ref state))
             {
                 throw new InvalidOperationException($"No converter found for type {type}");
             }
+        }
+
+        internal static ICsvValueConverter? GetConverter(Type elementType, CsvConverterOptions options, ICsvValueConverter? converter = null)
+        {
+            if (converter != null && converter.CanConvert(elementType))
+            {
+                return converter;
+            }
+
+            // Prioritize custom converters
+            if (options.Converters.Any())
+            {
+                ICsvValueConverter? customConverter = options.Converters.FirstOrDefault(e => e.CanConvert(elementType));
+                if (customConverter != null)
+                {
+                    return customConverter;
+                }
+            }
+
+            return options.ConverterProvider.GetConverter(elementType);
         }
 
         internal static IValueConverter? GetValueConverterFromAttribute(CsvValueConverterAttribute? attribute)

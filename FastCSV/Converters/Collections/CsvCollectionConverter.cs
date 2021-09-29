@@ -30,13 +30,24 @@ namespace FastCSV.Converters.Collections
         /// <summary>
         /// Gets a <see cref="ICsvValueConverter"/> for the given type.
         /// </summary>
-        /// <param name="elementType">The type of the element.</param>
-        /// <returns>The converter for the given type.</returns>
-        public abstract ICsvValueConverter GetConverter(Type elementType);
+        /// <param name="options">The options used.</param>
+        /// <param name="property">The current property.</param>
+        /// <returns></returns>
+        public virtual ICsvValueConverter GetConverter(CsvConverterOptions options, Type elementType, ICsvValueConverter? converter = null)
+        {
+            converter ??= CsvConverter.GetConverter(elementType, options, converter);
+
+            if (converter == null)
+            {
+                throw new InvalidOperationException($"No converter found for type {elementType}");
+            }
+
+            return converter;
+        }
 
         public abstract bool TrySerialize(TCollection value, ref CsvSerializeState state);
 
-        public bool TryDeserialize(out TCollection value, ref CsvDeserializeState state)
+        public virtual bool TryDeserialize(out TCollection value, ref CsvDeserializeState state)
         {
             var collectionHandling = state.Options.CollectionHandling;
             Debug.Assert(collectionHandling is not null, "CollectionHandling is not enable");
@@ -80,7 +91,7 @@ namespace FastCSV.Converters.Collections
                     throw new ArgumentOutOfRangeException($"Expected {itemName}{index + 1} but was {itemName}{itemIndex}");
                 }
 
-                var converter = GetConverter(typeToConvert);
+                var converter = GetConverter(state.Options, state.CurrentElementType, state.Property?.Converter);
 
                 if (!converter.TryDeserialize(out object? element, typeToConvert, ref state))
                 {
@@ -93,6 +104,11 @@ namespace FastCSV.Converters.Collections
 
             value = collection;
             return false;
+        }
+
+        public virtual bool CanConvert(Type type)
+        {
+            return typeof(TCollection) == type;
         }
 
         /// <summary>

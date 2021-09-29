@@ -1,4 +1,7 @@
-﻿namespace FastCSV
+﻿using FastCSV.Converters;
+using System.Collections.Generic;
+
+namespace FastCSV
 {
     /// <summary>
     /// Options used for serialize or deserialize a csv.
@@ -41,6 +44,16 @@
         /// Defines how handle a collection of objects.
         /// </summary>
         public CollectionHandling? CollectionHandling { get; init; }
+
+        /// <summary>
+        /// A list of custom <see cref="ICsvValueConverter"/>.
+        /// </summary>
+        public IReadOnlyList<ICsvValueConverter> Converters { get; init; } = new List<ICsvValueConverter>();
+
+        /// <summary>
+        /// The <see cref="CsvValueConverterProvider"/> used for this option.
+        /// </summary>
+        public CsvValueConverterProvider ConverterProvider { get; init; } = CsvValueConverterProvider.Default;
 
         /// <summary>
         /// The delimiter of the format.
