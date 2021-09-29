@@ -9,6 +9,11 @@ namespace FastCSV.Converters.Collections
             collection.SetValue(item, index);
         }
 
+        public override bool CanConvert(Type type)
+        {
+            return type.IsArray;
+        }
+
         public override Array CreateCollection(Type elementType, int length)
         {
             return Array.CreateInstance(elementType, length);

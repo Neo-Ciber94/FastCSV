@@ -1,5 +1,6 @@
 ﻿using FastCSV.Collections;
 using FastCSV.Converters;
+using FastCSV.Converters.Collections;
 using FastCSV.Utils;
 using System;
 using System.Collections;
@@ -87,18 +88,25 @@ namespace FastCSV
 
             using ValueList<CsvSerializedProperty> props = SerializeInternal(value, type, options);
             CsvSerializeState state = new CsvSerializeState(options, capacity: props.Length);
+            int index = 0;
 
-            foreach (var p in props)
+            while(index < props.Length)
             {
+                CsvSerializedProperty p = props[index];
                 CsvPropertyInfo prop = p.Property;
                 object? obj = prop.Value;
                 Type elementType = prop.Type;
-                ICsvValueConverter? converter = state.Converter = GetConverter(p.ElementType, options, prop.Converter);
+                ICsvValueConverter? converter = state.Converter = GetConverter(elementType, options, prop.Converter);
                 
                 if (converter == null || !converter.CanConvert(elementType) || !converter.TrySerialize(obj, elementType, ref state))
                 {
                     throw new InvalidOperationException($"Cannot convert '{obj}' to '{elementType}'");
                 }
+
+                int serializedCount = state.Serialized.Count;
+
+                // If nothing was serialized move to the next value to avoid overflow
+                index = index == serializedCount ? index + 1 : serializedCount;
             }
 
             string values = CsvUtility.ToCsvString(state.Serialized, options.Format);
@@ -742,6 +750,15 @@ namespace FastCSV
                 if (customConverter != null)
                 {
                     return customConverter;
+                }
+            }
+
+            if (options.CollectionHandling != null && elementType.IsCollectionOfElements())
+            {
+                var collectionConverter = CsvCollectionConverterProvider.Collections.GetConverter(elementType);
+                if (collectionConverter != null)
+                {
+                    return collectionConverter;
                 }
             }
 

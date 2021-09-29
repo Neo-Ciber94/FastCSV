@@ -15,6 +15,8 @@ namespace FastCSV.Converters.Collections
     {
         private readonly IDictionary<Type, ICsvValueConverter> _converters = new Dictionary<Type, ICsvValueConverter>();
 
+        private readonly ICsvValueConverter _arrayConverter = new CsvArrayConverter();
+
         public DefaultCsvCollectionConverterProvider()
         {
             // Initialize the _converters   
@@ -22,6 +24,11 @@ namespace FastCSV.Converters.Collections
 
         public override ICsvValueConverter? GetConverter(Type collectionType)
         {
+            if (collectionType.IsArray)
+            {
+                return _arrayConverter;
+            }
+
             if (_converters.TryGetValue(collectionType, out ICsvValueConverter? collectionConverter))
             {
                 return collectionConverter;

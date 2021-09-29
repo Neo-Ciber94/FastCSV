@@ -35,7 +35,12 @@ namespace FastCSV.Converters.Collections
         /// <returns></returns>
         public virtual ICsvValueConverter GetConverter(CsvConverterOptions options, Type elementType, ICsvValueConverter? converter = null)
         {
-            converter ??= CsvConverter.GetConverter(elementType, options, converter);
+            if (converter != null && converter.CanConvert(elementType))
+            {
+                return converter;
+            }
+
+            converter = CsvConverter.GetConverter(elementType, options, converter);
 
             if (converter == null)
             {
