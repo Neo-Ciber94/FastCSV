@@ -33,7 +33,7 @@ namespace FastCSV.Converters.Collections
         /// <param name="options">The options used.</param>
         /// <param name="property">The current property.</param>
         /// <returns></returns>
-        public virtual ICsvValueConverter GetConverter(CsvConverterOptions options, Type elementType, ICsvValueConverter? converter = null)
+        public virtual ICsvValueConverter GetElementConverter(CsvConverterOptions options, Type elementType, ICsvValueConverter? converter = null)
         {
             if (converter != null && converter.CanConvert(elementType))
             {
@@ -55,8 +55,12 @@ namespace FastCSV.Converters.Collections
         public virtual bool TryDeserialize(out TCollection value, ref CsvDeserializeState state)
         {
             value = default!;
-            var collectionHandling = state.Options.CollectionHandling;
-            Debug.Assert(collectionHandling is not null, "CollectionHandling is not enable");
+            CollectionHandling? collectionHandling = state.Options.CollectionHandling;
+
+            if (collectionHandling == null)
+            {
+                throw new ArgumentException("CollectionHandling was not provided");
+            }
 
             if (state.Record == null)
             {
@@ -72,10 +76,10 @@ namespace FastCSV.Converters.Collections
             }
 
             int length = GetCollectionLength(record, state.ColumnIndex, state.Options);
-            var collection = CreateCollection(state.ElementType, length);
-            var property = state.Property;
-            var index = state.ColumnIndex;
-            var endIndex = index + length;
+            TCollection collection = CreateCollection(state.ElementType, length);
+            CsvPropertyInfo? property = state.Property;
+            int index = state.ColumnIndex;
+            int endIndex = index + length;
             int count = 0;
 
             while (index < endIndex)
@@ -88,7 +92,7 @@ namespace FastCSV.Converters.Collections
                     break;
                 }
 
-                var indexString = header[index].AsSpan(itemName.Length);
+                ReadOnlySpan<char> indexString = header[index].AsSpan(itemName.Length);
 
                 if (!int.TryParse(indexString, out int itemIndex))
                 {
@@ -100,7 +104,7 @@ namespace FastCSV.Converters.Collections
                     throw new ArgumentOutOfRangeException($"Expected {itemName}{index + 1} but was {itemName}{itemIndex}");
                 }
 
-                var converter = GetConverter(state.Options, state.ElementType, property?.Converter);
+                ICsvValueConverter? converter = GetElementConverter(state.Options, state.ElementType, property?.Converter);
 
                 if (!converter.TryDeserialize(out object? element, typeToConvert, ref state))
                 {

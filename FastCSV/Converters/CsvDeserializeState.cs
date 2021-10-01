@@ -79,7 +79,7 @@ namespace FastCSV.Converters
             {
                 Type type = Property?.Type?? _type;
 
-                if (type.IsCollectionOfElements())
+                if (type.IsCollectionType())
                 {
                     return type.GetCollectionElementType()!;
                 }

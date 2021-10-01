@@ -456,27 +456,27 @@ namespace FastCSV
 
             for (int i = 0; i < csvProps.Count; i++)
             {
-                CsvPropertyInfo p = csvProps[i];
+                CsvPropertyInfo property = csvProps[i];
 
-                if (p.Ignore)
+                if (property.Ignore)
                 {
                     continue;
                 }
 
-                if (handleCollections && p.Value is IEnumerable enumerable)
+                if (handleCollections && property.Value is IEnumerable enumerable)
                 {
                     string itemName = options.CollectionHandling!.ItemName;
-                    Type elementType = p.Type.GetCollectionElementType()!;
+                    Type elementType = property.Type.GetCollectionElementType()!;
                     int itemIndex = 0;
 
                     foreach (var item in enumerable)
                     {
-                        items.Add(new CsvSerializedProperty(p, $"{itemName}{++itemIndex}", item, elementType));
+                        items.Add(new CsvSerializedProperty(property, $"{itemName}{++itemIndex}", item, elementType));
                     }
                 }
                 else
                 {
-                    items.Add(new CsvSerializedProperty(p, p.Name, p.Value, p.Type));
+                    items.Add(new CsvSerializedProperty(property, property.Name, property.Value, property.Type));
                 }
             }
 
@@ -557,7 +557,7 @@ namespace FastCSV
                     {
                         CsvDeserializeState state = new CsvDeserializeState(options, record, p, index);
 
-                        if (p.Type.IsCollectionOfElements() && handleCollections)
+                        if (p.Type.IsCollectionType() && handleCollections)
                         {
                             var collectionConverter = GetConverter(p.Type, options, p.Converter);
 
@@ -759,11 +759,12 @@ namespace FastCSV
             }
         }
 
-        internal static ICsvValueConverter? GetConverter(Type elementType, CsvConverterOptions options, ICsvValueConverter? converter = null)
+        /// Convenient method to try get a converter for the given type
+        internal static ICsvValueConverter? GetConverter(Type elementType, CsvConverterOptions options, ICsvValueConverter? defaultConverter = null)
         {
-            if (converter != null && converter.CanConvert(elementType))
+            if (defaultConverter != null && defaultConverter.CanConvert(elementType))
             {
-                return converter;
+                return defaultConverter;
             }
 
             // Prioritize custom converters
@@ -775,8 +776,8 @@ namespace FastCSV
                     return customConverter;
                 }
             }
-
-            if (options.CollectionHandling != null && elementType.IsCollectionOfElements())
+            
+            if (options.CollectionHandling != null && elementType.IsCollectionType())
             {
                 var collectionConverter = CsvCollectionConverterProvider.Collections.GetConverter(elementType);
                 if (collectionConverter != null)

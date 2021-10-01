@@ -36,7 +36,7 @@ namespace FastCSV
         /// <summary>
         /// Whether is this field come from an <see cref="Array"/> or <see cref="IEnumerable"/>.
         /// </summary>
-        public bool IsFromArray => Property.Type.IsCollectionOfElements();
+        public bool IsFromCollection => Property.Type.IsCollectionType();
 
         public CsvSerializedProperty(CsvPropertyInfo field, string name, object? value, Type elementType)
         {

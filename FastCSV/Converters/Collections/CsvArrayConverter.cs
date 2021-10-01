@@ -30,7 +30,7 @@ namespace FastCSV.Converters.Collections
                 else
                 {
                     var elementType = obj.GetType();
-                    var converter = GetConverter(state.Options, elementType, state.Converter);
+                    var converter = GetElementConverter(state.Options, elementType, state.Converter);
                     if (!converter.TrySerialize(obj, elementType, ref state))
                     {
                         return false;

@@ -21,7 +21,7 @@ namespace FastCSV.Utils
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static bool IsCollectionOfElements(this Type type)
+        public static bool IsCollectionType(this Type type)
         {
             return type.IsArray || typeof(IEnumerable).IsAssignableFrom(type);
         }
