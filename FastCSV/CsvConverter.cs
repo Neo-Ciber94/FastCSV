@@ -509,7 +509,6 @@ namespace FastCSV
             CsvRecord record = reader.Read()!;
 
             List<CsvPropertyInfo> csvProps = GetCsvProperties(type, options, Permission.Setter, null);
-            CsvDeserializeState state = new CsvDeserializeState(options, record, csvProps, 0);
 
             Stack<object> objs = new Stack<object>();
             Stack<CsvPropertyInfo> props = new Stack<CsvPropertyInfo>();
@@ -556,8 +555,32 @@ namespace FastCSV
                     }
                     else
                     {
-                        string csvValue = GetCsvValue(record, p, index++);
-                        value = ParseString(csvValue, p.Type, ref state, p.Converter);
+                        CsvDeserializeState state = new CsvDeserializeState(options, record, p, index);
+
+                        if (p.Type.IsCollectionOfElements() && handleCollections)
+                        {
+                            var collectionConverter = GetConverter(p.Type, options, p.Converter);
+
+                            if (collectionConverter == null)
+                            {
+                                throw new InvalidOperationException($"No deserializer for type {p.Type}");
+                            }
+
+                            int prevCount = state.ColumnIndex;
+                            if (!collectionConverter.TryDeserialize(out object? collection, p.Type, ref state))
+                            {
+                                var s = CsvUtility.ToCsvString(record[index..].ToArray(), options.Format);
+                                throw new InvalidOperationException($"Can not convert '{s}' collection to {p.Type}");
+                            }
+
+                            value = collection;
+                            index += (state.ColumnIndex - prevCount);
+                        }
+                        else
+                        {
+                            string csvValue = GetCsvValue(record, p, index++);
+                            value = ParseString(csvValue, p.Type, ref state, p.Converter);
+                        }
                     }
 
                     if (objs.Count > 0)

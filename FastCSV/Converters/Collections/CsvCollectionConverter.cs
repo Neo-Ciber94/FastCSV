@@ -54,6 +54,7 @@ namespace FastCSV.Converters.Collections
 
         public virtual bool TryDeserialize(out TCollection value, ref CsvDeserializeState state)
         {
+            value = default!;
             var collectionHandling = state.Options.CollectionHandling;
             Debug.Assert(collectionHandling is not null, "CollectionHandling is not enable");
 
@@ -71,13 +72,16 @@ namespace FastCSV.Converters.Collections
             }
 
             int length = GetCollectionLength(record, state.ColumnIndex, state.Options);
-            var collection = CreateCollection(typeof(TElement), length);
+            var collection = CreateCollection(state.ElementType, length);
+            var property = state.Property;
             var index = state.ColumnIndex;
+            var endIndex = index + length;
+            int count = 0;
 
-            while (index < record.Length)
+            while (index < endIndex)
             {
                 string itemName = collectionHandling.ItemName;
-                Type typeToConvert = state.CurrentElementType;
+                Type typeToConvert = state.ElementType;
 
                 if (!header[index].StartsWith(itemName))
                 {
@@ -91,24 +95,24 @@ namespace FastCSV.Converters.Collections
                     break;
                 }
 
-                if (itemIndex != (index + 1))
+                if (itemIndex != ++count)
                 {
                     throw new ArgumentOutOfRangeException($"Expected {itemName}{index + 1} but was {itemName}{itemIndex}");
                 }
 
-                var converter = GetConverter(state.Options, state.CurrentElementType, state.Property?.Converter);
+                var converter = GetConverter(state.Options, state.ElementType, property?.Converter);
 
                 if (!converter.TryDeserialize(out object? element, typeToConvert, ref state))
                 {
-                    throw new InvalidOperationException($"Could not convert {element} to {typeToConvert}");
+                    return false;
                 }
 
-                AddItem(collection, index, typeToConvert, (TElement)element!);
+                AddItem(collection, count - 1, typeToConvert, (TElement)element!);
                 index += 1;
             }
 
             value = collection;
-            return false;
+            return true;
         }
 
         public virtual bool CanConvert(Type type)
@@ -156,12 +160,12 @@ namespace FastCSV.Converters.Collections
                     break;
                 }
 
-                if (itemIndex != (index + 1))
+                if (itemIndex != ++count)
                 {
                     throw new ArgumentOutOfRangeException($"Expected {itemName}{index + 1} but was {itemName}{itemIndex}");
                 }
 
-                count += 1;
+                index += 1;
             }
 
             return count;
