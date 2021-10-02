@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using FastCSV.Utils;
 using NUnit.Framework;
 
-namespace FastCSVTests.Utils.Tests
+namespace FastCSV.Utils.Tests
 {
     [TestFixture]
     public class EitherTests
