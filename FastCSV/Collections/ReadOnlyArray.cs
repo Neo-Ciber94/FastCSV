@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using FastCSV.Utils;
 
@@ -440,6 +441,34 @@ namespace FastCSV.Collections
             object IEnumerator.Current => Current!;
 
             void IDisposable.Dispose() { }
+        }
+    }
+
+    /// <summary>
+    /// Utility class for <see cref="ReadOnlyArray{T}"/>.
+    /// </summary>
+    public static class ReadOnlyArray
+    {
+        /// <summary>
+        /// Creates a <see cref="ReadOnlyArray{T}"/> from the given elements.
+        /// </summary>
+        /// <typeparam name="T">Type of the elements.</typeparam>
+        /// <param name="elements">Elements to use.</param>
+        /// <returns>A readonly array with the given elements.</returns>
+        public static ReadOnlyArray<T> Create<T>(params T[] elements)
+        {
+            return new ReadOnlyArray<T>(elements);
+        }
+
+        /// <summary>
+        /// Creates an <see cref="ImmutableArray{T}"/> from this instance.
+        /// </summary>
+        /// <typeparam name="T">Type of the elements.</typeparam>
+        /// <param name="array">An readonly array.</param>
+        /// <returns>An immutable array from this instance</returns>
+        public static ImmutableArray<T> ToImmutable<T>(this ReadOnlyArray<T> array)
+        {
+            return ImmutableArray.Create(array._source);
         }
     }
 }
