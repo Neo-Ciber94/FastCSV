@@ -26,7 +26,7 @@ namespace FastCSV.Collections
         /// </summary>
         public static ReadOnlyArray<T> Empty => new ReadOnlyArray<T>();
 
-        private readonly T[]? _source;
+        internal readonly T[]? _source;
 
         /// <summary>
         /// Constructs a new <see cref="ReadOnlyArray{T}"/>.

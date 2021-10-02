@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using FastCSV.Collections;
 using FastCSV.Utils;
 
 namespace FastCSV
@@ -16,7 +17,7 @@ namespace FastCSV
     [Serializable]
     public class CsvRecord : IEnumerable<string>, ICloneable<CsvRecord>, IEquatable<CsvRecord?>
     {
-        private readonly string[] _values;
+        private readonly ReadOnlyArray<string> _values;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CsvRecord"/> class.
@@ -89,7 +90,7 @@ namespace FastCSV
         /// <value>
         /// The number of fields in this csv record.
         /// </value>
-        public int Length => _values.Length;
+        public int Length => _values.Count;
 
         /// <summary>
         /// Gets the csv format of this record.
@@ -120,7 +121,7 @@ namespace FastCSV
         {
             get
             {
-                if (index < 0 || index >= _values.Length)
+                if (index < 0 || index >= _values.Count)
                 {
                     throw new ArgumentOutOfRangeException($"{index} > {Length}");
                 }
@@ -445,10 +446,10 @@ namespace FastCSV
         /// <seealso cref="IEnumerator{string}" />
         public struct Enumerator : IEnumerator<string>
         {
-            private readonly string[] _values;
+            private readonly ReadOnlyArray<string> _values;
             private int _index;
 
-            internal Enumerator(string[] values)
+            internal Enumerator(ReadOnlyArray<string> values)
             {
                 _values = values;
                 _index = -1;
@@ -461,7 +462,7 @@ namespace FastCSV
             public bool MoveNext()
             {
                 int i = _index + 1;
-                if (i < _values.Length)
+                if (i < _values.Count)
                 {
                     _index = i;
                     return true;
