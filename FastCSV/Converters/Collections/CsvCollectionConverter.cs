@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 
 namespace FastCSV.Converters.Collections
 {
@@ -48,6 +47,11 @@ namespace FastCSV.Converters.Collections
             }
 
             return converter;
+        }
+
+        public virtual bool CanConvert(Type type)
+        {
+            return typeof(TCollection) == type;
         }
 
         public abstract bool TrySerialize(TCollection value, ref CsvSerializeState state);
@@ -99,7 +103,7 @@ namespace FastCSV.Converters.Collections
                     break;
                 }
 
-                if (itemIndex != ++count)
+                if (itemIndex != (count + 1))
                 {
                     throw new ArgumentOutOfRangeException($"Expected {itemName}{index + 1} but was {itemName}{itemIndex}");
                 }
@@ -111,17 +115,12 @@ namespace FastCSV.Converters.Collections
                     return false;
                 }
 
-                AddItem(collection, count - 1, typeToConvert, (TElement)element!);
+                AddItem(collection, count++, typeToConvert, (TElement)element!);
                 index += 1;
             }
 
             value = collection;
             return true;
-        }
-
-        public virtual bool CanConvert(Type type)
-        {
-            return typeof(TCollection) == type;
         }
 
         /// <summary>
@@ -137,14 +136,9 @@ namespace FastCSV.Converters.Collections
             var header = record.Header;
             var count = 0;
 
-            if (header == null)
+            if (header == null || collectionHandling == null)
             {
-                throw new InvalidOperationException("Header cannot be null");
-            }
-
-            if (collectionHandling == null)
-            {
-                throw new InvalidOperationException("CollectionHandling cannot be null");
+                return -1;
             }
 
             var itemName = collectionHandling.ItemName;

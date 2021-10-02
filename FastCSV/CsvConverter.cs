@@ -72,7 +72,7 @@ namespace FastCSV
 
             if (IsBuiltInType(type))
             {
-                CsvSerializeState builtInState = new CsvSerializeState(options, capacity: 1);
+                CsvSerializeState builtInState = new CsvSerializeState(options, 1);
 
                 if (options.IncludeHeader)
                 {
@@ -87,7 +87,7 @@ namespace FastCSV
             }
 
             using ValueList<CsvSerializedProperty> props = SerializeInternal(value, type, options);
-            CsvSerializeState state = new CsvSerializeState(options, capacity: props.Length);
+            CsvSerializeState state = new CsvSerializeState(options, props.Length);
             int index = 0;
 
             while(index < props.Length)
@@ -497,7 +497,7 @@ namespace FastCSV
 
             if (!options.IncludeHeader && options.CollectionHandling != null)
             {
-                throw new InvalidOperationException($"IncludeHeader must be true when deserializing arrays");
+                throw new InvalidOperationException("IncludeHeader must be true when deserializing arrays");
             }
 
             using MemoryStream stream = StreamHelper.ToMemoryStream(csv);
@@ -514,34 +514,34 @@ namespace FastCSV
             Stack<CsvPropertyInfo> props = new Stack<CsvPropertyInfo>();
             Stack<CsvPropertyInfo> parents = new Stack<CsvPropertyInfo>();
             props.PushRangeReverse(csvProps);
-            int index = 0;
 
             ValueList<KeyValuePair<CsvPropertyInfo, object?>> items = new(csvProps.Count);
+            int index = 0;
 
             while (props.Count > 0)
             {
-                CsvPropertyInfo p = props.Pop();
+                CsvPropertyInfo property = props.Pop();
 
                 // Check if the current 'CsvField' is the parent of the last fields
-                bool isParent = parents.Count > 0 && object.ReferenceEquals(parents.Peek(), p);
+                bool isParent = parents.Count > 0 && object.ReferenceEquals(parents.Peek(), property);
 
-                if (p.Ignore)
+                if (property.Ignore)
                 {
                     continue;
                 }
 
-                MemberInfo member = p.Member;
-                IReadOnlyList<CsvPropertyInfo> children = p.Children;
+                MemberInfo member = property.Member;
+                IReadOnlyList<CsvPropertyInfo> children = property.Children;
 
                 if (!isParent && children.Count > 0)
                 {
                     // Adds the parent field
-                    props.Push(p);
-                    parents.Push(p);
+                    props.Push(property);
+                    parents.Push(property);
 
                     // Adds all the children
                     props.PushRangeReverse(children);
-                    objs.Push(FormatterServices.GetUninitializedObject(p.Type));
+                    objs.Push(FormatterServices.GetUninitializedObject(property.Type));
                 }
                 else
                 {
@@ -555,22 +555,22 @@ namespace FastCSV
                     }
                     else
                     {
-                        CsvDeserializeState state = new CsvDeserializeState(options, record, p, index);
+                        CsvDeserializeState state = new CsvDeserializeState(options, record, property, index);
 
-                        if (p.Type.IsCollectionType() && handleCollections)
+                        if (property.Type.IsCollectionType() && handleCollections)
                         {
-                            var collectionConverter = GetConverter(p.Type, options, p.Converter);
+                            var collectionConverter = GetConverter(property.Type, options, property.Converter);
 
                             if (collectionConverter == null)
                             {
-                                throw new InvalidOperationException($"No deserializer for type {p.Type}");
+                                throw new InvalidOperationException($"No deserializer for type {property.Type}");
                             }
 
                             int prevCount = state.ColumnIndex;
-                            if (!collectionConverter.TryDeserialize(out object? collection, p.Type, ref state))
+                            if (!collectionConverter.TryDeserialize(out object? collection, property.Type, ref state))
                             {
                                 var s = CsvUtility.ToCsvString(record[index..].ToArray(), options.Format);
-                                throw new InvalidOperationException($"Can not convert '{s}' collection to {p.Type}");
+                                throw new InvalidOperationException($"Can not convert '{s}' collection to {property.Type}");
                             }
 
                             value = collection;
@@ -578,8 +578,8 @@ namespace FastCSV
                         }
                         else
                         {
-                            string csvValue = GetCsvValue(record, p, index++);
-                            value = ParseString(csvValue, p.Type, ref state, p.Converter);
+                            string csvValue = GetCsvValue(record, property, index++);
+                            value = ParseString(csvValue, property.Type, ref state, property.Converter);
                         }
                     }
 
@@ -590,7 +590,7 @@ namespace FastCSV
                     }
                     else
                     {
-                        items.Add(new KeyValuePair<CsvPropertyInfo, object?>(p, value));
+                        items.Add(new KeyValuePair<CsvPropertyInfo, object?>(property, value));
                     }
                 }
             }
@@ -599,19 +599,19 @@ namespace FastCSV
 
             // Helper
 
-            static string GetCsvValue(CsvRecord record, CsvPropertyInfo field, int index)
+            static string GetCsvValue(CsvRecord record, CsvPropertyInfo property, int index)
             {
                 if ((uint)index > (uint)record.Length)
                 {
                     throw new InvalidOperationException($"Record value out of range, index was {index} but length was {record.Length}");
                 }
 
-                if (record.Header != null && !record.Header.Contains(field.Name))
+                if (record.Header != null && !record.Header.Contains(property.Name))
                 {
-                    throw new InvalidOperationException($"Cannot find \"{field.Name}\" value in the record");
+                    throw new InvalidOperationException($"Cannot find \"{property.Name}\" value in the record");
                 }
 
-                return record.Header != null ? record[field.Name] : record[index];
+                return record.Header != null ? record[property.Name] : record[index];
             }
         }
 

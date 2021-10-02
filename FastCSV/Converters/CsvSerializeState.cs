@@ -17,11 +17,6 @@ namespace FastCSV.Converters
         public CsvConverterOptions Options { get; }
 
         /// <summary>
-        /// Provider for <see cref="ICsvValueConverter"/>.
-        /// </summary>
-        public CsvValueConverterProvider Provider { get; }
-
-        /// <summary>
         /// Gets sets the converter for the current state.
         /// </summary>
         public ICsvValueConverter? Converter { get; set; }
@@ -31,10 +26,9 @@ namespace FastCSV.Converters
         /// </summary>
         public IReadOnlyList<string> Serialized => _serialized;
 
-        public CsvSerializeState(CsvConverterOptions options, CsvValueConverterProvider? converterProvider = null, int capacity = 0)
+        public CsvSerializeState(CsvConverterOptions options, int capacity = 0)
         {
             Options = options;
-            Provider = converterProvider ?? CsvValueConverterProvider.Default;
             Converter = null;
             _serialized = new List<string>(capacity);
         }
