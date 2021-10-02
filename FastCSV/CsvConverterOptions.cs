@@ -51,9 +51,9 @@ namespace FastCSV
         public IReadOnlyList<ICsvValueConverter> Converters { get; init; } = new List<ICsvValueConverter>();
 
         /// <summary>
-        /// The <see cref="CsvValueConverterProvider"/> used for this option.
+        /// The <see cref="CsvConverterProvider"/> used for this option.
         /// </summary>
-        public CsvValueConverterProvider ConverterProvider { get; init; } = CsvValueConverterProvider.Default;
+        public CsvConverterProvider ConverterProvider { get; init; } = CsvConverterProvider.Default;
 
         /// <summary>
         /// The delimiter of the format.

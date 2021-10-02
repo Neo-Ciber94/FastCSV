@@ -2,7 +2,7 @@
 
 namespace FastCSV.Converters.Collections
 {
-    public class CsvArrayConverter : CsvCollectionConverter<Array, object?>
+    internal class CsvArrayConverter : CsvCollectionConverter<Array, object?>
     {
         public override void AddItem(Array collection, int index, Type elementType, object? item)
         {

@@ -1,37 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace FastCSV.Converters.Collections
 {
-    /// <summary>
-    /// Provides a mechanism for get collection converters.
-    /// </summary>
-    public abstract class CsvCollectionConverterProvider : CsvValueConverterProvider
+    internal class CsvCollectionConverterProvider : ICsvConverterProvider
     {
-        public static CsvCollectionConverterProvider Collections { get; } = new DefaultCsvCollectionConverterProvider();
-    }
+        public static readonly CsvCollectionConverterProvider Default = new CsvCollectionConverterProvider();
 
-    internal class DefaultCsvCollectionConverterProvider : CsvCollectionConverterProvider
-    {
-        private readonly IDictionary<Type, ICsvValueConverter> _converters = new Dictionary<Type, ICsvValueConverter>();
-
-        private readonly ICsvValueConverter _arrayConverter = new CsvArrayConverter();
-
-        public DefaultCsvCollectionConverterProvider()
+        private CsvArrayConverter? _arrayConverter = null;
+        private CsvArrayConverter GetOrCreateArrayConverter()
         {
-            // Initialize the _converters   
-        }
-
-        public override ICsvValueConverter? GetConverter(Type collectionType)
-        {
-            if (collectionType.IsArray)
+            if (_arrayConverter == null)
             {
-                return _arrayConverter;
+                _arrayConverter = new CsvArrayConverter();
             }
 
-            if (_converters.TryGetValue(collectionType, out ICsvValueConverter? collectionConverter))
+            return _arrayConverter;
+        } 
+
+        public ICsvValueConverter? GetConverter(Type type)
+        {
+            if (type.IsArray)
             {
-                return collectionConverter;
+                return GetOrCreateArrayConverter();
             }
 
             return null;

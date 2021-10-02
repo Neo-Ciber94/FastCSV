@@ -831,7 +831,7 @@ namespace FastCSV
             
             if (options.CollectionHandling != null && elementType.IsCollectionType())
             {
-                var collectionConverter = CsvCollectionConverterProvider.Collections.GetConverter(elementType);
+                var collectionConverter = CsvCollectionConverterProvider.Default.GetConverter(elementType);
                 if (collectionConverter != null)
                 {
                     return collectionConverter;

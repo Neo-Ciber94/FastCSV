@@ -4,7 +4,7 @@ using FastCSV.Converters.Builtin;
 
 namespace FastCSV.Converters
 {
-	internal partial class CsvDefaultValueConverterProvider
+	internal partial class CsvDefaultConverterProvider
 	{
 		private partial void Initialize()
 		{

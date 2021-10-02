@@ -4,12 +4,12 @@ using System.Collections.Generic;
 
 namespace FastCSV.Converters
 {
-    internal partial class CsvDefaultValueConverterProvider : CsvValueConverterProvider
+    internal partial class CsvDefaultConverterProvider : CsvConverterProvider
     {
         private readonly Dictionary<Type, ICsvValueConverter> _converters = new Dictionary<Type, ICsvValueConverter>();
         private readonly ObjectMap Converters = new ObjectMap();
 
-        public CsvDefaultValueConverterProvider()
+        public CsvDefaultConverterProvider()
         {
             Initialize();
         }
