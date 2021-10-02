@@ -167,9 +167,17 @@ namespace FastCSV
         /// <summary>
         /// Gets a <see cref="ReadOnlyMemory{T}"/> view to the elements of this record.
         /// </summary>
-        public ReadOnlyMemory<string> Memory
+        public ReadOnlyMemory<string> AsMemory()
         {
-            get => _values.AsMemory();
+            return _values.AsMemory();
+        }
+
+        /// <summary>
+        /// Gets a <see cref="ReadOnlySpan{T}"/> view to the elements of this record.
+        /// </summary>
+        public ReadOnlySpan<string> AsSpan()
+        {
+            return _values.AsSpan();
         }
 
         /// <summary>
