@@ -59,70 +59,107 @@ namespace FastCSV.Converters.Collections
         public virtual bool TryDeserialize(out TCollection value, ref CsvDeserializeState state)
         {
             value = default!;
-            CollectionHandling? collectionHandling = state.Options.CollectionHandling;
 
-            if (collectionHandling == null)
-            {
-                throw new ArgumentException("CollectionHandling was not provided");
-            }
-
-            if (state.Record == null)
-            {
-                throw new ArgumentException("Collection converter requires to read a CsvRecord");
-            }
-
-            CsvRecord record = state.Record;
-            CsvHeader? header = record.Header;
-
-            if (header == null)
-            {
-                throw new InvalidOperationException("Header cannot be null when deserializing collections");
-            }
-
-            int length = GetCollectionLength(record, state.ColumnIndex, state.Options);
-            TCollection collection = CreateCollection(state.ElementType, length);
+            TCollection collection = CreateCollection(state.ElementType, state.Count);
             CsvPropertyInfo? property = state.Property;
-            int index = state.ColumnIndex;
-            int endIndex = index + length;
-            int count = 0;
 
-            while (index < endIndex)
+            if (property == null)
             {
-                string itemName = collectionHandling.ItemName;
-                Type typeToConvert = state.ElementType;
+                throw new InvalidOperationException("Cannot find a CsvPropertyInfo to deserialize the collection");
+            }
 
-                if (!header[index].StartsWith(itemName))
-                {
-                    break;
-                }
+            Type elementType = state.ElementType;
+            CsvConverterOptions options = state.Options;
 
-                ReadOnlySpan<char> indexString = header[index].AsSpan(itemName.Length);
+            for (int i = 0; i < state.Count; i++)
+            {
+                string stringValue = state.Read(i);
 
-                if (!int.TryParse(indexString, out int itemIndex))
-                {
-                    break;
-                }
+                // TODO: If typeof(TElement) == object &&  elementType == object, we should try guess the type of the 'stringValue'
 
-                if (itemIndex != (count + 1))
-                {
-                    throw new ArgumentOutOfRangeException($"Expected {itemName}{index + 1} but was {itemName}{itemIndex}");
-                }
+                CsvDeserializeState elementState = new CsvDeserializeState(options, elementType, stringValue);
+                ICsvValueConverter converter = GetElementConverter(options, elementType, property.Converter);
 
-                ICsvValueConverter? converter = GetElementConverter(state.Options, state.ElementType, property?.Converter);
-
-                if (!converter.TryDeserialize(out object? element, typeToConvert, ref state))
+                if (!converter.TryDeserialize(out object? result, elementType, ref elementState))
                 {
                     return false;
                 }
 
-                AddItem(collection, count++, typeToConvert, (TElement)element!);
-                state.Next();
-                index += 1;
+                AddItem(collection, i, elementType, (TElement)result!);
             }
 
             value = collection;
             return true;
         }
+
+        //public virtual bool TryDeserialize(out TCollection value, ref CsvDeserializeState state)
+        //{
+            //value = default!;
+            //CollectionHandling? collectionHandling = state.Options.CollectionHandling;
+
+            //if (collectionHandling == null)
+            //{
+            //    throw new ArgumentException("CollectionHandling was not provided");
+            //}
+
+            //if (state.Record == null)
+            //{
+            //    throw new ArgumentException("Collection converter requires to read a CsvRecord");
+            //}
+
+            //CsvRecord record = state.Record;
+            //CsvHeader? header = record.Header;
+
+            //if (header == null)
+            //{
+            //    throw new InvalidOperationException("Header cannot be null when deserializing collections");
+            //}
+
+            //int length = GetCollectionLength(record, state.ColumnIndex, state.Options);
+            //TCollection collection = CreateCollection(state.ElementType, length);
+            //CsvPropertyInfo? property = state.Property;
+            //string itemName = collectionHandling.ItemName;
+            //int index = state.ColumnIndex;
+            //int endIndex = index + length;
+            //int count = 0;
+
+            //while (index < endIndex)
+            //{
+
+            //    Type typeToConvert = state.ElementType;
+
+            //    if (!header[index].StartsWith(itemName))
+            //    {
+            //        break;
+            //    }
+
+            //    ReadOnlySpan<char> indexString = header[index].AsSpan(itemName.Length);
+
+            //    if (!int.TryParse(indexString, out int itemIndex))
+            //    {
+            //        break;
+            //    }
+
+            //    if (itemIndex != (count + 1))
+            //    {
+            //        throw new ArgumentOutOfRangeException($"Expected {itemName}{index + 1} but was {itemName}{itemIndex}");
+            //    }
+
+            //    ICsvValueConverter? converter = GetElementConverter(state.Options, state.ElementType, property?.Converter);
+
+            //    if (!converter.TryDeserialize(out object? element, typeToConvert, ref state))
+            //    {
+            //        return false;
+            //    }
+
+            //    AddItem(collection, count++, typeToConvert, (TElement)element!);
+            //    state.Next();
+            //    index += 1;
+            //}
+
+            //value = collection;
+            //return true;
+        //}
 
         /// <summary>
         /// Calculates the expected length for the collection.

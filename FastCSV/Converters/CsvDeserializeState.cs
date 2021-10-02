@@ -1,83 +1,44 @@
 ﻿using FastCSV.Utils;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace FastCSV.Converters
 {
     /// <summary>
     /// State of a deserialization operation.
     /// </summary>
-    public struct CsvDeserializeState
+    public readonly struct CsvDeserializeState
     {
-        private readonly Either<string, CsvRecord> _source;
-        private readonly Type _type;
-        private int _columnIndex;
+        private readonly ReadOnlyMemory<string> _values;
+        private readonly string? _singleValue;
+        private readonly Type _elementType;
 
         /// <summary>
-        /// Gets the options used by this state.
+        /// Options for the deserialization operation.
         /// </summary>
         public CsvConverterOptions Options { get; }
 
         /// <summary>
-        /// Gets the record used by this state.
-        /// </summary>
-        public CsvRecord? Record => _source.RightOrDefault();
-
-        /// <summary>
-        /// Gets the current column index.
-        /// </summary>
-        public int ColumnIndex => _columnIndex;
-
-        /// <summary>
-        /// Constructs a new <see cref="CsvDeserializeState"/>.
-        /// </summary>
-        /// <param name="options">The csv options used for this state.</param>
-        /// <param name="record">The record to get the values.</param>
-        /// <param name="props">The properties.</param>
-        /// <param name="columnIndex">The start index.</param>
-        public CsvDeserializeState(CsvConverterOptions options, CsvRecord record, CsvPropertyInfo property, int columnIndex)
-        {
-            if (record.Length == 0)
-            {
-                throw new ArgumentException("Record must be not empty");
-            }
-
-            Options = options;
-            Property = property;
-            _columnIndex = columnIndex;
-            _type = property.Type;
-            _source = Either.FromRight(record);
-        }
-
-        /// <summary>
-        /// Constructs a new <see cref="CsvDeserializeState"/>.
-        /// </summary>
-        /// <param name="options">The csv options used for this state.</param>
-        /// <param name="type">Type of the element to convert.</param>
-        /// <param name="data">The data to convert.</param>
-        public CsvDeserializeState(CsvConverterOptions options, Type type, string data)
-        {
-            Options = options;
-            Property = null;
-            _columnIndex = 0;
-            _type = type;
-            _source = Either.FromLeft(data);
-        }
-
-        /// <summary>
-        /// Gets the property for the element.
+        /// Property being deserialized.
         /// </summary>
         public CsvPropertyInfo? Property { get; }
 
         /// <summary>
-        /// Gets the type of the element being deserialized.
+        /// Number of values being deserialized.
+        /// </summary>
+        public int Count => _singleValue == null ? _values.Length : 1;
+
+        /// <summary>
+        /// Type of the elements being deserialized.
+        /// 
+        /// <para>
+        /// If the element is an array this will return the type of the array element.
+        /// </para>
         /// </summary>
         public Type ElementType
         {
             get
             {
-                Type type = Property?.Type?? _type;
+                Type type = Property?.Type ?? _elementType;
 
                 if (type.IsCollectionType())
                 {
@@ -89,43 +50,70 @@ namespace FastCSV.Converters
         }
 
         /// <summary>
-        /// Reads the current value and advance to the next column.
+        /// Constructs a new <see cref="CsvDeserializeState"/>.
         /// </summary>
-        /// <returns>The value of the record in the current column.</returns>
-        public ReadOnlySpan<char> Read()
+        /// <param name="options">Options to be used.</param>
+        /// <param name="property">Source property being deserialized.</param>
+        /// <param name="values">Values to deserialize.</param>
+        public CsvDeserializeState(CsvConverterOptions options, CsvPropertyInfo property, ReadOnlyMemory<string> values)
         {
-            int length = _source.Fold(left: _ => 1, right: record => record.Length);
-
-            if (_columnIndex > length)
-            {
-                throw new ArgumentOutOfRangeException($"Invalid column index {_columnIndex}");
-            }
-
-            if (_source.IsLeft)
-            {
-                return _source.Left;
-            }
-            else
-            {
-                return _source.Right[_columnIndex];
-            }
+            _values = values;
+            _elementType = property.Type;
+            _singleValue = null;
+            Options = options;
+            Property = property;
         }
 
         /// <summary>
-        /// Moves to the next value in the record.
+        /// Constructs a new <see cref="CsvDeserializeState"/>.
         /// </summary>
-        /// <returns><c>true</c> if move, otherwise false.</returns>
-        public bool Next()
+        /// <param name="options">Options to be used.</param>
+        /// <param name="property">Source property being deserialized.</param>
+        /// <param name="value">Value to deserialize.</param>
+        public CsvDeserializeState(CsvConverterOptions options, CsvPropertyInfo property, string value)
         {
-            int length = _source.Fold(left: _ => 1, right: record => record.Length);
+            _values = default;
+            _elementType = property.Type;
+            _singleValue = value;
+            Options = options;
+            Property = property;
+        }
 
-            if (_columnIndex < length)
+        /// <summary>
+        /// Constructs a new <see cref="CsvDeserializeState"/>.
+        /// </summary>
+        /// <param name="options">Options to be used.</param>
+        /// <param name="type">Type to deserialize to.</param>
+        /// <param name="value">Value to deserialize.</param>
+        public CsvDeserializeState(CsvConverterOptions options, Type type, string value)
+        {
+            _values = default;
+            _elementType = type;
+            _singleValue = value;
+            Options = options;
+            Property = null;
+        }
+
+        /// <summary>
+        /// Reads a <see cref="string"/> value to be deserialized.
+        /// </summary>
+        /// <param name="index">Index of the value to read.</param>
+        /// <returns>A string value to be deserialized.</returns>
+        public string Read(int index = 0)
+        {
+            if (index < 0 || index > Count)
             {
-                _columnIndex += 1;
-                return true;
+                throw new IndexOutOfRangeException($"Index cannot be negative or greather than {Count} but was {index}");
             }
 
-            return false;
+            if (_singleValue != null)
+            {
+                return _singleValue;
+            }
+            else
+            {
+                return _values.Span[index];
+            }
         }
     }
 }
