@@ -574,7 +574,7 @@ namespace FastCSV
                             }
 
                             value = collection;
-                            index += (state.ColumnIndex - prevCount);
+                            index += Math.Max((state.ColumnIndex - prevCount), 1);
                         }
                         else
                         {

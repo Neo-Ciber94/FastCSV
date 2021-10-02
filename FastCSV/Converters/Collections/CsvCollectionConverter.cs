@@ -116,6 +116,7 @@ namespace FastCSV.Converters.Collections
                 }
 
                 AddItem(collection, count++, typeToConvert, (TElement)element!);
+                state.Next();
                 index += 1;
             }
 

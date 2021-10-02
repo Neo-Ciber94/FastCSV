@@ -66,12 +66,12 @@ namespace FastCSV.Converters
         }
 
         /// <summary>
-        /// Gets the property for the current column.
+        /// Gets the property for the element.
         /// </summary>
         public CsvPropertyInfo? Property { get; }
 
         /// <summary>
-        /// Gets the property type for the current column.
+        /// Gets the type of the element being deserialized.
         /// </summary>
         public Type ElementType
         {
@@ -94,24 +94,13 @@ namespace FastCSV.Converters
         /// <returns>The value of the record in the current column.</returns>
         public ReadOnlySpan<char> Read()
         {
-            int length = _source.Fold(left: _ => 1, right: r => r.Length);
+            int length = _source.Fold(left: _ => 1, right: record => record.Length);
 
             if (_columnIndex > length)
             {
                 throw new ArgumentOutOfRangeException($"Invalid column index {_columnIndex}");
             }
 
-            ReadOnlySpan<char> result = Peek();
-            _columnIndex += 1;
-            return result;
-        }
-
-        /// <summary>
-        /// Reads the current value.
-        /// </summary>
-        /// <returns>The value of the record in the current column.</returns>
-        public ReadOnlySpan<char> Peek()
-        {
             if (_source.IsLeft)
             {
                 return _source.Left;
@@ -120,6 +109,23 @@ namespace FastCSV.Converters
             {
                 return _source.Right[_columnIndex];
             }
+        }
+
+        /// <summary>
+        /// Moves to the next value in the record.
+        /// </summary>
+        /// <returns><c>true</c> if move, otherwise false.</returns>
+        public bool Next()
+        {
+            int length = _source.Fold(left: _ => 1, right: record => record.Length);
+
+            if (_columnIndex < length)
+            {
+                _columnIndex += 1;
+                return true;
+            }
+
+            return false;
         }
     }
 }

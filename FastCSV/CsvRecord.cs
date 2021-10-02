@@ -162,7 +162,15 @@ namespace FastCSV
         /// </value>
         /// <param name="range">The range.</param>
         /// <returns></returns>
-        public Span<string> this[Range range] => _values.AsSpan(range);
+        public ReadOnlyMemory<string> this[Range range] => _values.AsMemory(range);
+
+        /// <summary>
+        /// Gets a <see cref="ReadOnlyMemory{T}"/> view to the elements of this record.
+        /// </summary>
+        public ReadOnlyMemory<string> Memory
+        {
+            get => _values.AsMemory();
+        }
 
         /// <summary>
         /// Gets a <see cref="IReadOnlyDictionary{TKey, TValue}"/> with the values of the specified column names.
