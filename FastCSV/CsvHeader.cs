@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using FastCSV.Collections;
 using FastCSV.Utils;
 
 namespace FastCSV
@@ -16,7 +17,7 @@ namespace FastCSV
     [Serializable]
     public class CsvHeader : IEnumerable<string>, ICloneable<CsvHeader>, IEquatable<CsvHeader?>
     {
-        private readonly string[] _values;
+        private readonly ReadOnlyArray<string> _values;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CsvHeader"/> class.
@@ -91,7 +92,7 @@ namespace FastCSV
         /// <value>
         /// The number of fields in the header.
         /// </value>
-        public int Length => _values.Length;
+        public int Length => _values.Count;
 
         /// <summary>
         /// Gets the format of the header.
@@ -111,7 +112,7 @@ namespace FastCSV
         {
             get
             {
-                if (index < 0 || index >= _values.Length)
+                if (index < 0 || index >= _values.Count)
                 {
                     throw new ArgumentOutOfRangeException($"{index} > {Length}");
                 }
@@ -125,7 +126,22 @@ namespace FastCSV
         /// </summary>
         /// <param name="range">The range.</param>
         /// <returns>The values at the specified range.</returns>
-        public Span<string> this[Range range] => _values.AsSpan(range);
+        public ReadOnlyMemory<string> this[Range range] => _values.AsMemory(range);
+
+        /// Gets a <see cref="ReadOnlyMemory{T}"/> view to the elements of this header.
+        /// </summary>
+        public ReadOnlyMemory<string> AsMemory()
+        {
+            return _values.AsMemory();
+        }
+
+        /// <summary>
+        /// Gets a <see cref="ReadOnlySpan{T}"/> view to the elements of this header.
+        /// </summary>
+        public ReadOnlySpan<string> AsSpan()
+        {
+            return _values.AsSpan();
+        }
 
         /// <summary>
         /// Gets the index of the specified value in this header.
@@ -134,7 +150,7 @@ namespace FastCSV
         /// <returns>The index of the value or -1 if not found.</returns>
         public int IndexOf(string value)
         {
-            return Array.IndexOf(_values, value);
+            return _values.IndexOf(value);
         }
 
         /// <summary>
@@ -199,8 +215,7 @@ namespace FastCSV
 
         public CsvHeader Clone()
         {
-            string[] values = (string[])_values.Clone();
-            return new CsvHeader(values, Format);
+            return new CsvHeader(_values, Format);
         }
 
         public override bool Equals(object? obj)
@@ -232,10 +247,10 @@ namespace FastCSV
 
         public struct Enumerator : IEnumerator<string>
         {
-            private readonly string[] _values;
+            private readonly ReadOnlyArray<string> _values;
             private int _index;
 
-            internal Enumerator(string[] values)
+            internal Enumerator(ReadOnlyArray<string> values)
             {
                 _values = values;
                 _index = -1;
@@ -248,7 +263,7 @@ namespace FastCSV
             public bool MoveNext()
             {
                 int i = _index + 1;
-                if (i < _values.Length)
+                if (i < _values.Count)
                 {
                     _index = i;
                     return true;
