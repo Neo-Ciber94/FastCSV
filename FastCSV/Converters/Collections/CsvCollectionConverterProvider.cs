@@ -69,7 +69,7 @@ namespace FastCSV.Converters.Collections
                 if (CanAssignToType(typeof(List<>), type))
                 {
                     var elementType = type.GetCollectionElementType()!;
-                    var listOfTConverter = GenericConverterFactory.Create(typeof(ListOfTConverter<>), elementType);
+                    var listOfTConverter = GenericConverterFactory.CreateCollectionConverter(typeof(ListOfTConverter<>), elementType);
                     _converters.Add(type, listOfTConverter);
                     return listOfTConverter;
                 }

@@ -10,18 +10,29 @@ namespace FastCSV.Converters.Collections
 {
     internal static class GenericConverterFactory
     {
-        public static ICsvValueConverter Create(Type converterGenericDefinition, Type elementType)
+        /// <summary>
+        /// Creates a <see cref="ICsvValueConverter"/> for collections from the given types.
+        /// 
+        /// <para>
+        /// The <paramref name="converterGenericDefinition"/> must be a generic type that takes as generic
+        /// the type of the collection elements.
+        /// </para>
+        /// </summary>
+        /// <param name="converterGenericDefinition">Type of the converter to create.</param>
+        /// <param name="elementType">Type of the element the collection store.</param>
+        /// <returns></returns>
+        public static ICsvValueConverter CreateCollectionConverter(Type converterGenericDefinition, Type elementType)
         {
-            Debug.Assert(converterGenericDefinition.IsGenericTypeDefinition);
+            Debug.Assert(elementType.IsGenericType && converterGenericDefinition.IsGenericTypeDefinition);
             Debug.Assert(!elementType.IsGenericType);
+
+            if (converterGenericDefinition.GetGenericArguments().Length != 1)
+            {
+                throw new InvalidOperationException($"Type {converterGenericDefinition} must only take 1 generic argument.");
+            }
 
             var converterType = converterGenericDefinition.MakeGenericType(elementType);
             var constructor = converterType.GetConstructor(Type.EmptyTypes);
-
-            if (!converterGenericDefinition.IsAssignableToClass(typeof(CsvCollectionConverter<,>)))
-            {
-                throw new InvalidOperationException($"{converterType} don't implement {typeof(CsvCollectionConverter<,>)}");
-            }
 
             if (constructor == null)
             {
