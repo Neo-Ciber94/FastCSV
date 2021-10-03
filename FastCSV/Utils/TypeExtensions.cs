@@ -67,6 +67,8 @@ namespace FastCSV.Utils
                 return false;
             }
 
+            // TODO: Cache results
+
             if (classType.IsGenericTypeDefinition)
             {
                 Type? currentType = type.BaseType;
@@ -111,6 +113,8 @@ namespace FastCSV.Utils
             {
                 return false;
             }
+
+            // TODO: Cache results
 
             if (interfaceType.IsGenericTypeDefinition)
             {

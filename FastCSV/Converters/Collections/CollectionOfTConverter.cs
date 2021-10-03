@@ -7,7 +7,7 @@ namespace FastCSV.Converters.Collections
     {
         public override bool CanConvert(Type type)
         {
-            return typeof(TCollection).IsAssignableFrom(type);
+            return typeof(TCollection).IsAssignableTo(type);
         }
 
         public override bool TrySerialize(TCollection value, ref CsvSerializeState state)

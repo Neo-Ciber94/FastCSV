@@ -3,6 +3,7 @@ using FastCSV.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,12 +29,12 @@ namespace FastCSV.Converters.Collections
         }
 
         // IList
-        private IListConverter? _listConverter = null;
-        private IListConverter GetOrCreateIListConverter()
+        private ListConverter? _listConverter = null;
+        private ListConverter GetOrCreateIListConverter()
         {
             if (_listConverter == null)
             {
-                _listConverter = new IListConverter();
+                _listConverter = new ListConverter();
             }
 
             return _listConverter;
@@ -51,12 +52,27 @@ namespace FastCSV.Converters.Collections
                 return collectionConverter;
             }
 
-            if (type.IsGenericType && type.IsAssignableToInterface(typeof(IList<>)))
+            if (type.IsGenericType)
             {
-                var elementType = type.GetCollectionElementType()!;
-                var listOfTConverter = GenericConverterFactory.Create(typeof(IListOfTConverter<>), elementType);
-                _converters.Add(type, listOfTConverter);
-                return listOfTConverter;
+                /*
+                 * List<T> converter is used for serialize/deserialize the following types:
+                 * - List<T>
+                 * - IList<T>
+                 * - IReadOnlyList<T>
+                 * - ICollection<T>
+                 * - IReadOnlyCollection<T>
+                 * - IEnumerable<T>
+                 * 
+                 * No tests for Collection, List and IEnumerable types
+                 */
+
+                if (CanAssignToType(typeof(List<>), type))
+                {
+                    var elementType = type.GetCollectionElementType()!;
+                    var listOfTConverter = GenericConverterFactory.Create(typeof(ListOfTConverter<>), elementType);
+                    _converters.Add(type, listOfTConverter);
+                    return listOfTConverter;
+                }
             }
 
             // Fallback
@@ -76,6 +92,27 @@ namespace FastCSV.Converters.Collections
             }
 
             return null;
+        }
+
+        private static bool CanAssignToType(Type collectionGenericDefinition, Type collectionType)
+        {
+            Debug.Assert(collectionGenericDefinition.IsGenericTypeDefinition);
+            Debug.Assert(collectionType.IsCollectionType());
+
+            Type elementType = collectionType.GetCollectionElementType()!;
+            Type genericType = collectionGenericDefinition.MakeGenericType(elementType);
+
+            if (genericType == collectionType)
+            {
+                return true;
+            }
+
+            if (collectionType.IsAssignableToClass(genericType))
+            {
+                return true;
+            }
+
+            return genericType.GetInterfaces().Any(i => i == collectionType || i.IsAssignableFrom(collectionType));
         }
     }
 }

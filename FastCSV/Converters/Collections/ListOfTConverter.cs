@@ -4,9 +4,9 @@ using System.Collections.Generic;
 
 namespace FastCSV.Converters.Collections
 {
-    internal class IListOfTConverter<T> : CollectionOfTConverter<IList<T>, T>
+    internal class ListOfTConverter<T> : CollectionOfTConverter<List<T>, T>
     {
-        public override void AddItem(IList<T> collection, int index, Type elementType, T item)
+        public override void AddItem(List<T> collection, int index, Type elementType, T item)
         {
             if (elementType != typeof(T))
             {
@@ -16,7 +16,7 @@ namespace FastCSV.Converters.Collections
             collection.Add(item);
         }
 
-        public override IList<T> CreateCollection(Type elementType, int length)
+        public override List<T> CreateCollection(Type elementType, int length)
         {
             if (elementType != typeof(T))
             {

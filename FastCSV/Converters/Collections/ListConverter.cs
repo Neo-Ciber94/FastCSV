@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace FastCSV.Converters.Collections
 {
-    internal class IListConverter : CollectionConverter<IList>
+    internal class ListConverter : CollectionConverter<IList>
     {
         public override void AddItem(IList collection, int index, Type elementType, object? item)
         {
