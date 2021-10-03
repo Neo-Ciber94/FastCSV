@@ -6,6 +6,20 @@ namespace FastCSV.Converters.Collections
 {
     internal class ListOfTConverter<T> : CollectionOfTConverter<List<T>, T>
     {
+        public override bool CanConvert(Type type)
+        {
+            /*
+             * ListOfTConverter<T> can be used to convert any type implemented by List<T>:
+             * - List<T>
+             * - IList<T>
+             * - IReadOnlyList<T>
+             * - ICollection<T>
+             * - IReadOnlyCollection<T>
+             * - IEnumerable<T>
+             */
+            return typeof(List<T>).IsAssignableTo(type);
+        }
+
         public override void AddItem(List<T> collection, int index, Type elementType, T item)
         {
             if (elementType != typeof(T))

@@ -5,11 +5,6 @@ namespace FastCSV.Converters.Collections
 {
     internal abstract class CollectionConverter<TCollection> : CsvCollectionConverter<TCollection, object?> where TCollection: ICollection
     {
-        public override bool CanConvert(Type type)
-        {
-            return typeof(TCollection).IsAssignableFrom(type);
-        }
-
         public override bool TrySerialize(TCollection value, ref CsvSerializeState state)
         {
             foreach (object? obj in value)
