@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace FastCSV.Utils
 {
@@ -51,6 +52,73 @@ namespace FastCSV.Utils
             }
 
             return typeof(object);
+        }
+
+        public static bool HasParentClass(this Type type, Type classType)
+        {
+            if (classType.IsClass == false)
+            {
+                return false;
+            }
+
+            if (classType.IsGenericTypeDefinition)
+            {
+                Type? currentType = type.BaseType;
+
+                while (currentType != null)
+                {
+                    if (currentType.GetGenericTypeDefinition()  == classType)
+                    {
+                        return true;
+                    }
+
+                    currentType = currentType.BaseType;
+                }
+            }
+            else
+            {
+                Type? currentType = type.BaseType;
+
+                while (currentType != null)
+                {
+                    if (currentType == classType)
+                    {
+                        return true;
+                    }
+
+                    currentType = currentType.BaseType;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool HasParentInterface(this Type type, Type interfaceType)
+        {
+            if (interfaceType.IsInterface == false)
+            {
+                return false;
+            }
+
+            if (interfaceType.IsGenericTypeDefinition)
+            {
+                var interfaces = type.GetInterfaces();
+                var genericTypeDefinition = type.GetGenericTypeDefinition();
+
+                foreach(var i in interfaces)
+                {
+                    if (genericTypeDefinition == i)
+                    {
+                        return true;
+                    }
+                }
+            }
+            else
+            {
+                return type.GetInterfaces().Any(i => i == interfaceType);
+            }
+
+            return false;
         }
     }
 }

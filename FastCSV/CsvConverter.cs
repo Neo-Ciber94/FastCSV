@@ -97,7 +97,7 @@ namespace FastCSV
                 object? obj = prop.Value;
                 Type elementType = prop.Type;
                 ICsvValueConverter? converter = state.Converter = GetConverter(elementType, options, prop.Converter);
-                
+
                 if (converter == null || !converter.CanConvert(elementType) || !converter.TrySerialize(obj, elementType, ref state))
                 {
                     throw new InvalidOperationException($"Cannot convert '{obj}' to '{elementType}'");
@@ -566,7 +566,7 @@ namespace FastCSV
                             }
 
                             var state = new CsvDeserializeState(options, property, recordValues);
-                            if (!collectionConverter.TryDeserialize(out object? collection, property.Type, ref state))
+                            if (!collectionConverter.TryDeserialize(out object? collection, state.ElementType, ref state))
                             {
                                 var s = CsvUtility.ToCsvString(record[index..].ToArray(), options.Format);
                                 throw new InvalidOperationException($"Can not convert '{s}' collection to {property.Type}");
