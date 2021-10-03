@@ -1,10 +1,5 @@
-﻿using FastCSV.Utils;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FastCSV.Converters.Collections
 {
@@ -23,13 +18,7 @@ namespace FastCSV.Converters.Collections
         /// <returns></returns>
         public static ICsvValueConverter CreateCollectionConverter(Type converterGenericDefinition, Type elementType)
         {
-            Debug.Assert(elementType.IsGenericType && converterGenericDefinition.IsGenericTypeDefinition);
-            Debug.Assert(!elementType.IsGenericType);
-
-            if (converterGenericDefinition.GetGenericArguments().Length != 1)
-            {
-                throw new InvalidOperationException($"Type {converterGenericDefinition} must only take 1 generic argument.");
-            }
+            AssertIsConverterOfElementType(converterGenericDefinition, elementType);
 
             var converterType = converterGenericDefinition.MakeGenericType(elementType);
             var constructor = converterType.GetConstructor(Type.EmptyTypes);
@@ -40,6 +29,25 @@ namespace FastCSV.Converters.Collections
             }
 
             return (ICsvValueConverter)constructor.Invoke(null);
+        }
+
+        [Conditional("DEBUG")]
+        private static void AssertIsConverterOfElementType(Type converterGenericDefinition, Type elementType)
+        {
+            if (!converterGenericDefinition.IsGenericType && !converterGenericDefinition.IsGenericTypeDefinition) 
+            {
+                throw new InvalidOperationException($"{converterGenericDefinition} must be a generic definition");
+            }
+
+            if (elementType.IsGenericTypeDefinition)
+            {
+                throw new InvalidOperationException($"Type {elementType} cannot be a generic definition");
+            }
+
+            if (converterGenericDefinition.GetGenericArguments().Length != 1)
+            {
+                throw new InvalidOperationException($"Type {converterGenericDefinition} must only take 1 generic argument.");
+            }
         }
     }
 }
