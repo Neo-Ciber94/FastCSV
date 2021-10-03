@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FastCSV.Tests
+namespace FastCSV.Converters.Tests
 {
     [TestFixture]
     public class CsvConverterArrayTests
