@@ -562,7 +562,7 @@ namespace FastCSV
 
                             if (collectionConverter == null)
                             {
-                                throw new InvalidOperationException($"No deserializer for type {property.Type}");
+                                throw new InvalidOperationException($"No found deserializer for type {property.Type}");
                             }
 
                             var state = new CsvDeserializeState(options, property, recordValues);

@@ -54,7 +54,13 @@ namespace FastCSV.Utils
             return typeof(object);
         }
 
-        public static bool HasParentClass(this Type type, Type classType)
+        /// <summary>
+        /// Checks if the type inherits from the specified class type.
+        /// </summary>
+        /// <param name="type">Type to check.</param>
+        /// <param name="classType">Class to test against</param>
+        /// <returns></returns>
+        public static bool IsAssignableToClass(this Type type, Type classType)
         {
             if (classType.IsClass == false)
             {
@@ -93,7 +99,13 @@ namespace FastCSV.Utils
             return false;
         }
 
-        public static bool HasParentInterface(this Type type, Type interfaceType)
+        /// <summary>
+        /// Checks if the type inherits from the specified interface type.
+        /// </summary>
+        /// <param name="type">Type to check.</param>
+        /// <param name="interfaceType">Interface to test against</param>
+        /// <returns></returns>
+        public static bool IsAssignableToInterface(this Type type, Type interfaceType)
         {
             if (interfaceType.IsInterface == false)
             {
@@ -103,11 +115,15 @@ namespace FastCSV.Utils
             if (interfaceType.IsGenericTypeDefinition)
             {
                 var interfaces = type.GetInterfaces();
-                var genericTypeDefinition = type.GetGenericTypeDefinition();
 
                 foreach(var i in interfaces)
                 {
-                    if (genericTypeDefinition == i)
+                    if (i.IsGenericType && i.GetGenericTypeDefinition() == interfaceType)
+                    {
+                        return true;
+                    }
+
+                    if (i == interfaceType)
                     {
                         return true;
                     }

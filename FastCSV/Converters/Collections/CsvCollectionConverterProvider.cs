@@ -51,7 +51,7 @@ namespace FastCSV.Converters.Collections
                 return collectionConverter;
             }
 
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+            if (type.IsGenericType && type.IsAssignableToInterface(typeof(IList<>)))
             {
                 var elementType = type.GetCollectionElementType()!;
                 var listOfTConverter = GenericConverterFactory.Create(typeof(IListOfTConverter<>), elementType);

@@ -18,7 +18,7 @@ namespace FastCSV.Converters.Collections
             var converterType = converterGenericDefinition.MakeGenericType(elementType);
             var constructor = converterType.GetConstructor(Type.EmptyTypes);
 
-            if (!converterGenericDefinition.HasParentClass(typeof(CsvCollectionConverter<,>)))
+            if (!converterGenericDefinition.IsAssignableToClass(typeof(CsvCollectionConverter<,>)))
             {
                 throw new InvalidOperationException($"{converterType} don't implement {typeof(CsvCollectionConverter<,>)}");
             }
