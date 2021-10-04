@@ -86,13 +86,13 @@ namespace FastCSV
                 }
             }
 
-            using ValueList<CsvSerializedProperty> props = SerializeInternal(value, type, options);
+            using ValueList<CsvPropertyToSerialize> props = SerializeInternal(value, type, options);
             CsvSerializeState state = new CsvSerializeState(options, props.Length);
             int index = 0;
 
             while(index < props.Length)
             {
-                CsvSerializedProperty p = props[index];
+                CsvPropertyToSerialize p = props[index];
                 CsvPropertyInfo prop = p.Property;
                 object? obj = prop.Value;
                 Type elementType = prop.Type;
@@ -117,7 +117,7 @@ namespace FastCSV
 
                 for (int i = 0; i < props.Length; i++)
                 {
-                    headerArray[i] = props[i].Name;
+                    headerArray[i] = props[i].ColumnName;
                 }
 
                 string header = CsvUtility.ToCsvString(headerArray, options.Format);
@@ -185,12 +185,14 @@ namespace FastCSV
                 }
             }
 
-            using ValueList<KeyValuePair<CsvPropertyInfo, object?>> props = DeserializeInternal(csv, type, options);
+            using ValueList<CsvPropertyToDeserialize> props = DeserializeInternal(csv, type, options);
             object obj = FormatterServices.GetUninitializedObject(type);
 
-            foreach (var (p, value) in props)
+            foreach (var p in props)
             {
-                p.SetValue(obj, value);
+                var property = p.Property;
+                var value = p.Value;
+                property.SetValue(obj, value);
             }
 
             return obj;
@@ -233,12 +235,12 @@ namespace FastCSV
                 return new Dictionary<string, object?> { { BuiltInTypeHeaderName, value } };
             }
 
-            using ValueList<CsvSerializedProperty> csvProps = SerializeInternal(value, type, options);
+            using ValueList<CsvPropertyToSerialize> csvProps = SerializeInternal(value, type, options);
             Dictionary<string, object?> result = new Dictionary<string, object?>();
 
             foreach (var p in csvProps)
             {
-                result.Add(p.Name, p.Value);
+                result.Add(p.ColumnName, p.Value);
             }
 
             return result;
@@ -401,7 +403,7 @@ namespace FastCSV
             return values.ToArray();
         }
 
-        private static ValueList<CsvSerializedProperty> SerializeInternal(object? value, Type type, CsvConverterOptions options)
+        private static ValueList<CsvPropertyToSerialize> SerializeInternal(object? value, Type type, CsvConverterOptions options)
         {
             if (value != null && !EqualTypes(value.GetType(), type))
             {
@@ -417,7 +419,7 @@ namespace FastCSV
             bool handleNestedObjects = options.NestedObjectHandling != null;
             bool handleCollections = options.CollectionHandling != null;
 
-            ValueList<CsvSerializedProperty> items = new(csvProps.Count);
+            ValueList<CsvPropertyToSerialize> items = new(csvProps.Count);
 
             if (handleNestedObjects)
             {
@@ -466,24 +468,23 @@ namespace FastCSV
                 if (handleCollections && property.Value is IEnumerable enumerable)
                 {
                     string itemName = options.CollectionHandling!.ItemName;
-                    Type elementType = property.Type.GetCollectionElementType()!;
                     int itemIndex = 0;
 
-                    foreach (var item in enumerable)
+                    foreach (object? item in enumerable)
                     {
-                        items.Add(new CsvSerializedProperty(property, $"{itemName}{++itemIndex}", item, elementType));
+                        items.Add(new CsvPropertyToSerialize(property, $"{itemName}{++itemIndex}", item));
                     }
                 }
                 else
                 {
-                    items.Add(new CsvSerializedProperty(property, property.Name, property.Value, property.Type));
+                    items.Add(new CsvPropertyToSerialize(property, property.Name, property.Value));
                 }
             }
 
             return items;
         }
 
-        private static ValueList<KeyValuePair<CsvPropertyInfo, object?>> DeserializeInternal(string csv, Type type, CsvConverterOptions options)
+        private static ValueList<CsvPropertyToDeserialize> DeserializeInternal(string csv, Type type, CsvConverterOptions options)
         {
             if (string.IsNullOrWhiteSpace(csv))
             {
@@ -515,7 +516,7 @@ namespace FastCSV
             Stack<CsvPropertyInfo> parents = new Stack<CsvPropertyInfo>();
             props.PushRangeReverse(csvProps);
 
-            ValueList<KeyValuePair<CsvPropertyInfo, object?>> items = new(csvProps.Count);
+            ValueList<CsvPropertyToDeserialize> items = new(csvProps.Count);
             int index = 0;
 
             while (props.Count > 0)
@@ -590,7 +591,7 @@ namespace FastCSV
                     }
                     else
                     {
-                        items.Add(new KeyValuePair<CsvPropertyInfo, object?>(property, value));
+                        items.Add(new CsvPropertyToDeserialize(property, value));
                     }
                 }
             }
