@@ -20,7 +20,7 @@ namespace FastCSV.Converters
         /// <summary>
         /// Property being deserialized.
         /// </summary>
-        public CsvPropertyInfo? Property { get; }
+        public CsvProperty? Property { get; }
 
         /// <summary>
         /// Number of values being deserialized.
@@ -55,7 +55,7 @@ namespace FastCSV.Converters
         /// <param name="options">Options to be used.</param>
         /// <param name="property">Source property being deserialized.</param>
         /// <param name="values">Values to deserialize.</param>
-        public CsvDeserializeState(CsvConverterOptions options, CsvPropertyInfo property, ReadOnlyMemory<string> values)
+        public CsvDeserializeState(CsvConverterOptions options, CsvProperty property, ReadOnlyMemory<string> values)
         {
             _values = values;
             _elementType = property.Type;
@@ -70,7 +70,7 @@ namespace FastCSV.Converters
         /// <param name="options">Options to be used.</param>
         /// <param name="property">Source property being deserialized.</param>
         /// <param name="value">Value to deserialize.</param>
-        public CsvDeserializeState(CsvConverterOptions options, CsvPropertyInfo property, string value)
+        public CsvDeserializeState(CsvConverterOptions options, CsvProperty property, string value)
         {
             _values = default;
             _elementType = property.Type;

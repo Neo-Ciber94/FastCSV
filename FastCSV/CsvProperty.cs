@@ -9,7 +9,7 @@ namespace FastCSV
     /// <summary>
     /// Represents a field or property related to a object.
     /// </summary>
-    public record CsvPropertyInfo
+    public record CsvProperty
     {
         /// <summary>
         /// Original name of the field.
@@ -49,7 +49,7 @@ namespace FastCSV
         /// <summary>
         /// Children fields of this field.
         /// </summary>
-        public IReadOnlyList<CsvPropertyInfo> Children { get; set; } = new List<CsvPropertyInfo>();
+        public IReadOnlyList<CsvProperty> Children { get; set; } = new List<CsvProperty>();
 
         /// <summary>
         /// Whether this instance is a property.
@@ -77,7 +77,7 @@ namespace FastCSV
             }
         }
 
-        public CsvPropertyInfo(string originalName, string name, object? value, Type type, MemberInfo member, bool ignore, IValueConverter? valueConverter)
+        public CsvProperty(string originalName, string name, object? value, Type type, MemberInfo member, bool ignore, IValueConverter? valueConverter)
         {
             OriginalName = originalName;
             Name = name;
@@ -88,7 +88,7 @@ namespace FastCSV
             Converter = valueConverter;
         }
 
-        public CsvPropertyInfo(string name, object? value, Type type, MemberInfo member, bool ignore, IValueConverter? valueConverter) 
+        public CsvProperty(string name, object? value, Type type, MemberInfo member, bool ignore, IValueConverter? valueConverter) 
             : this(name, name, value, type, member, ignore, valueConverter) { }
 
         /// <summary>

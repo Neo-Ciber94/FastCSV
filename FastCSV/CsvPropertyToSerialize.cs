@@ -5,13 +5,13 @@
     {
         internal readonly struct CsvPropertyToSerialize
         {
-            public CsvPropertyInfo Property { get; }
+            public CsvProperty Property { get; }
 
             public string ColumnName { get; }
 
             public object? Value { get; }
 
-            public CsvPropertyToSerialize(CsvPropertyInfo property, string columnName, object? value)
+            public CsvPropertyToSerialize(CsvProperty property, string columnName, object? value)
             {
                 Property = property;
                 ColumnName = columnName;

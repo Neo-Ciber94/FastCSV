@@ -61,7 +61,7 @@ namespace FastCSV.Converters.Collections
             value = default!;
 
             TCollection collection = CreateCollection(state.ElementType, state.Count);
-            CsvPropertyInfo? property = state.Property;
+            CsvProperty? property = state.Property;
 
             if (property == null)
             {

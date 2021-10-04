@@ -5,11 +5,11 @@
     {
         internal readonly struct CsvPropertyToDeserialize
         {
-            public CsvPropertyInfo Property { get; }
+            public CsvProperty Property { get; }
 
             public object? Value { get; }
 
-            public CsvPropertyToDeserialize(CsvPropertyInfo property, object? value)
+            public CsvPropertyToDeserialize(CsvProperty property, object? value)
             {
                 Property = property;
                 Value = value;
