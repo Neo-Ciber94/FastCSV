@@ -86,13 +86,13 @@ namespace FastCSV
                 }
             }
 
-            using ValueList<CsvPropertyToSerialize> props = SerializeInternal(value, type, options);
+            using ValueList<DataToSerialize> props = SerializeInternal(value, type, options);
             CsvSerializeState state = new CsvSerializeState(options, props.Length);
             int index = 0;
 
             while(index < props.Length)
             {
-                CsvPropertyToSerialize p = props[index];
+                DataToSerialize p = props[index];
                 CsvProperty prop = p.Property;
                 object? obj = prop.Value;
                 Type elementType = prop.Type;
@@ -185,7 +185,7 @@ namespace FastCSV
                 }
             }
 
-            using ValueList<CsvPropertyToDeserialize> props = DeserializeInternal(csv, type, options);
+            using ValueList<DataToDeserialize> props = DeserializeInternal(csv, type, options);
             object obj = FormatterServices.GetUninitializedObject(type);
 
             foreach (var p in props)
@@ -235,7 +235,7 @@ namespace FastCSV
                 return new Dictionary<string, object?> { { BuiltInTypeHeaderName, value } };
             }
 
-            using ValueList<CsvPropertyToSerialize> csvProps = SerializeInternal(value, type, options);
+            using ValueList<DataToSerialize> csvProps = SerializeInternal(value, type, options);
             Dictionary<string, object?> result = new Dictionary<string, object?>();
 
             foreach (var p in csvProps)
@@ -403,7 +403,7 @@ namespace FastCSV
             return values.ToArray();
         }
 
-        private static ValueList<CsvPropertyToSerialize> SerializeInternal(object? value, Type type, CsvConverterOptions options)
+        private static ValueList<DataToSerialize> SerializeInternal(object? value, Type type, CsvConverterOptions options)
         {
             if (value != null && !EqualTypes(value.GetType(), type))
             {
@@ -419,7 +419,7 @@ namespace FastCSV
             bool handleNestedObjects = options.NestedObjectHandling != null;
             bool handleCollections = options.CollectionHandling != null;
 
-            ValueList<CsvPropertyToSerialize> items = new(csvProps.Count);
+            ValueList<DataToSerialize> items = new(csvProps.Count);
 
             if (handleNestedObjects)
             {
@@ -472,19 +472,19 @@ namespace FastCSV
 
                     foreach (object? item in enumerable)
                     {
-                        items.Add(new CsvPropertyToSerialize(property, $"{itemName}{++itemIndex}", item));
+                        items.Add(new DataToSerialize(property, $"{itemName}{++itemIndex}", item));
                     }
                 }
                 else
                 {
-                    items.Add(new CsvPropertyToSerialize(property, property.Name, property.Value));
+                    items.Add(new DataToSerialize(property, property.Name, property.Value));
                 }
             }
 
             return items;
         }
 
-        private static ValueList<CsvPropertyToDeserialize> DeserializeInternal(string csv, Type type, CsvConverterOptions options)
+        private static ValueList<DataToDeserialize> DeserializeInternal(string csv, Type type, CsvConverterOptions options)
         {
             if (string.IsNullOrWhiteSpace(csv))
             {
@@ -516,7 +516,7 @@ namespace FastCSV
             Stack<CsvProperty> parents = new Stack<CsvProperty>();
             props.PushRangeReverse(csvProps);
 
-            ValueList<CsvPropertyToDeserialize> items = new(csvProps.Count);
+            ValueList<DataToDeserialize> items = new(csvProps.Count);
             int index = 0;
 
             while (props.Count > 0)
@@ -591,7 +591,7 @@ namespace FastCSV
                     }
                     else
                     {
-                        items.Add(new CsvPropertyToDeserialize(property, value));
+                        items.Add(new DataToDeserialize(property, value));
                     }
                 }
             }
