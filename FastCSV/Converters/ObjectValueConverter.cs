@@ -16,14 +16,20 @@ namespace FastCSV.Converters
 
         public bool TryDeserialize(out object? result, Type elementType, ref CsvDeserializeState state)
         {
-            string stringValue = state.Read();
-            Type? actualType = elementType == typeof(object) ? TypeHelper.GetTypeFromString(stringValue) : elementType;
             result = default!;
+            string stringValue = state.Read();
+
+            Type? actualType = GuessTypeOrNull(state.Options, stringValue);
+
+            if (actualType == null)
+            {
+                actualType = elementType == typeof(object) ? TypeHelper.GetTypeFromString(stringValue) : elementType;
+            }
 
             if (actualType != null && actualType != typeof(object))
             {
-                var defaultConverter = state.Property?.Converter;
-                var converter = CsvConverter.GetConverter(actualType, state.Options, defaultConverter);
+                ICsvValueConverter? defaultConverter = state.Property?.Converter;
+                ICsvValueConverter? converter = CsvConverter.GetConverter(actualType, state.Options, defaultConverter);
 
                 if (converter != null)
                 {
@@ -51,6 +57,28 @@ namespace FastCSV.Converters
             }
 
             return false;
+        }
+
+        private static Type? GuessTypeOrNull(CsvConverterOptions options, string s)
+        {
+            IReadOnlyList<ITypeGuesser> typeGuessers = options.TypeGuessers;
+
+            if (typeGuessers.Count == 0)
+            {
+                return null;
+            }
+
+            foreach(var typeGuesser in typeGuessers)
+            {
+                Type? type = typeGuesser.GetTypeFromString(s);
+
+                if (type != null)
+                {
+                    return type;
+                }
+            }
+
+            return null;
         }
     }
 }

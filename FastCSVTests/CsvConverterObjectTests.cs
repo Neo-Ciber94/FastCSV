@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using FastCSV.Converters;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -123,11 +124,10 @@ namespace FastCSV
         }
 
         [Test]
-        [Ignore("Half compare error")]
         public void DeserializeHalfTest()
         {
-            int x = (int)CsvConverter.Deserialize($"value\n{halfValue}", typeof(object));
-            Assert.AreEqual(halfValue, x);
+            Half f = (Half)(float)CsvConverter.Deserialize($"value\n{halfValue}", typeof(object));       
+            Assert.AreEqual(halfValue, f);
         }
     }
 }
