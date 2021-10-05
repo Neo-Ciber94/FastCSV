@@ -129,5 +129,47 @@ namespace FastCSV
             Half f = (Half)(float)CsvConverter.Deserialize($"value\n{halfValue}", typeof(object));       
             Assert.AreEqual(halfValue, f);
         }
+
+        [Test]
+        public void DeserializeWithTypeGuesserTest()
+        {
+            var options = new CsvConverterOptions
+            {
+                Converters = new List<ICsvValueConverter>() { DecimalConverter.Default },
+                TypeGuessers = new List<ITypeGuesser>() { DecimalConverter.Default }
+            };
+
+            decimal value = 34005.230211m;
+            object result = CsvConverter.Deserialize("value\n34005.230211", typeof(object), options);
+
+            Assert.AreEqual(typeof(decimal), result.GetType());
+            Assert.AreEqual(value, result);
+        }
+
+        class DecimalConverter : ITypeGuesser, ICsvValueConverter<decimal>
+        {
+            public static DecimalConverter Default { get; } = new DecimalConverter();
+
+            public Type GetTypeFromString(string s)
+            {
+                if (decimal.TryParse(s, out _))
+                {
+                    return typeof(decimal);
+                }
+
+                return null;
+            }
+
+            public bool TryDeserialize(out decimal value, ref CsvDeserializeState state)
+            {
+                return decimal.TryParse(state.Read(), out value);
+            }
+
+            public bool TrySerialize(decimal value, ref CsvSerializeState state)
+            {
+                state.Write(value.ToString());
+                return true;
+            }
+        }
     }
 }
