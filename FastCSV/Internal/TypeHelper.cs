@@ -8,11 +8,6 @@ namespace FastCSV.Internal
 {
     internal static class TypeHelper
     {
-        private const int IntDigitCount = 10;
-        private const int LongDigitCount = 19;
-        private const int FloatDigitCount = 39;
-        private const int DoubleDigitCount = 309;
-
         /// <summary>
         /// Attemps to determine the expected type from the given <see cref="string"/> value.
         /// </summary>
@@ -42,6 +37,12 @@ namespace FastCSV.Internal
                 return GetTypeFromNumber(value);
             }
 
+            // This should be before DateTime
+            if (IsVersion(value))
+            {
+                return typeof(Version);
+            }
+
             if (IsDateTime(value))
             {
                 return typeof(DateTime);
@@ -60,11 +61,6 @@ namespace FastCSV.Internal
             if (IsGuid(value))
             {
                 return typeof(Guid);
-            }
-
-            if (IsVersion(value))
-            {
-                return typeof(Version);
             }
 
             if (IsIPAddress(value))
@@ -98,26 +94,88 @@ namespace FastCSV.Internal
 
         private static bool IsNumeric(ReadOnlySpan<char> value)
         {
-            if (value.IsEmpty)
-            {
-                return false;
-            }
-
-            bool hasDecimalPoint = false;
+            int decimalPointIndex = value.IndexOf('.');
+            int exponentIndex = value.IndexOf("E", StringComparison.OrdinalIgnoreCase);
 
             if (value[0] == '-' || value[0] == '+')
             {
                 value = value[1..];
             }
 
-            foreach (var c in value)
+            if (value.Trim().IsEmpty)
             {
-                if (c == '.' && hasDecimalPoint == false)
+                return false;
+            }
+
+            // Special cases
+            if (value[0] == 'E' || value == ".E")
+            {
+                return false;
+            }
+
+            if (decimalPointIndex >= 0 || exponentIndex >= 0)
+            {
+                bool hasDecimalPoint = false;
+                int length = value.Length;
+
+                for (int i = 0; i < length; i++)
                 {
-                    hasDecimalPoint = true;
-                    continue;
+                    char c = value[i];
+
+                    if (c == '.')
+                    {
+                        if (hasDecimalPoint)
+                        {
+                            return false;
+                        }
+
+                        hasDecimalPoint = true;
+                        continue;
+                    }
+
+                    if (c == 'E' || c == 'e')
+                    {
+                        if ((i + 1) < length)
+                        {
+                            char next = value[i + 1];
+
+                            if (next == '+' || next == '-')
+                            {
+                                i += 2;
+                            }
+                            else
+                            {
+                                i += 1;
+                            }
+
+                            // The rest of the value must be a number
+                            for (int j = i; j < length; j++)
+                            {
+                                if (!char.IsNumber(value[j]))
+                                {
+                                    return false;
+                                }
+                            }
+
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+
+                    if (!char.IsNumber(c))
+                    {
+                        return false;
+                    }
                 }
 
+                return true;
+            }
+
+            foreach (var c in value)
+            {
                 if (!char.IsNumber(c))
                 {
                     return false;
@@ -149,7 +207,8 @@ namespace FastCSV.Internal
 
         private static bool IsVersion(string value)
         {
-            return Version.TryParse(value, out _);
+            // We use 9.X.X.X as the max version to allow IPAddress to be parsed
+            return Version.TryParse(value, out Version? v) && v.Major <= 9;
         }
 
         private static bool IsIPAddress(string value)
@@ -167,40 +226,40 @@ namespace FastCSV.Internal
             Debug.Assert(IsNumeric(digits));
 
             int decimalPointIndex = digits.IndexOf('.');
-            bool hasSign = false;
-            int sign = 1;
+            int exponentIndex = digits.IndexOf("E", StringComparison.OrdinalIgnoreCase);
 
-            if (digits[0] == '+' || digits[0] == '-')
+            if (decimalPointIndex >= 0 || exponentIndex >= 0)
             {
-                hasSign = true;
-                sign = digits[0] == '+' ? 1 : -1;
-                digits = digits[1..];
-            }
-
-            if (decimalPointIndex >= 0)
-            {
-                if (digits.Length <= (FloatDigitCount + 1))
+                if (float.TryParse(digits, out float f) && float.IsFinite(f))
                 {
                     return typeof(float);
                 }
 
-                if (digits.Length <= (DoubleDigitCount + 1))
+                if (double.TryParse(digits, out double d) && double.IsFinite(d))
                 {
                     return typeof(double);
                 }
             }
             else
             {
-                int signCount = hasSign ? 1 : 0;
-
-                if (digits.Length <= (IntDigitCount + signCount))
+                if (int.TryParse(digits, out _))
                 {
                     return typeof(int);
                 }
 
-                if (digits.Length <= (LongDigitCount + signCount))
+                if (long.TryParse(digits, out _))
                 {
                     return typeof(long);
+                }
+
+                if (uint.TryParse(digits, out _))
+                {
+                    return typeof(uint);
+                }
+
+                if (ulong.TryParse(digits, out _))
+                {
+                    return typeof(ulong);
                 }
 
                 return typeof(BigInteger);

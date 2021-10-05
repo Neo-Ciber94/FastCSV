@@ -63,6 +63,11 @@ namespace FastCSV
         /// <returns>A csv string of the value.</returns>
         public static string Serialize(object? value, Type type, CsvConverterOptions? options = null)
         {
+            if (value != null && type == typeof(object))
+            {
+                type = value.GetType();
+            }
+
             if (value != null && !EqualTypes(value.GetType(), type))
             {
                 throw new ArgumentException($"Expected {type} but value type was {value.GetType()}");

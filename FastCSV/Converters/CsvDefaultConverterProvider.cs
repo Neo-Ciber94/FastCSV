@@ -29,6 +29,11 @@ namespace FastCSV.Converters
                 return (EnumObjectValueConverter)enumConverter!;
             }
 
+            if (type == typeof(object))
+            {
+                return new ObjectValueConverter();
+            }
+
             if (_converters.TryGetValue(type, out ICsvValueConverter? converter))
             {
                 return converter;

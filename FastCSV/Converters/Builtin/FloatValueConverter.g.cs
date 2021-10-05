@@ -11,7 +11,7 @@ namespace FastCSV.Converters.Builtin
     {
         public string? Read(System.Single value)
         {
-            return value.ToString();
+            return value.ToString("G");
         }
 
         public bool TryParse(System.ReadOnlySpan<char> s, out System.Single value)
