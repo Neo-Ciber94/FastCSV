@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 
 namespace FastCSV.Converters.Collections
 {
@@ -16,7 +17,13 @@ namespace FastCSV.Converters.Collections
                 }
                 else
                 {
-                    state.Write(s);
+                    Type elementType = obj!.GetType();
+                    ICsvValueConverter? converter = GetElementConverter(state.Options, elementType, state.Converter);
+
+                    if (converter == null || !converter.TrySerialize(obj, elementType, ref state))
+                    {
+                        return false;
+                    }                    
                 }
             }
 

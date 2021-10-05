@@ -29,12 +29,12 @@ namespace FastCSV.Converters.Collections
         }
 
         // IList
-        private ListConverter? _listConverter = null;
-        private ListConverter GetOrCreateIListConverter()
+        private ArrayListConverter? _listConverter = null;
+        private ArrayListConverter GetOrCreateIListConverter()
         {
             if (_listConverter == null)
             {
-                _listConverter = new ListConverter();
+                _listConverter = new ArrayListConverter();
             }
 
             return _listConverter;
@@ -62,10 +62,7 @@ namespace FastCSV.Converters.Collections
                  * - ICollection<T>
                  * - IReadOnlyCollection<T>
                  * - IEnumerable<T>
-                 * 
-                 * No tests for Collection, List and IEnumerable types
                  */
-
                 if (CanAssignToType(typeof(List<>), type))
                 {
                     var elementType = type.GetCollectionElementType()!;
@@ -81,12 +78,14 @@ namespace FastCSV.Converters.Collections
 
         private ICsvValueConverter? GetNonGenericCollectionConverter(Type type)
         {
-            if (typeof(IList) == type)
-            {
-                return GetOrCreateIListConverter();
-            }
-
-            if (typeof(ICollection) == type)
+            /*
+             * ArrayList converter is used for serialize/deserialize the following types:
+             * - ArrayList
+             * - IList
+             * - ICollection
+             * - IEnumerable
+             */
+            if (typeof(ArrayList).IsAssignableFrom(type))
             {
                 return GetOrCreateIListConverter();
             }

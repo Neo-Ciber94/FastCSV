@@ -1,4 +1,6 @@
-﻿using System;
+﻿using FastCSV.Internal;
+using System;
+using System.Collections.Generic;
 
 namespace FastCSV.Converters.Collections
 {
@@ -68,14 +70,18 @@ namespace FastCSV.Converters.Collections
                 throw new InvalidOperationException("Cannot find a CsvPropertyInfo to deserialize the collection");
             }
 
-            Type elementType = state.ElementType;
             CsvConverterOptions options = state.Options;
 
             for (int i = 0; i < state.Count; i++)
             {
+                Type elementType = state.ElementType;
                 string stringValue = state.Read(i);
 
-                // TODO: If typeof(TElement) == object &&  elementType == object, we should try guess the type of the 'stringValue'
+                if (elementType == typeof(object))
+                {
+                    // Fallback to string if not type was found
+                    elementType = GuessTypeOrNull(stringValue, options.TypeGuessers) ?? typeof(string);
+                }
 
                 CsvDeserializeState elementState = new CsvDeserializeState(options, elementType, stringValue);
                 ICsvValueConverter converter = GetElementConverter(options, elementType, property.Converter);
@@ -90,6 +96,24 @@ namespace FastCSV.Converters.Collections
 
             value = collection;
             return true;
+        }
+
+        private static Type? GuessTypeOrNull(string s, IReadOnlyList<ITypeGuesser> typeGuesses)
+        {
+            if (typeGuesses.Count > 0)
+            {
+                foreach(var guesser in typeGuesses)
+                {
+                    Type? type = guesser.GetTypeFromString(s);
+
+                    if (type != null)
+                    {
+                        return type;
+                    }
+                }
+            }
+
+            return TypeHelper.GetTypeFromString(s);
         }
     }
 }
