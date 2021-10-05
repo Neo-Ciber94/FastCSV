@@ -1,6 +1,4 @@
-﻿using FastCSV.Internal;
-using System;
-using System.Collections.Generic;
+﻿using System;
 
 namespace FastCSV.Converters.Collections
 {
@@ -77,12 +75,6 @@ namespace FastCSV.Converters.Collections
                 Type elementType = state.ElementType;
                 string stringValue = state.Read(i);
 
-                if (elementType == typeof(object))
-                {
-                    // Fallback to string if not type was found
-                    elementType = GuessTypeOrNull(stringValue, options.TypeGuessers) ?? typeof(string);
-                }
-
                 CsvDeserializeState elementState = new CsvDeserializeState(options, elementType, stringValue);
                 ICsvValueConverter converter = GetElementConverter(options, elementType, property.Converter);
 
@@ -96,24 +88,6 @@ namespace FastCSV.Converters.Collections
 
             value = collection;
             return true;
-        }
-
-        private static Type? GuessTypeOrNull(string s, IReadOnlyList<ITypeGuesser> typeGuesses)
-        {
-            if (typeGuesses.Count > 0)
-            {
-                foreach(var guesser in typeGuesses)
-                {
-                    Type? type = guesser.GetTypeFromString(s);
-
-                    if (type != null)
-                    {
-                        return type;
-                    }
-                }
-            }
-
-            return TypeHelper.GetTypeFromString(s);
         }
     }
 }
