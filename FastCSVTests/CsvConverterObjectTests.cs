@@ -36,6 +36,7 @@ namespace FastCSV
         private readonly object versionValue = new Version(1, 5, 234);
         private readonly object ipAddressValue = new IPAddress(new byte[] { 127, 0, 0, 1});
         private readonly object ipEndpointValue = new IPEndPoint(127001, 8080);
+        private readonly object stringValue = "This is so cool!";
 
         [Test]
         public void SerializeTest()
@@ -64,6 +65,8 @@ namespace FastCSV
             Assert.AreEqual($"value\n{versionValue}", CsvConverter.Serialize(versionValue));
             Assert.AreEqual($"value\n{ipAddressValue}", CsvConverter.Serialize(ipAddressValue));
             Assert.AreEqual($"value\n{ipEndpointValue}", CsvConverter.Serialize(ipEndpointValue));
+
+            Assert.AreEqual($"value\n{stringValue}", CsvConverter.Serialize(stringValue));
         }
 
         [Test]
@@ -121,6 +124,8 @@ namespace FastCSV
             Assert.AreEqual(versionValue, CsvConverter.Deserialize($"value\n{versionValue}", typeof(object)));
             Assert.AreEqual(ipAddressValue, CsvConverter.Deserialize($"value\n{ipAddressValue}", typeof(object)));
             Assert.AreEqual(ipEndpointValue, CsvConverter.Deserialize($"value\n{ipEndpointValue}", typeof(object)));
+
+            Assert.AreEqual(stringValue, CsvConverter.Deserialize($"value\n{stringValue}", typeof(object)));
         }
 
         [Test]

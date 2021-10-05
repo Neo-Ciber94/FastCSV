@@ -18,18 +18,27 @@ namespace FastCSV.Converters
         {
             result = default!;
             string stringValue = state.Read();
+            CsvConverterOptions options = state.Options;
 
-            Type? actualType = GuessTypeOrNull(state.Options, stringValue);
+            Type? actualType = GuessTypeOrNull(stringValue, options.TypeGuessers);
 
             if (actualType == null)
             {
-                actualType = elementType == typeof(object) ? TypeHelper.GetTypeFromString(stringValue) : elementType;
+                if (elementType == typeof(object))
+                {
+                    // Fallback to string if not type was found
+                    actualType = TypeHelper.GetTypeFromString(stringValue) ?? typeof(string);
+                }
+                else
+                {
+                    actualType = elementType;
+                }
             }
 
             if (actualType != null && actualType != typeof(object))
             {
                 ICsvValueConverter? defaultConverter = state.Property?.Converter;
-                ICsvValueConverter? converter = CsvConverter.GetConverter(actualType, state.Options, defaultConverter);
+                ICsvValueConverter? converter = CsvConverter.GetConverter(actualType, options, defaultConverter);
 
                 if (converter != null)
                 {
@@ -59,22 +68,18 @@ namespace FastCSV.Converters
             return false;
         }
 
-        private static Type? GuessTypeOrNull(CsvConverterOptions options, string s)
+        private static Type? GuessTypeOrNull(string s, IReadOnlyList<ITypeGuesser> typeGuessers)
         {
-            IReadOnlyList<ITypeGuesser> typeGuessers = options.TypeGuessers;
-
-            if (typeGuessers.Count == 0)
+            if (typeGuessers.Count > 0)
             {
-                return null;
-            }
-
-            foreach(var typeGuesser in typeGuessers)
-            {
-                Type? type = typeGuesser.GetTypeFromString(s);
-
-                if (type != null)
+                foreach (var guesser in typeGuessers)
                 {
-                    return type;
+                    Type? type = guesser.GetTypeFromString(s);
+
+                    if (type != null)
+                    {
+                        return type;
+                    }
                 }
             }
 
