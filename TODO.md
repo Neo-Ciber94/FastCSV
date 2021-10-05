@@ -9,7 +9,7 @@
 - [ ] Allow override format when reading csv
 - [ ] Change Optional.Match to Optional.Fold
 - [ ] Change ToString method to show all digits in float and double value converter
-- [ ] Add Object as a builtin type?
+- [x] Add Object as a builtin type?
 - [ ] Rename IValueConverter methods to 'string ConvertTo(T)' and 'bool ConvertFrom(string, out T)'
 - [ ] Update README
 - [ ] Add tests for builtin types converters
