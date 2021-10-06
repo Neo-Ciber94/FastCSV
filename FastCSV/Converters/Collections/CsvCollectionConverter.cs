@@ -49,6 +49,16 @@ namespace FastCSV.Converters.Collections
             return converter;
         }
 
+        /// <summary>
+        /// Perform an operation over a collection before deserializing it.
+        /// </summary>
+        /// <param name="collection">The collection.</param>
+        /// <returns>The same collection with any changes make into it, if any.</returns>
+        public virtual TCollection PrepareCollection(TCollection collection)
+        {
+            return collection;
+        }
+
         public virtual bool CanConvert(Type type)
         {
             return typeof(TCollection) == type;
@@ -86,7 +96,7 @@ namespace FastCSV.Converters.Collections
                 AddItem(collection, i, elementType, (TElement)result!);
             }
 
-            value = collection;
+            value = PrepareCollection(collection);
             return true;
         }
     }

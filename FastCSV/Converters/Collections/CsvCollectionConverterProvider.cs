@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace FastCSV.Converters.Collections
 {
@@ -25,7 +26,7 @@ namespace FastCSV.Converters.Collections
 
         // ArrayList
         private ArrayListConverter? _listConverter = null;
-        private ArrayListConverter GetOrCreateIListConverter()
+        private ArrayListConverter GetOrCreateArrayListConverter()
         {
             if (_listConverter == null)
             {
@@ -33,6 +34,30 @@ namespace FastCSV.Converters.Collections
             }
 
             return _listConverter;
+        }
+
+        // Stack
+        private StackConverter? _stackConverter = null;
+        private StackConverter GetOrCreateStackConverter()
+        {
+            if (_stackConverter == null)
+            {
+                _stackConverter = new StackConverter();
+            }
+
+            return _stackConverter;
+        }
+
+        // Queue
+        private QueueConverter? _queueConverter = null;
+        private QueueConverter GetOrCreateQueueConverter()
+        {
+            if (_queueConverter == null)
+            {
+                _queueConverter = new QueueConverter();
+            }
+
+            return _queueConverter;
         }
 
         public ICsvValueConverter? GetConverter(Type type)
@@ -51,6 +76,16 @@ namespace FastCSV.Converters.Collections
             {
                 Type genericDefinition = type.GetGenericTypeDefinition();
 
+                if (genericDefinition == typeof(Stack<>))
+                {
+                    return GetOrCreateCollectionConverter(type, typeof(StackOfTConverter<>));
+                }
+
+                if (genericDefinition == typeof(Queue<>))
+                {
+                    return GetOrCreateCollectionConverter(type, typeof(QueueOfTConverter<>));
+                }
+
                 switch (type)
                 {
                     case Type _ when genericDefinition == typeof(List<>):
@@ -59,12 +94,7 @@ namespace FastCSV.Converters.Collections
                     case Type _ when genericDefinition == typeof(ICollection<>):
                     case Type _ when genericDefinition == typeof(IReadOnlyCollection<>):
                     case Type _ when genericDefinition == typeof(IEnumerable<>):
-                        {
-                            var elementType = type.GetEnumerableElementType()!;
-                            var listOfTConverter = GenericConverterFactory.CreateCollectionConverter(typeof(ListOfTConverter<>), elementType);
-                            _converters.Add(type, listOfTConverter);
-                            return listOfTConverter;
-                        }
+                        return GetOrCreateCollectionConverter(type, typeof(ListOfTConverter<>));
                     default:
                         break;
                 }
@@ -82,12 +112,33 @@ namespace FastCSV.Converters.Collections
                 case Type _ when type == typeof(IList):
                 case Type _ when type == typeof(ICollection):
                 case Type _ when type == typeof(IEnumerable):
-                    return GetOrCreateIListConverter();
+                    return GetOrCreateArrayListConverter();
                 default:
                     break;
             }
 
+            if (type == typeof(Stack))
+            {
+                return GetOrCreateStackConverter();
+            }
+
+            if (type == typeof(Queue))
+            {
+                return GetOrCreateQueueConverter();
+            }
+
             return null;
+        }
+
+        private ICsvValueConverter GetOrCreateCollectionConverter(Type enumerableType, Type genericDefinition)
+        {
+            Debug.Assert(enumerableType.IsEnumerableType());
+            Debug.Assert(genericDefinition.IsGenericTypeDefinition);
+
+            var elementType = enumerableType.GetEnumerableElementType()!;
+            var converter = GenericConverterFactory.CreateCollectionConverter(genericDefinition, elementType);
+            _converters.Add(enumerableType, converter);
+            return converter;
         }
     }
 }
