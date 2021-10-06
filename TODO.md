@@ -14,3 +14,4 @@
 - [ ] Update README
 - [ ] Add tests for builtin types converters
 - [ ] Add tests for floating points converters
+- [ ] Move extensions to FastCSV.Extensions
