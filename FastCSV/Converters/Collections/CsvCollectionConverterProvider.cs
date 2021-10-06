@@ -86,6 +86,16 @@ namespace FastCSV.Converters.Collections
                     return GetOrCreateCollectionConverter(type, typeof(QueueOfTConverter<>));
                 }
 
+                if (genericDefinition == typeof(HashSet<>))
+                {
+                    return GetOrCreateCollectionConverter(type, typeof(HashSetOfTConverter<>));
+                }
+
+                if (genericDefinition == typeof(SortedSet<>))
+                {
+                    return GetOrCreateCollectionConverter(type, typeof(SortedSetOfTConverter<>));
+                }
+
                 switch (type)
                 {
                     case Type _ when genericDefinition == typeof(List<>):
