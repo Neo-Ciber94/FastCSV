@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace FastCSV.Converters.Collections
 {
@@ -94,6 +95,13 @@ namespace FastCSV.Converters.Collections
                 if (genericDefinition == typeof(SortedSet<>))
                 {
                     return GetOrCreateCollectionConverter(type, typeof(SortedSetOfTConverter<>));
+                }
+
+                if (typeof(ITuple).IsAssignableFrom(type))
+                {
+                    var tupleConverter = new TupleConverter(type);
+                    _converters.Add(type, tupleConverter);
+                    return tupleConverter;
                 }
 
                 switch (type)

@@ -28,18 +28,6 @@ namespace FastCSV.Converters
         public int Count => _singleValue == null ? _values.Length : 1;
 
         /// <summary>
-        /// Checks whether this state is deserializing a collection element.
-        /// </summary>
-        public bool IsCollectionElement
-        {
-            get
-            {
-                Type type = Property?.Type ?? _elementType;
-                return type.IsEnumerableType();
-            }
-        }
-
-        /// <summary>
         /// Type of the elements being deserialized.
         /// 
         /// <para>

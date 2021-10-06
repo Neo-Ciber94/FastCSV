@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 
 namespace FastCSV
@@ -477,6 +478,17 @@ namespace FastCSV
 
                     foreach (object? item in enumerable)
                     {
+                        items.Add(new DataToSerialize(property, $"{itemName}{++itemIndex}", item));
+                    }
+                }
+                else if (handleCollections && property.Value is ITuple tuple)
+                {
+                    string itemName = options.CollectionHandling!.ItemName;
+                    int itemIndex = 0;
+
+                    while (itemIndex < tuple.Length)
+                    {
+                        var item = tuple[itemIndex];
                         items.Add(new DataToSerialize(property, $"{itemName}{++itemIndex}", item));
                     }
                 }
