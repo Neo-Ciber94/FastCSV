@@ -54,21 +54,24 @@ namespace FastCSV.Converters.Collections
 
             if (type.IsGenericType)
             {
-                /*
-                 * List<T> converter is used for serialize/deserialize the following types:
-                 * - List<T>
-                 * - IList<T>
-                 * - IReadOnlyList<T>
-                 * - ICollection<T>
-                 * - IReadOnlyCollection<T>
-                 * - IEnumerable<T>
-                 */
-                if (CanAssignToType(typeof(List<>), type))
+                Type genericDefinition = type.GetGenericTypeDefinition();
+
+                switch (type)
                 {
-                    var elementType = type.GetCollectionElementType()!;
-                    var listOfTConverter = GenericConverterFactory.CreateCollectionConverter(typeof(ListOfTConverter<>), elementType);
-                    _converters.Add(type, listOfTConverter);
-                    return listOfTConverter;
+                    case Type _ when genericDefinition == typeof(List<>):
+                    case Type _ when genericDefinition == typeof(IList<>):
+                    case Type _ when genericDefinition == typeof(IReadOnlyList<>):
+                    case Type _ when genericDefinition == typeof(ICollection<>):
+                    case Type _ when genericDefinition == typeof(IReadOnlyCollection<>):
+                    case Type _ when genericDefinition == typeof(IEnumerable<>):
+                        {
+                            var elementType = type.GetEnumerableElementType()!;
+                            var listOfTConverter = GenericConverterFactory.CreateCollectionConverter(typeof(ListOfTConverter<>), elementType);
+                            _converters.Add(type, listOfTConverter);
+                            return listOfTConverter;
+                        }
+                    default:
+                        break;
                 }
             }
 
@@ -78,16 +81,15 @@ namespace FastCSV.Converters.Collections
 
         private ICsvValueConverter? GetNonGenericCollectionConverter(Type type)
         {
-            /*
-             * ArrayList converter is used for serialize/deserialize the following types:
-             * - ArrayList
-             * - IList
-             * - ICollection
-             * - IEnumerable
-             */
-            if (typeof(ArrayList).IsAssignableFrom(type))
+            switch (type)
             {
-                return GetOrCreateIListConverter();
+                case Type _ when type == typeof(ArrayList):
+                case Type _ when type == typeof(IList):
+                case Type _ when type == typeof(ICollection):
+                case Type _ when type == typeof(IEnumerable):
+                    return GetOrCreateIListConverter();
+                default:
+                    break;
             }
 
             return null;
@@ -96,9 +98,9 @@ namespace FastCSV.Converters.Collections
         private static bool CanAssignToType(Type collectionGenericDefinition, Type collectionType)
         {
             Debug.Assert(collectionGenericDefinition.IsGenericTypeDefinition);
-            Debug.Assert(collectionType.IsCollectionType());
+            Debug.Assert(collectionType.IsEnumerableType());
 
-            Type elementType = collectionType.GetCollectionElementType()!;
+            Type elementType = collectionType.GetEnumerableElementType()!;
             Type genericType = collectionGenericDefinition.MakeGenericType(elementType);
 
             if (genericType == collectionType)
