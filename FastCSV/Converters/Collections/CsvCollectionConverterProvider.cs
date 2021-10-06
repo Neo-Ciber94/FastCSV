@@ -137,6 +137,11 @@ namespace FastCSV.Converters.Collections
                 return GetOrCreateQueueConverter();
             }
 
+            if (type == typeof(BitArray))
+            {
+                return new BitArrayConverter<int>();
+            }
+
             return null;
         }
 

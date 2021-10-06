@@ -15,3 +15,4 @@
 - [ ] Add tests for builtin types converters
 - [ ] Add tests for floating points converters
 - [ ] Move extensions to FastCSV.Extensions
+- [ ] Allow serialize/deserialize any raw type (Without an object) not just builtins

@@ -44,6 +44,12 @@ namespace FastCSV.Utils
                 return null;
             }
 
+            // Special case
+            if (type == typeof(BitArray))
+            {
+                return typeof(int);
+            }
+
             var generics = type.GetGenericArguments();
 
             if (generics.Length == 1)
