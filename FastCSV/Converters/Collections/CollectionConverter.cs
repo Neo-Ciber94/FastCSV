@@ -1,10 +1,16 @@
-﻿using System;
+﻿using FastCSV.Utils;
+using System;
 using System.Collections;
 
 namespace FastCSV.Converters.Collections
 {
     internal abstract class CollectionConverter<TCollection> : CsvCollectionConverter<TCollection, object?> where TCollection: ICollection
     {
+        public override bool CanConvert(Type type)
+        {
+            return type.IsEnumerableType() && typeof(TCollection).IsAssignableTo(type);
+        }
+
         public override bool TrySerialize(TCollection value, ref CsvSerializeState state)
         {
             foreach (object? obj in value)

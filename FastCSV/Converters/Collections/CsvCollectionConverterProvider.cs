@@ -2,14 +2,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 
 namespace FastCSV.Converters.Collections
 {
     internal class CsvCollectionConverterProvider : ICsvConverterProvider
     {
-        public static readonly CsvCollectionConverterProvider Default = new CsvCollectionConverterProvider();
+        public static readonly CsvCollectionConverterProvider Default = new();
 
         private readonly IDictionary<Type, ICsvValueConverter> _converters = new Dictionary<Type, ICsvValueConverter>();
 
@@ -25,7 +23,7 @@ namespace FastCSV.Converters.Collections
             return _arrayConverter;
         }
 
-        // IList
+        // ArrayList
         private ArrayListConverter? _listConverter = null;
         private ArrayListConverter GetOrCreateIListConverter()
         {
@@ -90,27 +88,6 @@ namespace FastCSV.Converters.Collections
             }
 
             return null;
-        }
-
-        private static bool CanAssignToType(Type collectionGenericDefinition, Type collectionType)
-        {
-            Debug.Assert(collectionGenericDefinition.IsGenericTypeDefinition);
-            Debug.Assert(collectionType.IsEnumerableType());
-
-            Type elementType = collectionType.GetEnumerableElementType()!;
-            Type genericType = collectionGenericDefinition.MakeGenericType(elementType);
-
-            if (genericType == collectionType)
-            {
-                return true;
-            }
-
-            if (collectionType.IsAssignableToClass(genericType))
-            {
-                return true;
-            }
-
-            return genericType.GetInterfaces().Any(i => i == collectionType || i.IsAssignableFrom(collectionType));
         }
     }
 }
