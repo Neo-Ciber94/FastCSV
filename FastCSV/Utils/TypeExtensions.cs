@@ -2,10 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace FastCSV.Utils
 {
-    public static class TypeExtensions
+    internal static class TypeExtensions
     {
         /// <summary>
         /// Whether if the given type is a nullable type.
@@ -24,7 +25,7 @@ namespace FastCSV.Utils
         /// <returns></returns>
         public static bool IsEnumerableType(this Type type)
         {
-            return type.IsArray || typeof(IEnumerable).IsAssignableFrom(type);
+            return type.IsArray || typeof(ITuple).IsAssignableFrom(type) || typeof(IEnumerable).IsAssignableFrom(type);
         }
 
         /// <summary>
@@ -50,11 +51,26 @@ namespace FastCSV.Utils
                 return typeof(int);
             }
 
-            var generics = type.GetGenericArguments();
+            // We look for the type in T in IEnumerable<T>
 
-            if (generics.Length == 1)
+            Type? genericEnumerableInterface = null;
+
+            if (type.IsInterface && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
             {
-                return generics[0];
+                genericEnumerableInterface = type;
+            }
+
+            if (genericEnumerableInterface == null)
+            {
+                genericEnumerableInterface = type.GetInterfaces().FirstOrDefault(e =>
+                {
+                    return e.IsGenericType && e.GetGenericTypeDefinition() == typeof(IEnumerable<>);
+                });
+            }
+
+            if (genericEnumerableInterface != null)
+            {
+                return genericEnumerableInterface.GetGenericArguments()[0];
             }
 
             return typeof(object);
