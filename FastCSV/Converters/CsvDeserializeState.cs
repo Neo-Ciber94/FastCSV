@@ -35,7 +35,7 @@ namespace FastCSV.Converters
             get
             {
                 Type type = Property?.Type ?? _elementType;
-                return type.IsCollectionType();
+                return type.IsEnumerableType();
             }
         }
 
@@ -52,9 +52,9 @@ namespace FastCSV.Converters
             {
                 Type type = Property?.Type ?? _elementType;
 
-                if (type.IsCollectionType())
+                if (type.IsEnumerableType())
                 {
-                    return type.GetCollectionElementType()!;
+                    return type.GetEnumerableElementType()!;
                 }
 
                 return type;

@@ -561,7 +561,7 @@ namespace FastCSV
                     }
                     else
                     {
-                        if (property.Type.IsCollectionType() && handleCollections)
+                        if (property.Type.IsEnumerableType() && handleCollections)
                         {
                             ReadOnlyMemory<string> recordValues = ReadCollectionFromRecord(record, index, options.CollectionHandling!);
                             ICsvValueConverter? collectionConverter = GetConverter(property.Type, options, property.Converter);
@@ -835,7 +835,7 @@ namespace FastCSV
                 }
             }
             
-            if (options.CollectionHandling != null && elementType.IsCollectionType())
+            if (options.CollectionHandling != null && elementType.IsEnumerableType())
             {
                 var collectionConverter = CsvCollectionConverterProvider.Default.GetConverter(elementType);
                 if (collectionConverter != null)
