@@ -94,6 +94,115 @@ namespace FastCSV.Converters
             Assert.AreEqual("item1,item2,item3,item4,item5,item6,item7,item8,item9,item10,item11,item12,item13\n12,red,250.24,c,699.99,false,9000,1.5.134,false,true,1,2,2", serialized);
         }
 
+        [Test]
+        public void DeserializeValueTuple1Test()
+        {
+            var csv = "item1\n12";
+            var deserialized = CsvConverter.Deserialize<TupleItems<ValueTuple<int>>>(csv, Options);
+
+            Assert.AreEqual(new ValueTuple<int>(12), deserialized.Items);
+        }
+
+        [Test]
+        public void DeserializeValueTuple2Test()
+        {
+            var csv = "item1,item2\n12,red";
+            var deserialized = CsvConverter.Deserialize<TupleItems<ValueTuple<int, string>>>(csv, Options);
+
+            Assert.AreEqual((12, "red"), deserialized.Items);
+        }
+
+        [Test]
+        public void DeserializeValueTuple3Test()
+        {
+            var csv = "item1,item2,item3\n12,red,250.24";
+            var deserialized = CsvConverter.Deserialize<TupleItems<ValueTuple<int, string, float>>>(csv, Options);
+
+            Assert.AreEqual((12, "red", 250.24f), deserialized.Items);
+        }
+
+        [Test]
+        public void DeserializeValueTuple4Test()
+        {
+            var csv = "item1,item2,item3,item4\n12,red,250.24,c";
+            var deserialized = CsvConverter.Deserialize<TupleItems<ValueTuple<int, string, float, char>>>(csv, Options);
+
+            Assert.AreEqual((12, "red", 250.24f, 'c'), deserialized.Items);
+        }
+
+        [Test]
+        public void DeserializeValueTuple5Test()
+        {
+            var csv = "item1,item2,item3,item4,item5\n12,red,250.24,c,false";
+            var deserialized = CsvConverter.Deserialize<TupleItems<ValueTuple<int, string, float, char, bool>>>(csv, Options);
+
+            Assert.AreEqual((12, "red", 250.24f, 'c', false), deserialized.Items);
+        }
+
+        [Test]
+        public void DeserializeValueTuple6Test()
+        {
+            var csv = "item1,item2,item3,item4,item5,item6\n12,red,250.24,c,false,9000";
+            var deserialized = CsvConverter.Deserialize<TupleItems<ValueTuple<int, string, float, char, bool, long>>>(csv, Options);
+
+            Assert.AreEqual((12, "red", 250.24f, 'c', false, 9000L), deserialized.Items);
+        }
+
+        [Test]
+        public void DeserializeValueTuple7Test()
+        {
+            var csv = "item1,item2,item3,item4,item5,item6,item7\n12,red,250.24,c,false,9000,1.5.243";
+            var deserialized = CsvConverter.Deserialize<TupleItems<ValueTuple<int, string, float, char, bool, long, Version>>>(csv, Options);
+
+            Assert.AreEqual((12, "red", 250.24f, 'c', false, 9000L, new Version(1, 5, 243)), deserialized.Items);
+        }
+
+        [Test]
+        public void DeserializeValueTuple8Test()
+        {
+            var csv = "item1,item2,item3,item4,item5,item6,item7,item8\n12,red,250.24,c,false,9000,1.5.243,true";
+            var deserialized = CsvConverter.Deserialize<TupleItems<(int, string, float, char, bool, long, Version, bool)>>(csv, Options);
+            Assert.AreEqual((12, "red", 250.24f, 'c', false, 9000L, new Version(1, 5, 243), true), deserialized.Items);
+        }
+
+        [Test]
+        public void DeserializeValueTuple8ExceptionTest()
+        {
+            var csv = "item1,item2,item3,item4,item5,item6,item7,item8\n12,red,250.24,c,false,9000,1.5.243,true";
+
+            Assert.Throws<ArgumentException>(() =>
+            {
+                var deserialized = CsvConverter.Deserialize<TupleItems<ValueTuple<int, string, float, char, bool, long, Version, bool>>>(csv, Options);
+            }, "Object of type 'System.ValueTuple`8[System.Int32,System.String,System.Single,System.Char,System.Boolean,System.Int64,System.Version,System.ValueTuple`1[System.Boolean]]' cannot be converted to type 'System.ValueTuple`8[System.Int32,System.String,System.Single,System.Char,System.Boolean,System.Int64,System.Version,System.Boolean]'");
+        }
+
+        [Test]
+        public void DeserializeValueTuple9Test()
+        {
+            var csv = "item1,item2,item3,item4,item5,item6,item7,item8,item9\n12,red,250.24,c,false,9000,1.5.243,true,green";
+            var deserialized = CsvConverter.Deserialize<TupleItems<(int, string, float, char, bool, long, Version, bool, string)>>(csv, Options);
+
+            Assert.AreEqual((12, "red", 250.24f, 'c', false, 9000L, new Version(1, 5, 243), true, "green"), deserialized.Items);
+        }
+
+        [Test]
+        public void DeserializeValueTuple17Test()
+        {
+            var csv = "item1,item2,item3,item4,item5,item6,item7,item8,item9,item10,item11,item12,item13,item14,item15,item16,item17\n0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,false";
+            var deserialized = CsvConverter.Deserialize<TupleItems<(int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, bool)>>(csv, Options);
+
+            Assert.AreEqual((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false), deserialized.Items);
+        }
+
+        [Test]
+        public void DeserializeValueTuple18Test()
+        {
+            var csv = "item1,item2,item3,item4,item5,item6,item7,item8,item9,item10,item11,item12,item13,item14,item15,item16,item17\n0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,true,false";
+            var deserialized = CsvConverter.Deserialize<TupleItems<(int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, bool, bool)>>(csv, Options);
+
+            Assert.AreEqual((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, true, false), deserialized.Items);
+        }
+
         record TupleItems<TTuple>(TTuple Items) where TTuple: ITuple;
 
         private static TupleItems<TTuple> CreateTuple<TTuple>(TTuple tuple) where TTuple: ITuple

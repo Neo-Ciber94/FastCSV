@@ -54,9 +54,20 @@ namespace FastCSV.Converters.Collections
         /// </summary>
         /// <param name="collection">The collection.</param>
         /// <returns>The same collection with any changes make into it, if any.</returns>
-        public virtual TCollection PrepareCollection(TCollection collection)
+        protected virtual TCollection PrepareCollection(TCollection collection)
         {
             return collection;
+        }
+
+        /// <summary>
+        /// Gets the type of the element at the given index.
+        /// </summary>
+        /// <param name="index">Index of the element.</param>
+        /// <param name="state">The current deserialization state.</param>
+        /// <returns>The type of the element at the specified index.</returns>
+        protected virtual Type GetElementTypeAt(int index, ref CsvDeserializeState state)
+        {
+            return state.ElementType;
         }
 
         public virtual bool CanConvert(Type type)
@@ -72,21 +83,15 @@ namespace FastCSV.Converters.Collections
 
             TCollection collection = CreateCollection(state.ElementType, state.Count);
             CsvProperty? property = state.Property;
-
-            if (property == null)
-            {
-                throw new InvalidOperationException("Cannot find a CsvPropertyInfo to deserialize the collection");
-            }
-
             CsvConverterOptions options = state.Options;
 
             for (int i = 0; i < state.Count; i++)
             {
-                Type elementType = state.ElementType;
+                Type elementType = GetElementTypeAt(i, ref state);
                 string stringValue = state.Read(i);
 
                 CsvDeserializeState elementState = new CsvDeserializeState(options, elementType, stringValue);
-                ICsvValueConverter converter = GetElementConverter(options, elementType, property.Converter);
+                ICsvValueConverter converter = GetElementConverter(options, elementType, property?.Converter);
 
                 if (!converter.TryDeserialize(out object? result, elementType, ref elementState))
                 {

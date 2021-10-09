@@ -40,6 +40,12 @@ namespace FastCSV.Utils
                 return type.GetElementType()!;
             }
 
+            // Special case
+            if (typeof(ITuple).IsAssignableFrom(type))
+            {
+                return typeof(object);
+            }
+
             if (!typeof(IEnumerable).IsAssignableFrom(type) || type.IsGenericTypeDefinition)
             {
                 return null;
