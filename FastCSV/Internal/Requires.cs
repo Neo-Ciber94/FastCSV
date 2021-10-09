@@ -13,7 +13,7 @@ namespace FastCSV.Internal
             var comparer = EqualityComparer<T>.Default;
             if (!comparer.Equals(expected, value))
             {
-                string actualMessage = message ?? $"Expected '{expected}' but was '{value}'";
+                string actualMessage = message ?? $"Required '{expected}' but was '{value}'";
                 throw new ArgumentException(actualMessage);
             }
         }
@@ -24,7 +24,7 @@ namespace FastCSV.Internal
             var comparer = EqualityComparer<T>.Default;
             if (!comparer.Equals(expected, value))
             {
-                string actualMessage = message ?? $"Expected '{expected}' but was '{value}'";
+                string actualMessage = message ?? $"Required '{expected}' but was '{value}'";
                 throw new ArgumentException(actualMessage);
             }
         }
@@ -34,8 +34,8 @@ namespace FastCSV.Internal
         {
             if (!condition)
             {
-                string actualMessage = message ?? $"Expected true but was: '{conditionExpression}'";
-                throw new InvalidOperationException(actualMessage);
+                message ??= $"Required true but was: {conditionExpression}";
+                throw new InvalidOperationException(message);
             }
         }
 
@@ -44,8 +44,8 @@ namespace FastCSV.Internal
         {
             if (condition)
             {
-                string actualMessage = message ?? $"Expected false but was: '{conditionExpression}'";
-                throw new InvalidOperationException(actualMessage);
+                message ??= $"Required false but was: {conditionExpression}";
+                throw new InvalidOperationException(message);
             }
         }
     }
