@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
@@ -92,7 +93,13 @@ namespace FastCSV.Converters.Collections
                     return collectionConverter;
                 }
 
-                // Concurrent collections converters
+                // Immutable collections
+                if (TryGetImmutableCollectionConverter(type, genericDefinition, out collectionConverter))
+                {
+                    return collectionConverter;
+                }
+
+                // Concurrent collections
                 if (TryGetConcurrentCollectionConverter(type, genericDefinition, out collectionConverter))
                 {
                     return collectionConverter;
@@ -189,6 +196,49 @@ namespace FastCSV.Converters.Collections
             if (genericDefinition == typeof(ConcurrentQueue<>))
             {
                 converter = GetOrCreateCollectionConverter(type, typeof(ConcurrentQueueOfTConverter<>));
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryGetImmutableCollectionConverter(Type type, Type genericDefinition, out ICsvValueConverter? converter)
+        {
+            converter = null;
+
+            if (genericDefinition == typeof(ImmutableArray<>))
+            {
+                converter = GetOrCreateCollectionConverter(type, typeof(ImmutableArrayOfTConverter<>));
+                return true;
+            }
+
+            if (genericDefinition == typeof(ImmutableList<>) || genericDefinition == typeof(IImmutableList<>))
+            {
+                converter = GetOrCreateCollectionConverter(type, typeof(ImmutableListOfTConverter<>));
+                return true;
+            }
+
+            if (genericDefinition == typeof(ImmutableStack<>) || genericDefinition == typeof(IImmutableStack<>))
+            {
+                converter = GetOrCreateCollectionConverter(type, typeof(ImmutableStackOfTConverter<>));
+                return true;
+            }
+
+            if (genericDefinition == typeof(ImmutableQueue<>) || genericDefinition == typeof(IImmutableQueue<>))
+            {
+                converter = GetOrCreateCollectionConverter(type, typeof(ImmutableQueueOfTConverter<>));
+                return true;
+            }
+
+            if (genericDefinition == typeof(ImmutableHashSet<>) || genericDefinition == typeof(IImmutableSet<>))
+            {
+                converter = GetOrCreateCollectionConverter(type, typeof(ImmutableHashSetOfTConverter<>));
+                return true;
+            }
+
+            if (genericDefinition == typeof(ImmutableSortedSet<>))
+            {
+                converter = GetOrCreateCollectionConverter(type, typeof(ImmutableSortedSetOfTConverter<>));
                 return true;
             }
 

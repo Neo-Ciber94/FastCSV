@@ -9,8 +9,6 @@ namespace FastCSV.Converters.Collections
 {
     internal class TupleConverter : CsvCollectionConverter<ITuple, object?>
     {
-        const int TupleMaxLength = 8;
-
         private readonly Type tupleType;
         private readonly Type[] tupleGenericTypes;
 
@@ -140,7 +138,7 @@ namespace FastCSV.Converters.Collections
 
             Type[] types = tupleType.GetGenericArguments();
 
-            if (types.Length == TupleMaxLength)
+            if (types.Length == 8)
             {
                 List<Type> typeList = new(8);
 
@@ -153,16 +151,16 @@ namespace FastCSV.Converters.Collections
                         typeList.Add(types[i]);
                     }
 
-                    if (types.Length != TupleMaxLength)
+                    if (types.Length != 8)
                     {
                         break;
                     }
 
-                    Type lastType = types[TupleMaxLength - 1];
+                    Type lastType = types[^1];
 
                     if (typeof(ITuple).IsAssignableFrom(lastType))
                     {
-                        types = types[TupleMaxLength - 1].GetGenericArguments();
+                        types = types[^1].GetGenericArguments();
                     }
                     else
                     {
