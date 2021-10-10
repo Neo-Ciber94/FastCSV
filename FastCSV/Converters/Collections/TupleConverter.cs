@@ -1,10 +1,7 @@
-﻿using FastCSV.Collections;
-using FastCSV.Internal;
+﻿using FastCSV.Internal;
 using FastCSV.Utils;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -147,7 +144,7 @@ namespace FastCSV.Converters.Collections
             {
                 List<Type> typeList = new(8);
 
-                while(true)
+                while (true)
                 {
                     int length = Math.Min(7, types.Length);
 
@@ -192,6 +189,11 @@ namespace FastCSV.Converters.Collections
                 Value = value;
                 Type = type;
             }
+
+            public override string ToString()
+            {
+                return $"({Type}, {Value})";
+            }
         }
 
         class TupleBuilder : ITuple
@@ -230,23 +232,21 @@ namespace FastCSV.Converters.Collections
             {
                 Requires.True(items.Length > 0);
 
-                const int MaxTupleElementsCount = 8;
-
                 ITuple? current = null;
                 int length = items.Length;
 
                 while(length > 0)
                 {
-                    int modResult = length % MaxTupleElementsCount;
+                    int modResult = length % 7;
                     int lastElementsCount = 0;
                     
                     if (current == null) 
                     {
-                        lastElementsCount = modResult + 1;
+                        lastElementsCount = modResult == 0 ? 7 : modResult;
                     } 
                     else
                     {
-                        lastElementsCount = modResult;
+                        lastElementsCount = 7;
                     }
 
                     int startIndex = length - lastElementsCount;
@@ -263,20 +263,25 @@ namespace FastCSV.Converters.Collections
                         Type[] types = new Type[8];
                         object?[] values = new object[8];
 
-                        for (int i = 0; i < MaxTupleElementsCount; i++)
+                        for (int i = 0; i < 8; i++)
                         {
                             types[i] = items[i + startIndex].Type;
                             values[i] = items[i + startIndex].Value;
                         }
 
-                        types[MaxTupleElementsCount - 1] = current.GetType();
-                        values[MaxTupleElementsCount - 1] = current;
+                        types[^1] = current.GetType();
+                        values[^1] = current;
 
                         current = TupleUtils.CreateTuple(types, values, tupleKind);
                     }
 
+                    if (lastElementsCount == 0)
+                    {
+                        break;
+                    }
+
                     length -= lastElementsCount;
-                }             
+                }
 
                 return current!;
             }

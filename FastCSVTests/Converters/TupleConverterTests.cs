@@ -188,19 +188,19 @@ namespace FastCSV.Converters
         [Test]
         public void DeserializeValueTuple17Test()
         {
-            var csv = "item1,item2,item3,item4,item5,item6,item7,item8,item9,item10,item11,item12,item13,item14,item15,item16,item17\n0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,false";
-            var deserialized = CsvConverter.Deserialize<TupleItems<(int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, bool)>>(csv, Options);
+            var csv = "item1,item2,item3,item4,item5,item6,item7,item8,item9,item10,item11,item12,item13,item14,item15,item16,item17\n1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,false";
+            var deserialized = CsvConverter.Deserialize<TupleItems<(int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, bool)>>(csv, Options);
 
-            Assert.AreEqual((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false), deserialized.Items);
+            Assert.AreEqual((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, false), deserialized.Items);
         }
 
         [Test]
         public void DeserializeValueTuple18Test()
         {
-            var csv = "item1,item2,item3,item4,item5,item6,item7,item8,item9,item10,item11,item12,item13,item14,item15,item16,item17\n0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,true,false";
-            var deserialized = CsvConverter.Deserialize<TupleItems<(int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, bool, bool)>>(csv, Options);
+            var csv = "item1,item2,item3,item4,item5,item6,item7,item8,item9,item10,item11,item12,item13,item14,item15,item16,item17,item18\n1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,true,false";
+            var deserialized = CsvConverter.Deserialize<TupleItems<(int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, bool, bool)>>(csv, Options);
 
-            Assert.AreEqual((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, true, false), deserialized.Items);
+            Assert.AreEqual((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, true, false), deserialized.Items);
         }
 
         record TupleItems<TTuple>(TTuple Items) where TTuple: ITuple;
