@@ -9,12 +9,12 @@ namespace FastCSV.Converters.Builtin
     /// </summary>
     public class DecimalValueConverter : IValueConverter<System.Decimal>
     {
-        public string? Read(System.Decimal value)
+        public string? ConvertFrom(System.Decimal value)
         {
             return value.ToString();
         }
 
-        public bool TryParse(System.ReadOnlySpan<char> s, out System.Decimal value)
+        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Decimal value)
         {
             return System.Decimal.TryParse(s, out value!);
         }

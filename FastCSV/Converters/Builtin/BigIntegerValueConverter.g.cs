@@ -9,12 +9,12 @@ namespace FastCSV.Converters.Builtin
     /// </summary>
     public class BigIntegerValueConverter : IValueConverter<System.Numerics.BigInteger>
     {
-        public string? Read(System.Numerics.BigInteger value)
+        public string? ConvertFrom(System.Numerics.BigInteger value)
         {
             return value.ToString();
         }
 
-        public bool TryParse(System.ReadOnlySpan<char> s, out System.Numerics.BigInteger value)
+        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Numerics.BigInteger value)
         {
             return System.Numerics.BigInteger.TryParse(s, out value!);
         }

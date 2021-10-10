@@ -9,12 +9,12 @@ namespace FastCSV.Converters.Builtin
     /// </summary>
     public class DateTimeValueConverter : IValueConverter<System.DateTime>
     {
-        public string? Read(System.DateTime value)
+        public string? ConvertFrom(System.DateTime value)
         {
             return value.ToString();
         }
 
-        public bool TryParse(System.ReadOnlySpan<char> s, out System.DateTime value)
+        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.DateTime value)
         {
             return System.DateTime.TryParse(s, out value!);
         }

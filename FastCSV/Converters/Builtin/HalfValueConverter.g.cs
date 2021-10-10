@@ -9,12 +9,12 @@ namespace FastCSV.Converters.Builtin
     /// </summary>
     public class HalfValueConverter : IValueConverter<System.Half>
     {
-        public string? Read(System.Half value)
+        public string? ConvertFrom(System.Half value)
         {
             return value.ToString();
         }
 
-        public bool TryParse(System.ReadOnlySpan<char> s, out System.Half value)
+        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Half value)
         {
             return System.Half.TryParse(s, out value!);
         }

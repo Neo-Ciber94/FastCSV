@@ -14,12 +14,12 @@ namespace FastCSV.Converters.Builtin
     /// </summary>
     public class {0}ValueConverter : IValueConverter<{1}>
     {
-        public string? Read({1} value)
+        public string? ConvertFrom({1} value)
         {
             return {2};
         }
 
-        public bool TryParse(System.ReadOnlySpan<char> s, out {1} value)
+        public bool ConvertTo(System.ReadOnlySpan<char> s, out {1} value)
         {
             return {1}.TryParse({3}, out value!);
         }

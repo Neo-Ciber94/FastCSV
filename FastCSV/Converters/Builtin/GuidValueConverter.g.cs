@@ -9,12 +9,12 @@ namespace FastCSV.Converters.Builtin
     /// </summary>
     public class GuidValueConverter : IValueConverter<System.Guid>
     {
-        public string? Read(System.Guid value)
+        public string? ConvertFrom(System.Guid value)
         {
             return value.ToString();
         }
 
-        public bool TryParse(System.ReadOnlySpan<char> s, out System.Guid value)
+        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Guid value)
         {
             return System.Guid.TryParse(s, out value!);
         }

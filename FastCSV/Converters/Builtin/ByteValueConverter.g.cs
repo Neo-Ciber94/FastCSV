@@ -9,12 +9,12 @@ namespace FastCSV.Converters.Builtin
     /// </summary>
     public class ByteValueConverter : IValueConverter<System.Byte>
     {
-        public string? Read(System.Byte value)
+        public string? ConvertFrom(System.Byte value)
         {
             return value.ToString();
         }
 
-        public bool TryParse(System.ReadOnlySpan<char> s, out System.Byte value)
+        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Byte value)
         {
             return System.Byte.TryParse(s, out value!);
         }

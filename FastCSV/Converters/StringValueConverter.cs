@@ -7,12 +7,12 @@ namespace FastCSV.Converters
     /// </summary>
     public class StringValueConverter : IValueConverter<string>
     {
-        public string Read(string value)
+        public string ConvertFrom(string value)
         {
             return value;
         }
 
-        public bool TryParse(ReadOnlySpan<char> s, out string value)
+        public bool ConvertTo(ReadOnlySpan<char> s, out string value)
         {
             value = s.ToString();
             return true;

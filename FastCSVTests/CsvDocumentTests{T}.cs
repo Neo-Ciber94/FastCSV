@@ -507,12 +507,12 @@ namespace FastCSV.Tests
 
         class PhoneNumberConverter : IValueConverter<PhoneNumber>
         {
-            public string Read(PhoneNumber value)
+            public string ConvertFrom(PhoneNumber value)
             {
                 return value.ToString();
             }
 
-            public bool TryParse(ReadOnlySpan<char> s, out PhoneNumber value)
+            public bool ConvertTo(ReadOnlySpan<char> s, out PhoneNumber value)
             {
                 value = default;
 

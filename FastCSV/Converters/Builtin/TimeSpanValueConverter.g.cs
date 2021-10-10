@@ -9,12 +9,12 @@ namespace FastCSV.Converters.Builtin
     /// </summary>
     public class TimeSpanValueConverter : IValueConverter<System.TimeSpan>
     {
-        public string? Read(System.TimeSpan value)
+        public string? ConvertFrom(System.TimeSpan value)
         {
             return value.ToString();
         }
 
-        public bool TryParse(System.ReadOnlySpan<char> s, out System.TimeSpan value)
+        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.TimeSpan value)
         {
             return System.TimeSpan.TryParse(s, out value!);
         }

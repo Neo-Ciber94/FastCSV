@@ -9,12 +9,12 @@ namespace FastCSV.Converters.Builtin
     /// </summary>
     public class UIntValueConverter : IValueConverter<System.UInt32>
     {
-        public string? Read(System.UInt32 value)
+        public string? ConvertFrom(System.UInt32 value)
         {
             return value.ToString();
         }
 
-        public bool TryParse(System.ReadOnlySpan<char> s, out System.UInt32 value)
+        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.UInt32 value)
         {
             return System.UInt32.TryParse(s, out value!);
         }

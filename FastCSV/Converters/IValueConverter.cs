@@ -13,23 +13,23 @@ namespace FastCSV.Converters
         /// <param name="s">The string to parse.</param>
         /// <param name="value">The resulting value.</param>
         /// <returns><c>true</c> if the value can be parse, otherwise <c>false</c>.</returns>
-        public bool TryParse(ReadOnlySpan<char> s, out object? value);
+        public bool ConvertTo(ReadOnlySpan<char> s, out object? value);
 
         /// <summary>
         /// Reads the value as <see cref="string"/>.
         /// </summary>
         /// <param name="value">The value to convert.</param>
         /// <returns>A string representation of the value.</returns>
-        public string? Read(object? value);
+        public string? ConvertFrom(object? value);
 
         bool ICsvValueConverter.TryDeserialize(out object? result, Type elementType, ref CsvDeserializeState state)
         {
-            return TryParse(state.Read(), out result);
+            return ConvertTo(state.Read(), out result);
         }
 
         bool ICsvValueConverter.TrySerialize(object? value, Type elementType, ref CsvSerializeState state)
         {
-            string? result = Read(value);
+            string? result = ConvertFrom(value);
             if (result == null)
             {
                 return false;
@@ -52,14 +52,14 @@ namespace FastCSV.Converters
         /// <param name="s">The string to parse.</param>
         /// <param name="value">The resulting value.</param>
         /// <returns><c>true</c> if the value can be parse, otherwise <c>false</c>.</returns>
-        public bool TryParse(ReadOnlySpan<char> s, out T value);
+        public bool ConvertTo(ReadOnlySpan<char> s, out T value);
 
         /// <summary>
         /// Reads the value as <see cref="string"/>.
         /// </summary>
         /// <param name="value">The value to convert.</param>
         /// <returns>A string representation of the value.</returns>
-        public string? Read(T value);
+        public string? ConvertFrom(T value);
 
         /// <inheritdoc/>
         bool ICsvValueConverter.CanConvert(Type type)
@@ -68,17 +68,17 @@ namespace FastCSV.Converters
         }
 
         /// <inheritdoc/>
-        string? IValueConverter.Read(object? value)
+        string? IValueConverter.ConvertFrom(object? value)
         {
-            return Read((T)value!);
+            return ConvertFrom((T)value!);
         }
 
         /// <inheritdoc/>
-        bool IValueConverter.TryParse(ReadOnlySpan<char> s, out object? value)
+        bool IValueConverter.ConvertTo(ReadOnlySpan<char> s, out object? value)
         {
             value = null;
 
-            if (TryParse(s, out T result))
+            if (ConvertTo(s, out T result))
             {
                 value = result;
             }

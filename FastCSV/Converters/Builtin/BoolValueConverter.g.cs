@@ -9,12 +9,12 @@ namespace FastCSV.Converters.Builtin
     /// </summary>
     public class BoolValueConverter : IValueConverter<System.Boolean>
     {
-        public string? Read(System.Boolean value)
+        public string? ConvertFrom(System.Boolean value)
         {
             return value? "true": "false";
         }
 
-        public bool TryParse(System.ReadOnlySpan<char> s, out System.Boolean value)
+        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Boolean value)
         {
             return System.Boolean.TryParse(s, out value!);
         }

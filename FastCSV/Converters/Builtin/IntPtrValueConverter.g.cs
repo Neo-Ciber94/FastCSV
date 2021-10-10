@@ -9,12 +9,12 @@ namespace FastCSV.Converters.Builtin
     /// </summary>
     public class IntPtrValueConverter : IValueConverter<System.IntPtr>
     {
-        public string? Read(System.IntPtr value)
+        public string? ConvertFrom(System.IntPtr value)
         {
             return value.ToString();
         }
 
-        public bool TryParse(System.ReadOnlySpan<char> s, out System.IntPtr value)
+        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.IntPtr value)
         {
             return System.IntPtr.TryParse(s.ToString(), out value!);
         }

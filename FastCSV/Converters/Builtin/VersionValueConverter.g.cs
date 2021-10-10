@@ -9,12 +9,12 @@ namespace FastCSV.Converters.Builtin
     /// </summary>
     public class VersionValueConverter : IValueConverter<System.Version>
     {
-        public string? Read(System.Version value)
+        public string? ConvertFrom(System.Version value)
         {
             return value.ToString();
         }
 
-        public bool TryParse(System.ReadOnlySpan<char> s, out System.Version value)
+        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Version value)
         {
             return System.Version.TryParse(s, out value!);
         }

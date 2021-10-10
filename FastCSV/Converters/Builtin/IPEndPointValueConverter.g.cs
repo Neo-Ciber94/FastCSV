@@ -9,12 +9,12 @@ namespace FastCSV.Converters.Builtin
     /// </summary>
     public class IPEndPointValueConverter : IValueConverter<System.Net.IPEndPoint>
     {
-        public string? Read(System.Net.IPEndPoint value)
+        public string? ConvertFrom(System.Net.IPEndPoint value)
         {
             return value.ToString();
         }
 
-        public bool TryParse(System.ReadOnlySpan<char> s, out System.Net.IPEndPoint value)
+        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Net.IPEndPoint value)
         {
             return System.Net.IPEndPoint.TryParse(s, out value!);
         }

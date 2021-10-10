@@ -9,12 +9,12 @@ namespace FastCSV.Converters.Builtin
     /// </summary>
     public class IPAddressValueConverter : IValueConverter<System.Net.IPAddress>
     {
-        public string? Read(System.Net.IPAddress value)
+        public string? ConvertFrom(System.Net.IPAddress value)
         {
             return value.ToString();
         }
 
-        public bool TryParse(System.ReadOnlySpan<char> s, out System.Net.IPAddress value)
+        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Net.IPAddress value)
         {
             return System.Net.IPAddress.TryParse(s, out value!);
         }

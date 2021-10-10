@@ -8,12 +8,12 @@ namespace FastCSV.Converters
     /// <typeparam name="TEnum"></typeparam>
     public class EnumValueConverter<TEnum> : IValueConverter<TEnum> where TEnum : struct, Enum
     {
-        public string? Read(TEnum value)
+        public string? ConvertFrom(TEnum value)
         {
             return Enum.GetName(value);
         }
 
-        public bool TryParse(ReadOnlySpan<char> s, out TEnum value)
+        public bool ConvertTo(ReadOnlySpan<char> s, out TEnum value)
         {
             return Enum.TryParse(s.ToString(), true, out value);
         }
@@ -43,7 +43,7 @@ namespace FastCSV.Converters
             EnumType = enumType;
         }
 
-        public string? Read(object? value)
+        public string? ConvertFrom(object? value)
         {
             Type? enumType = value?.GetType();
 
@@ -55,7 +55,7 @@ namespace FastCSV.Converters
             return Enum.GetName(enumType, value!);
         }
 
-        public bool TryParse(ReadOnlySpan<char> s, out object? value)
+        public bool ConvertTo(ReadOnlySpan<char> s, out object? value)
         {
             value = null;
 

@@ -9,12 +9,12 @@ namespace FastCSV.Converters.Builtin
     /// </summary>
     public class DateTimeOffsetValueConverter : IValueConverter<System.DateTimeOffset>
     {
-        public string? Read(System.DateTimeOffset value)
+        public string? ConvertFrom(System.DateTimeOffset value)
         {
             return value.ToString();
         }
 
-        public bool TryParse(System.ReadOnlySpan<char> s, out System.DateTimeOffset value)
+        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.DateTimeOffset value)
         {
             return System.DateTimeOffset.TryParse(s, out value!);
         }
