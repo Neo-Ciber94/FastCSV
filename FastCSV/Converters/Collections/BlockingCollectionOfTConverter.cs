@@ -4,7 +4,7 @@ namespace FastCSV.Converters.Collections
 {
     internal class BlockingCollectionOfTConverter<T> : IEnumerableOfTConverter<BlockingCollection<T>, T>
     {
-        public override void AddItem(BlockingCollection<T> collection, int index, T item)
+        public override void AddItem(ref BlockingCollection<T> collection, int index, T item)
         {
             collection.Add(item);
         }

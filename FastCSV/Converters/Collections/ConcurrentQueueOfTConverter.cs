@@ -4,7 +4,7 @@ namespace FastCSV.Converters.Collections
 {
     internal class ConcurrentQueueOfTConverter<T> : IEnumerableOfTConverter<ConcurrentQueue<T>, T>
     {
-        public override void AddItem(ConcurrentQueue<T> collection, int index, T item)
+        public override void AddItem(ref ConcurrentQueue<T> collection, int index, T item)
         {
             collection.Enqueue(item);
         }

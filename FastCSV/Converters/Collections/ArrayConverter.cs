@@ -4,7 +4,7 @@ namespace FastCSV.Converters.Collections
 {
     internal class ArrayConverter : CsvCollectionConverter<Array, object?>
     {
-        public override void AddItem(Array collection, int index, Type elementType, object? item)
+        public override void AddItem(ref Array collection, int index, Type elementType, object? item)
         {
             collection.SetValue(item, index);
         }

@@ -6,7 +6,7 @@ namespace FastCSV.Converters.Collections
 {
     internal abstract class CollectionOfTConverter<TCollection, TElement> : IEnumerableOfTConverter<TCollection, TElement> where TCollection : ICollection<TElement>
     {
-        public override void AddItem(TCollection collection, int index, TElement item)
+        public override void AddItem(ref TCollection collection, int index, TElement item)
         {
             collection.Add(item);
         }

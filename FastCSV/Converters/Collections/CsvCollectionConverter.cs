@@ -24,7 +24,7 @@ namespace FastCSV.Converters.Collections
         /// <param name="index">The index when insert the value.</param>
         /// <param name="elementType">The type of the element to insert.</param>
         /// <param name="item">The element to insert.</param>
-        public abstract void AddItem(TCollection collection, int index, Type elementType, TElement item);
+        public abstract void AddItem(ref TCollection collection, int index, Type elementType, TElement item);
 
         /// <summary>
         /// Gets a <see cref="ICsvValueConverter"/> for the given type.
@@ -98,7 +98,7 @@ namespace FastCSV.Converters.Collections
                     return false;
                 }
 
-                AddItem(collection, i, elementType, (TElement)result!);
+                AddItem(ref collection, i, elementType, (TElement)result!);
             }
 
             value = PrepareCollection(collection);

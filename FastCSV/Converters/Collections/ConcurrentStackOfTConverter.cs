@@ -4,7 +4,7 @@ namespace FastCSV.Converters.Collections
 {
     internal class ConcurrentStackOfTConverter<T> : IEnumerableOfTConverter<ConcurrentStack<T>, T>
     {
-        public override void AddItem(ConcurrentStack<T> collection, int index, T item)
+        public override void AddItem(ref ConcurrentStack<T> collection, int index, T item)
         {
             collection.Push(item);
         }

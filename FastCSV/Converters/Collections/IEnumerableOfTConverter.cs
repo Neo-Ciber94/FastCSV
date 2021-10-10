@@ -14,16 +14,16 @@ namespace FastCSV.Converters.Collections
             return type.IsEnumerableType() && typeof(TCollection).IsAssignableTo(type);
         }
 
-        public abstract void AddItem(TCollection collection, int index, TElement item);
+        public abstract void AddItem(ref TCollection collection, int index, TElement item);
 
-        public override void AddItem(TCollection collection, int index, Type elementType, TElement item)
+        public override void AddItem(ref TCollection collection, int index, Type elementType, TElement item)
         {
             if (elementType != typeof(TElement))
             {
                 throw ThrowHelper.InvalidType(elementType, typeof(TElement));
             }
 
-            AddItem(collection, index, item);
+            AddItem(ref collection, index, item);
         }
 
         public override TCollection CreateCollection(Type elementType, int length)

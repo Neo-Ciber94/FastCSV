@@ -11,7 +11,7 @@ namespace FastCSV.Converters.Collections
             CheckTypeIsValid(typeof(TBit));
         }
 
-        public override void AddItem(BitArray collection, int index, Type elementType, TBit item)
+        public override void AddItem(ref BitArray collection, int index, Type elementType, TBit item)
         {
             CheckTypeIsValid(elementType);
 

@@ -10,7 +10,7 @@ namespace FastCSV.Converters.Collections
             return typeof(ArrayList).IsAssignableTo(type);
         }
 
-        public override void AddItem(ArrayList collection, int index, Type elementType, object? item)
+        public override void AddItem(ref ArrayList collection, int index, Type elementType, object? item)
         {
             collection.Add(item);
         }

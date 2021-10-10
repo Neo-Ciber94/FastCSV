@@ -5,7 +5,7 @@ namespace FastCSV.Converters.Collections
 {
     internal class QueueConverter : CollectionConverter<Queue>
     {
-        public override void AddItem(Queue collection, int index, Type elementType, object? item)
+        public override void AddItem(ref Queue collection, int index, Type elementType, object? item)
         {
             collection.Enqueue(item);
         }

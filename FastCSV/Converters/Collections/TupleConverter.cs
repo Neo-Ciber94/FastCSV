@@ -39,7 +39,7 @@ namespace FastCSV.Converters.Collections
             return new TupleBuilder(tupleGenericTypes);
         }
 
-        public override void AddItem(ITuple collection, int index, Type elementType, object? item)
+        public override void AddItem(ref ITuple collection, int index, Type elementType, object? item)
         {
             var builder = (TupleBuilder)collection;
             builder[index] = item;
@@ -115,7 +115,7 @@ namespace FastCSV.Converters.Collections
                     i += (tuple.Length - 1);
                 }
 
-                AddItem(collection, i, elementType, result!);
+                AddItem(ref collection, i, elementType, result!);
             }
 
             value = PrepareCollection(collection);

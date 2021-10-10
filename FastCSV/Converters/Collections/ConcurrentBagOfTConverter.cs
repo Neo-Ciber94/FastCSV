@@ -4,7 +4,7 @@ namespace FastCSV.Converters.Collections
 {
     internal class ConcurrentBagOfTConverter<T> : IEnumerableOfTConverter<ConcurrentBag<T>, T>
     {
-        public override void AddItem(ConcurrentBag<T> collection, int index, T item)
+        public override void AddItem(ref ConcurrentBag<T> collection, int index, T item)
         {
             collection.Add(item);
         }
