@@ -87,39 +87,6 @@ namespace FastCSV.Converters.Collections
             return tupleGenericTypes[index];
         }
 
-        public override bool TryDeserialize(out ITuple value, ref CsvDeserializeState state)
-        {
-            value = default!;
-
-            ITuple collection = CreateCollection(state.ElementType, state.Count);
-            CsvProperty? property = state.Property;
-            CsvConverterOptions options = state.Options;
-
-            for (int i = 0; i < state.Count; i++)
-            {
-                Type elementType = GetElementTypeAt(i, ref state);
-                string stringValue = state.Read(i);
-
-                CsvDeserializeState elementState = new CsvDeserializeState(options, elementType, stringValue);
-                ICsvValueConverter converter = GetElementConverter(options, elementType, property?.Converter);
-
-                if (!converter.TryDeserialize(out object? result, elementType, ref elementState))
-                {
-                    return false;
-                }
-
-                if (result is ITuple tuple)
-                {
-                    i += (tuple.Length - 1);
-                }
-
-                AddItem(ref collection, i, elementType, result!);
-            }
-
-            value = PrepareCollection(collection);
-            return true;
-        }
-
         private static void AssertIsValueTupleType(Type type)
         {
             Requires.True(typeof(ITuple).IsAssignableFrom(type));

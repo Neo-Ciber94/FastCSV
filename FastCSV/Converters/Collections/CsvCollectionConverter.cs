@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace FastCSV.Converters.Collections
 {
@@ -96,6 +97,11 @@ namespace FastCSV.Converters.Collections
                 if (!converter.TryDeserialize(out object? result, elementType, ref elementState))
                 {
                     return false;
+                }
+
+                if (result is ITuple tuple)
+                {
+                    i += (tuple.Length - 1);
                 }
 
                 AddItem(ref collection, i, elementType, (TElement)result!);
