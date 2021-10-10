@@ -87,14 +87,24 @@ namespace FastCSV.Converters.Collections
                     return GetOrCreateCollectionConverter(type, typeof(QueueOfTConverter<>));
                 }
 
-                if (genericDefinition == typeof(HashSet<>))
+                switch (type)
                 {
-                    return GetOrCreateCollectionConverter(type, typeof(HashSetOfTConverter<>));
+                    case Type _ when genericDefinition == typeof(HashSet<>):
+                    case Type _ when genericDefinition == typeof(ISet<>):
+                    case Type _ when genericDefinition == typeof(IReadOnlySet<>):
+                        return GetOrCreateCollectionConverter(type, typeof(HashSetOfTConverter<>));
+                    default:
+                        break;
                 }
 
                 if (genericDefinition == typeof(SortedSet<>))
                 {
                     return GetOrCreateCollectionConverter(type, typeof(SortedSetOfTConverter<>));
+                }
+
+                if (genericDefinition == typeof(LinkedList<>))
+                {
+                    return GetOrCreateCollectionConverter(type, typeof(LinkedListOfTConverter<>));
                 }
 
                 if (typeof(ITuple).IsAssignableFrom(type))
