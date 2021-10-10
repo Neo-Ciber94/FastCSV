@@ -1,7 +1,7 @@
 ﻿using FastCSV;
 using NUnit.Framework;
 
-namespace FastCSVTests
+namespace FastCSV.Tests
 {
     [TestFixture]
     public class CsvConverterOptionsTests

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace FastCSV.Utils
 {
-    public static class TypeExtensions
+    internal static class TypeExtensions
     {
         /// <summary>
         /// Whether if the given type is a nullable type.
@@ -21,9 +23,9 @@ namespace FastCSV.Utils
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static bool IsCollectionOfElements(this Type type)
+        public static bool IsEnumerableType(this Type type)
         {
-            return type.IsArray || typeof(IEnumerable).IsAssignableFrom(type);
+            return type.IsArray || typeof(ITuple).IsAssignableFrom(type) || typeof(IEnumerable).IsAssignableFrom(type);
         }
 
         /// <summary>
@@ -31,11 +33,17 @@ namespace FastCSV.Utils
         /// </summary>
         /// <param name="type">Type to check</param>
         /// <returns></returns>
-        public static Type? GetCollectionElementType(this Type type)
+        public static Type? GetEnumerableElementType(this Type type)
         {
             if (type.IsArray)
             {
                 return type.GetElementType()!;
+            }
+
+            // Special case
+            if (typeof(ITuple).IsAssignableFrom(type))
+            {
+                return typeof(object);
             }
 
             if (!typeof(IEnumerable).IsAssignableFrom(type) || type.IsGenericTypeDefinition)
@@ -43,14 +51,171 @@ namespace FastCSV.Utils
                 return null;
             }
 
-            var generics = type.GetGenericArguments();
-
-            if (generics.Length == 1)
+            // Special case
+            if (type == typeof(BitArray))
             {
-                return generics[0];
+                return typeof(int);
+            }
+
+            // We look for the type in T in IEnumerable<T>
+
+            Type? genericEnumerableInterface = null;
+
+            if (type.IsInterface && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            {
+                genericEnumerableInterface = type;
+            }
+
+            if (genericEnumerableInterface == null)
+            {
+                genericEnumerableInterface = type.GetInterfaces().FirstOrDefault(e =>
+                {
+                    return e.IsGenericType && e.GetGenericTypeDefinition() == typeof(IEnumerable<>);
+                });
+            }
+
+            if (genericEnumerableInterface != null)
+            {
+                return genericEnumerableInterface.GetGenericArguments()[0];
             }
 
             return typeof(object);
+        }
+
+        /// <summary>
+        /// Checks if the type inherits from the specified class type.
+        /// </summary>
+        /// <param name="type">Type to check.</param>
+        /// <param name="classType">Class to test against</param>
+        /// <returns></returns>
+        public static bool IsAssignableToClass(this Type type, Type classType)
+        {
+            if (classType.IsClass == false)
+            {
+                return false;
+            }
+
+            // TODO: Cache results
+
+            if (classType.IsGenericTypeDefinition)
+            {
+                Type? currentType = type.BaseType;
+
+                while (currentType != null)
+                {
+                    if (currentType.GetGenericTypeDefinition()  == classType)
+                    {
+                        return true;
+                    }
+
+                    currentType = currentType.BaseType;
+                }
+            }
+            else
+            {
+                Type? currentType = type.BaseType;
+
+                while (currentType != null)
+                {
+                    if (currentType == classType)
+                    {
+                        return true;
+                    }
+
+                    currentType = currentType.BaseType;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if the type inherits from the specified interface type.
+        /// </summary>
+        /// <param name="type">Type to check.</param>
+        /// <param name="interfaceType">Interface to test against</param>
+        /// <returns></returns>
+        public static bool IsAssignableToInterface(this Type type, Type interfaceType)
+        {
+            if (interfaceType.IsInterface == false)
+            {
+                return false;
+            }
+
+            // TODO: Cache results
+
+            if (interfaceType.IsGenericTypeDefinition)
+            {
+                var interfaces = type.GetInterfaces();
+
+                foreach(var i in interfaces)
+                {
+                    if (i.IsGenericType && i.GetGenericTypeDefinition() == interfaceType)
+                    {
+                        return true;
+                    }
+
+                    if (i == interfaceType)
+                    {
+                        return true;
+                    }
+                }
+            }
+            else
+            {
+                return type.GetInterfaces().Any(i => i == interfaceType);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if this type has the given generic definition.
+        /// </summary>
+        /// <param name="type">Type to check</param>
+        /// <param name="genericDefinition">The generic definition to check.</param>
+        /// <returns><c>true</c> if this type contains the given generic definition, otherwise false.</returns>
+        public static bool HasGenericDefinition(this Type type, Type genericDefinition)
+        {
+            if (!genericDefinition.IsGenericType || !genericDefinition.IsGenericTypeDefinition || genericDefinition.IsSealed)
+            {
+                return false;
+            }
+
+            if (type == genericDefinition)
+            {
+                return true;
+            }
+
+            if (genericDefinition.IsClass)
+            {
+                Type? actualType = type.BaseType;
+
+                while(actualType != null)
+                {
+                    if (actualType.IsGenericType && genericDefinition == actualType.GetGenericTypeDefinition())
+                    {
+                        return true;
+                    }
+
+                    actualType = actualType.BaseType;
+                }
+            }
+
+            if (genericDefinition.IsInterface)
+            {
+                var interfaces = type.GetInterfaces();
+
+                foreach(var @interface in interfaces)
+                {
+                    if (@interface.IsGenericType && genericDefinition == @interface.GetGenericTypeDefinition())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

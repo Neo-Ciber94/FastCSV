@@ -1,0 +1,16 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FastCSV.Internal
+{
+    internal static class ThrowHelper
+    {
+        public static Exception InvalidType(Type type, Type expected)
+        {
+            return new InvalidOperationException($"Expected type {expected} but was {type}");
+        }
+    }
+}

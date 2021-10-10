@@ -6,32 +6,30 @@ namespace FastCSVCodeGen
 {
     public static class BuiltInTypeCodeGenerator
     {
-        public static void WriteTo_ValueConvertersBuiltInTypes(string path, IReadOnlyDictionary<Type, string> types)
+        const string ClassName = "CsvDefaultValueConverterProvider";
+
+        public static void WriteTo_DefaultValueConverterProviderBuiltInTypes(string path, IReadOnlyDictionary<Type, string> types)
         {
             var codeGen = new CodeGenerator();
-            
-            codeGen.WriteLine("using System;");
-            codeGen.WriteLine("using System.Collections.Generic;\n");
+            codeGen.WriteLine("using FastCSV.Converters.Builtin;\n");
 
             codeGen.Open("namespace FastCSV.Converters", b =>
             {
-                b.Open("public static partial class ValueConverters", b =>
+                b.Open($"internal partial class {ClassName}", b =>
                 {
-                    b.WriteLine("/// <summary>");
-                    b.WriteLine("/// Builtin types converters.");
-                    b.WriteLine("/// </summary>");
-                    b.OpenClose("private static readonly IReadOnlyDictionary<Type, IValueConverter> BuiltInConverters = new Dictionary<Type, IValueConverter>()", b =>
+                    b.Open("private partial void Initialize()", b =>
                     {
                         foreach (var (type, name) in types)
                         {
-                            var typeOf = $"typeof({type}),";
-                            b.WriteLine($"{{ {typeOf,-40} new {name}ValueConverter() }},");
+                            var typeOf = $"typeof({type})";
+                            var converter = $"new {name}ValueConverter()";
+                            b.WriteLine($"_converters.Add({typeOf, -40}, {converter});");
                         }
                     });
                 });
             });
 
-            codeGen.WriteTo(path, "ValueConverters.BuiltinTypes", overwrite: true);
+            codeGen.WriteTo(path, $"{ClassName}.BuiltinTypes", overwrite: true);
         }
 
         public static void WriteTo_CsvConverterIsBuiltInType(string path, IReadOnlyDictionary<Type, string> types)

@@ -7,7 +7,7 @@ namespace FastCSVCodeGen
     {
         private const string Template = @"#nullable enable
 
-namespace FastCSV.Converters
+namespace FastCSV.Converters.Builtin
 {
     /// <summary>
     /// A value converter for <see cref=""{1}""/>.
@@ -19,9 +19,9 @@ namespace FastCSV.Converters
             return {2};
         }
 
-        public bool TryParse(string? s, out {1} value)
+        public bool TryParse(System.ReadOnlySpan<char> s, out {1} value)
         {
-            return {1}.TryParse(s!, out value!);
+            return {1}.TryParse({3}, out value!);
         }
     }
 }
@@ -46,8 +46,29 @@ namespace FastCSV.Converters
                 };
 
                 contents = contents.Replace("{2}", valueToString);
+
+                if (!HasTryParseWithSpan(type))
+                {
+                    contents = contents.Replace("{3}", "s.ToString()");
+                }
+                else
+                {
+                    contents = contents.Replace("{3}", "s");
+                }
+
                 CodeGenerator.WriteToFile(contents, path, $"{name}ValueConverter", overwrite: true);
             }
+        }
+
+        private static bool HasTryParseWithSpan(Type type)
+        {
+            return type switch
+            {
+                Type _ when typeof(char) == type => false,
+                Type _ when typeof(IntPtr) == type => false,
+                Type _ when typeof(UIntPtr) == type => false,
+                _ => true,
+            };
         }
     }
 }
