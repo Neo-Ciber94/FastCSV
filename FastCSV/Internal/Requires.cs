@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Diagnostics;
 
 namespace FastCSV.Internal
@@ -30,21 +29,21 @@ namespace FastCSV.Internal
         }
 
         [Conditional("DEBUG")]
-        public static void True(bool condition, string? message = null, [CallerArgumentExpression("condition")] string? conditionExpression = null)
+        public static void True(bool condition, string? message = null)
         {
             if (!condition)
             {
-                message ??= $"Required true but was: {conditionExpression}";
+                message ??= $"Required true";
                 throw new InvalidOperationException(message);
             }
         }
 
         [Conditional("DEBUG")]
-        public static void False(bool condition, string? message = null, [CallerArgumentExpression("condition")] string? conditionExpression = null)
+        public static void False(bool condition, string? message = null)
         {
             if (condition)
             {
-                message ??= $"Required false but was: {conditionExpression}";
+                message ??= $"Required false";
                 throw new InvalidOperationException(message);
             }
         }
