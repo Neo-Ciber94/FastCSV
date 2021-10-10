@@ -353,7 +353,7 @@ namespace FastCSV
         /// <typeparam name="T">The type to get the header values from.</typeparam>
         /// <param name="type">Type to extract the header fields.</param>
         /// <param name="options">Options used, if null will use the default options.</param>
-        /// <returns>An array of the header values of the given type.</return
+        /// <returns>An array of the header values of the given type.</returns>
         public static string[] GetHeader<T>(CsvConverterOptions? options = null)
         {
             return GetHeader(typeof(T), options);
