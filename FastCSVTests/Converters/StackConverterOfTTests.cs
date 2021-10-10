@@ -1,17 +1,17 @@
 ﻿using NUnit.Framework;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace FastCSV.Converters.Tests
 {
     [TestFixture]
-    class ConcurrentStackOfTConverterTests
+    class StackOfTConverterTests
     {
-        private readonly static CsvConverterOptions Options = new CsvConverterOptions { CollectionHandling = CollectionHandling.Default };
+        static readonly CsvConverterOptions Options = new CsvConverterOptions { CollectionHandling = CollectionHandling.Default };
 
         [Test]
-        public void SerializeTest()
+        public void SerializeIReadOnlyCollectionTest()
         {
-            var collection = new Container<string>(new ConcurrentStack<string>(new string[] { "Spear", "Sword", "Shield" }), 3);
+            var collection = new Container<string>(new Stack<string>(new string[] { "Spear", "Sword", "Shield" }), 3);
             var serialized = CsvConverter.Serialize(collection, Options);
 
             Assert.True(serialized.StartsWith("item1,item2,item3,Count\n"));
@@ -22,7 +22,7 @@ namespace FastCSV.Converters.Tests
         }
 
         [Test]
-        public void DeserializeTest()
+        public void DeserializeIReadOnlyCollectionTest()
         {
             var csv = "item1,item2,item3,Count\nSpear,Sword,Shield,3";
             var deserialized = CsvConverter.Deserialize<Container<string>>(csv, Options);
@@ -33,6 +33,6 @@ namespace FastCSV.Converters.Tests
             Assert.AreEqual(3, deserialized.Count);
         }
 
-        record Container<T>(ConcurrentStack<T> Items, int Count);
+        record Container<T>(Stack<T> Items, int Count);
     }
 }

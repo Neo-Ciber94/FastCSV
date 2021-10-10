@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace FastCSV.Converters.Tests
 {
     [TestFixture]
-    class CsvConverterListTests
+    class ListOfTConverterTests
     {
         static readonly CsvConverterOptions Options = new CsvConverterOptions { CollectionHandling = CollectionHandling.Default };
 

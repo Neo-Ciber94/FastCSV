@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace FastCSV.Converters.Tests
 {
     [TestFixture]
-    class CsvConverterICollectionTests
+    class ICollectionConverterTests
     {
         static readonly CsvConverterOptions Options = new CsvConverterOptions { CollectionHandling = CollectionHandling.Default };
 
