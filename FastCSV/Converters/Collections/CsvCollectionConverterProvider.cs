@@ -1,6 +1,7 @@
 ﻿using FastCSV.Utils;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -77,36 +78,7 @@ namespace FastCSV.Converters.Collections
             {
                 Type genericDefinition = type.GetGenericTypeDefinition();
 
-                if (genericDefinition == typeof(Stack<>))
-                {
-                    return GetOrCreateCollectionConverter(type, typeof(StackOfTConverter<>));
-                }
-
-                if (genericDefinition == typeof(Queue<>))
-                {
-                    return GetOrCreateCollectionConverter(type, typeof(QueueOfTConverter<>));
-                }
-
-                switch (type)
-                {
-                    case Type _ when genericDefinition == typeof(HashSet<>):
-                    case Type _ when genericDefinition == typeof(ISet<>):
-                    case Type _ when genericDefinition == typeof(IReadOnlySet<>):
-                        return GetOrCreateCollectionConverter(type, typeof(HashSetOfTConverter<>));
-                    default:
-                        break;
-                }
-
-                if (genericDefinition == typeof(SortedSet<>))
-                {
-                    return GetOrCreateCollectionConverter(type, typeof(SortedSetOfTConverter<>));
-                }
-
-                if (genericDefinition == typeof(LinkedList<>))
-                {
-                    return GetOrCreateCollectionConverter(type, typeof(LinkedListOfTConverter<>));
-                }
-
+                // Special case for tuples
                 if (typeof(ITuple).IsAssignableFrom(type))
                 {
                     var tupleConverter = new TupleConverter(type);
@@ -114,6 +86,19 @@ namespace FastCSV.Converters.Collections
                     return tupleConverter;
                 }
 
+                // Generic collections
+                if (TryGetGenericCollectionConverter(type, genericDefinition, out collectionConverter))
+                {
+                    return collectionConverter;
+                }
+
+                // Concurrent collections converters
+                if (TryGetConcurrentCollectionConverter(type, genericDefinition, out collectionConverter))
+                {
+                    return collectionConverter;
+                }
+
+                // Fallback for most of collection types
                 switch (type)
                 {
                     case Type _ when genericDefinition == typeof(List<>):
@@ -128,39 +113,123 @@ namespace FastCSV.Converters.Collections
                 }
             }
 
-            // Fallback
-            return GetNonGenericCollectionConverter(type);
+            // Non generic collections
+            if (TryGetNonGenericCollectionConverter(type, out collectionConverter))
+            {
+                return collectionConverter;
+            }
+
+            return collectionConverter;
         }
 
-        private ICsvValueConverter? GetNonGenericCollectionConverter(Type type)
+        private bool TryGetGenericCollectionConverter(Type type, Type genericDefinition, out ICsvValueConverter? converter)
         {
+            converter = null;
+
+            if (genericDefinition == typeof(Stack<>))
+            {
+                converter = GetOrCreateCollectionConverter(type, typeof(StackOfTConverter<>));
+                return true;
+            }
+
+            if (genericDefinition == typeof(Queue<>))
+            {
+                converter = GetOrCreateCollectionConverter(type, typeof(QueueOfTConverter<>));
+                return true;
+            }
+
+            switch (type)
+            {
+                case Type _ when genericDefinition == typeof(HashSet<>):
+                case Type _ when genericDefinition == typeof(ISet<>):
+                case Type _ when genericDefinition == typeof(IReadOnlySet<>):
+                    converter = GetOrCreateCollectionConverter(type, typeof(HashSetOfTConverter<>));
+                    return true;
+                default:
+                    break;
+            }
+
+            if (genericDefinition == typeof(SortedSet<>))
+            {
+                converter = GetOrCreateCollectionConverter(type, typeof(SortedSetOfTConverter<>));
+                return true;
+            }
+
+            if (genericDefinition == typeof(LinkedList<>))
+            {
+                converter = GetOrCreateCollectionConverter(type, typeof(LinkedListOfTConverter<>));
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryGetConcurrentCollectionConverter(Type type, Type genericDefinition, out ICsvValueConverter? converter)
+        {
+            converter = null;
+
+            if (genericDefinition == typeof(BlockingCollection<>))
+            {
+                converter = GetOrCreateCollectionConverter(type, typeof(BlockingCollectionOfTConverter<>));
+                return true;
+            }
+
+            if (genericDefinition == typeof(ConcurrentBag<>) || genericDefinition == typeof(IProducerConsumerCollection<>))
+            {
+                converter = GetOrCreateCollectionConverter(type, typeof(ConcurrentBagOfTConverter<>));
+                return true;
+            }
+
+            if (genericDefinition == typeof(ConcurrentStack<>))
+            {
+                converter = GetOrCreateCollectionConverter(type, typeof(ConcurrentStackOfTConverter<>));
+                return true;
+            }
+
+            if (genericDefinition == typeof(ConcurrentQueue<>))
+            {
+                converter = GetOrCreateCollectionConverter(type, typeof(ConcurrentQueueOfTConverter<>));
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryGetNonGenericCollectionConverter(Type type, out ICsvValueConverter? converter)
+        {
+            converter = null;
+
             switch (type)
             {
                 case Type _ when type == typeof(ArrayList):
                 case Type _ when type == typeof(IList):
                 case Type _ when type == typeof(ICollection):
                 case Type _ when type == typeof(IEnumerable):
-                    return GetOrCreateArrayListConverter();
+                    converter = GetOrCreateArrayListConverter();
+                    return true;
                 default:
                     break;
             }
 
             if (type == typeof(Stack))
             {
-                return GetOrCreateStackConverter();
+                converter = GetOrCreateStackConverter();
+                return true;
             }
 
             if (type == typeof(Queue))
             {
-                return GetOrCreateQueueConverter();
+                converter = GetOrCreateQueueConverter();
+                return true;
             }
 
             if (type == typeof(BitArray))
             {
-                return new BitArrayConverter<int>();
+                converter = new BitArrayConverter<int>();
+                return true;
             }
 
-            return null;
+            return false;
         }
 
         private ICsvValueConverter GetOrCreateCollectionConverter(Type enumerableType, Type genericDefinition)
