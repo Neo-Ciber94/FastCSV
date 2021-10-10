@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FastCSV.Converters
+namespace FastCSV.Converters.Tests
 {
     [TestFixture]
     class ArrayListConverterTests
