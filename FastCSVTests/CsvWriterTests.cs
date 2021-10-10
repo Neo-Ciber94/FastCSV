@@ -206,9 +206,9 @@ namespace FastCSV.Tests
             using var memory = new MemoryStream();
             using var writer = new CsvWriter(new StreamWriter(memory));
 
-            await writer.WriteAsync("name", "age");
-            await writer.WriteAsync("Kenny", 40);
-            await writer.WriteAsync("Levi", 30);
+            await writer.WriteAsync(default, "name", "age");
+            await writer.WriteAsync(default, "Kenny", 40);
+            await writer.WriteAsync(default, "Levi", 30);
 
             memory.Position = 0;
             using var streamReader = new StreamReader(memory);

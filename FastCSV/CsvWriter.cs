@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FastCSV.Utils;
 
@@ -54,7 +55,7 @@ namespace FastCSV
         {
             _writer = writer;
             IsFlexible = flexible;
-            Format = format?? CsvFormat.Default;
+            Format = format ?? CsvFormat.Default;
         }
 
         /// <summary>
@@ -117,7 +118,7 @@ namespace FastCSV
                 {
                     _fieldsWritten = length;
                 }
-                
+
                 if (_fieldsWritten > 0 && _fieldsWritten != length)
                 {
                     throw new ArgumentException($"Expected to write {_fieldsWritten} values but {length} was get");
@@ -142,8 +143,14 @@ namespace FastCSV
         /// Writes the specified values asyncronously.
         /// </summary>
         /// <param name="values">The values.</param>
-        public Task WriteAsync(params object[] values)
+        /// <param name="cancellationToken">A cancellation token for cancelling this operation.</param>
+        public Task WriteAsync(CancellationToken cancellationToken, params object[] values)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return Task.FromCanceled(cancellationToken);
+            }
+
             Write(values);
             return Task.CompletedTask;
         }
@@ -152,9 +159,15 @@ namespace FastCSV
         /// Writes all the values of the specified enumerable asyncronously.
         /// </summary>
         /// <param name="values">The values.</param>
+        /// <param name="cancellationToken">A cancellation token for cancelling this operation.</param>
         /// <exception cref="ArgumentException">If the writer is flexible and attempt to write more fields than the previous one.</exception>
-        public Task WriteAllAsync(IEnumerable<string> values)
+        public Task WriteAllAsync(IEnumerable<string> values, CancellationToken cancellationToken = default)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return Task.FromCanceled(cancellationToken);
+            }
+
             WriteAll(values);
             return Task.CompletedTask;
         }
@@ -164,8 +177,14 @@ namespace FastCSV
         /// </summary>
         /// <typeparam name="T">Type of the value</typeparam>
         /// <param name="value">The value to write.</param>
-        public Task WriteValueAsync<T>(T value)
+        /// <param name="cancellationToken">A cancellation token for cancelling this operation</param>
+        public Task WriteValueAsync<T>(T value, CancellationToken cancellationToken = default)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return Task.FromCanceled(cancellationToken);
+            }
+
             WriteValue(value);
             return Task.CompletedTask;
         }

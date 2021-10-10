@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using FastCSV;
@@ -511,11 +512,11 @@ namespace FastCSV.Tests
                 return value.ToString();
             }
 
-            public bool TryParse(string s, out PhoneNumber value)
+            public bool TryParse(ReadOnlySpan<char> s, out PhoneNumber value)
             {
                 value = default;
 
-                byte[] values = s.ToCharArray()
+                byte[] values = s.ToArray()
                     .Where(c => c != '-' && char.IsNumber(c))
                     .Select(c => (byte)char.GetNumericValue(c))
                     .ToArray();

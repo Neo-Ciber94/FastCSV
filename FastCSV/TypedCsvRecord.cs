@@ -8,7 +8,7 @@ namespace FastCSV
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TypedCsvRecord(T value, CsvFormat format)
         {
-            Record = CsvRecord.From(value, format);
+            Record = CsvRecord.From(value, format); // FIXME: Lazy load record value
             Value = value;
         }
         

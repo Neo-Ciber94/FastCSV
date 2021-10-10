@@ -161,7 +161,7 @@ namespace FastCSV.Collections.Tests
             Assert.AreEqual(1, list.RemoveLast());
             Assert.True(list.IsEmpty);
 
-            Exception? exception = null;
+            Exception exception = null;
 
             try
             {
@@ -212,7 +212,7 @@ namespace FastCSV.Collections.Tests
             list.RemoveAt(0);
             Assert.AreEqual(Array.Empty<int>(), list.ToArray());
 
-            Exception? exception = null;
+            Exception exception = null;
 
             try
             {

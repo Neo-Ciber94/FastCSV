@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FastCSV
@@ -62,6 +63,7 @@ namespace FastCSV
         /// Copies the data of this document to the given stream asynchronously.
         /// </summary>
         /// <param name="destination">The destination of the data.</param>
-        public Task CopyToAsync(Stream destination);
+        /// <param name="cancellationToken">A cancellation token for cancelling this operation</param>
+        public Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default);
     }
 }

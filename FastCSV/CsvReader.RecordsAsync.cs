@@ -18,20 +18,29 @@ namespace FastCSV
         public struct RecordsAsync : IAsyncEnumerator<CsvRecord>, IAsyncEnumerable<CsvRecord>
         {
             private readonly CsvReader _reader;
+            private readonly CancellationToken _cancellationToken;
             private CsvRecord? _record;
 
-            internal RecordsAsync(CsvReader reader)
+            internal RecordsAsync(CsvReader reader, CancellationToken cancellationToken = default)
             {
                 _reader = reader;
                 _record = null;
+                _cancellationToken = cancellationToken;
             }
 
             public CsvRecord Current => _record!;
 
             public bool IsDone => _reader.IsDone;
 
+            public CancellationToken CancellationToken => _cancellationToken;
+
             public ValueTask<bool> MoveNextAsync()
             {
+                if (_cancellationToken.IsCancellationRequested)
+                {
+                    return ValueTask.FromCanceled<bool>(_cancellationToken);
+                }
+
                 if (_reader.IsDone)
                 {
                     return new ValueTask<bool>(false);
@@ -56,11 +65,15 @@ namespace FastCSV
                 //_record = null;
             }
 
-#pragma warning disable IDE0060 // Quitar el parámetro no utilizado
-            public RecordsAsync GetEnumerator(CancellationToken cancellationToken = default) => this;
-#pragma warning restore IDE0060 // Quitar el parámetro no utilizado
+            public RecordsAsync GetEnumerator(CancellationToken cancellationToken = default)
+            {
+                return new RecordsAsync(_reader, cancellationToken);
+            }
 
-            public IAsyncEnumerator<CsvRecord> GetAsyncEnumerator(CancellationToken cancellationToken = default) => this;
+            public IAsyncEnumerator<CsvRecord> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+            {
+                return new RecordsAsync(_reader, cancellationToken);
+            }
         }
     }
 }

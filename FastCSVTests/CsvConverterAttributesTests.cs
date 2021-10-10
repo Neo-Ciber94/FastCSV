@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-namespace FastCSV.Utils
+namespace FastCSV.Tests
 {
     [TestFixture]
     public class CsvConverterAttributesTests

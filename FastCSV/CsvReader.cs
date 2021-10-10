@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FastCSV.Utils;
 
@@ -53,7 +54,7 @@ namespace FastCSV
         public CsvReader(StreamReader reader, CsvFormat? format = null, bool hasHeader = true)
         {
             _reader = reader;
-            Format = format?? CsvFormat.Default;
+            Format = format ?? CsvFormat.Default;
 
             if (hasHeader)
             {
@@ -149,9 +150,15 @@ namespace FastCSV
         /// <summary>
         /// Reads the next record asynchronously.
         /// </summary>
+        /// <param name="cancellationToken">A cancellation token for cancelling this operation</param>
         /// <returns>The next record or null is there is not more records</returns>
-        public ValueTask<CsvRecord?> ReadAsync()
+        public ValueTask<CsvRecord?> ReadAsync(CancellationToken cancellationToken = default)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return ValueTask.FromCanceled<CsvRecord?>(cancellationToken);
+            }
+
             CsvRecord? record = Read();
             return new ValueTask<CsvRecord?>(record);
         }
@@ -173,11 +180,12 @@ namespace FastCSV
         /// this enumerable will read the records using this reader, so when the iteration
         /// end the reader will be at the end of the file.
         /// </summary>
+        /// <param name="cancellationToken">A cancellation token for cancelling this operation</param>
         /// <returns>An enumerable over the records of this reader csv.</returns>
-        public RecordsAsync ReadAllAsync()
+        public RecordsAsync ReadAllAsync(CancellationToken cancellationToken = default)
         {
             ThrowIfDisposed();
-            return new RecordsAsync(this);
+            return new RecordsAsync(this, cancellationToken);
         }
 
         /// <summary>
@@ -186,11 +194,11 @@ namespace FastCSV
         /// <typeparam name="T">Type to cast the record to.</typeparam>
         /// <param name="parser">The parser.</param>
         /// <returns>An optional with the value or none is there is no more records to read.</returns>
-        public Optional<T> ReadAs<T>(CsvConverterOptions? options = null) where T: notnull
+        public Optional<T> ReadAs<T>(CsvConverterOptions? options = null) where T : notnull
         {
             Dictionary<string, string>? data = Read()?.ToDictionary();
 
-            if(data == null)
+            if (data == null)
             {
                 return Optional.None<T>();
             }
@@ -213,7 +221,7 @@ namespace FastCSV
                 return CsvConverter.DeserializeFromDictionary<T>(data, options);
             });
         }
-            
+
         /// <summary>
         /// Moves this reader to the start of the csv.
         /// </summary>
@@ -258,7 +266,7 @@ namespace FastCSV
 
         protected void ThrowIfDisposed()
         {
-            if(_reader == null)
+            if (_reader == null)
             {
                 throw new ObjectDisposedException($"{nameof(CsvReader)} has been disposed");
             }

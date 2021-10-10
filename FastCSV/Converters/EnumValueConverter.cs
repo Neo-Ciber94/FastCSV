@@ -13,9 +13,9 @@ namespace FastCSV.Converters
             return Enum.GetName(value);
         }
 
-        public bool TryParse(string? s, out TEnum value)
+        public bool TryParse(ReadOnlySpan<char> s, out TEnum value)
         {
-            return Enum.TryParse(s, true, out value);
+            return Enum.TryParse(s.ToString(), true, out value);
         }
     }
 
@@ -55,7 +55,7 @@ namespace FastCSV.Converters
             return Enum.GetName(enumType, value!);
         }
 
-        public bool TryParse(string? s, out object? value)
+        public bool TryParse(ReadOnlySpan<char> s, out object? value)
         {
             value = null;
 
@@ -64,7 +64,7 @@ namespace FastCSV.Converters
                 return false;
             }
 
-            if (!Enum.TryParse(EnumType, s, out value))
+            if (!Enum.TryParse(EnumType, s.ToString(), out value))
             {
                 return false;
             }

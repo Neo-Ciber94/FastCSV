@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using FastCSV.Utils;
 
@@ -49,7 +50,7 @@ namespace FastCSV
             Header = new CsvHeader(CsvConverter.GetHeader<T>(), format);
             Format = format;
 
-            foreach(var e in elements)
+            foreach (var e in elements)
             {
                 Write(e);
             }
@@ -57,7 +58,7 @@ namespace FastCSV
 
         internal CsvDocument(List<TypedCsvRecord<T>> records, CsvHeader header, CsvFormat format)
         {
-            if(header.Format != format)
+            if (header.Format != format)
             {
                 throw new ArgumentException("Header format differs from the given format");
             }
@@ -214,11 +215,11 @@ namespace FastCSV
             EqualityComparer<T> comparer = EqualityComparer<T>.Default;
             int length = _records.Count;
 
-            for(int i = 0; i < length; i++)
+            for (int i = 0; i < length; i++)
             {
                 T current = _records[i].Value;
 
-                if(comparer.Equals(current, value))
+                if (comparer.Equals(current, value))
                 {
                     return i;
                 }
@@ -258,7 +259,7 @@ namespace FastCSV
         /// <exception cref="IndexOutOfRangeException"></exception>
         public T GetValue(int index)
         {
-            if(index < 0 || index >= Count)
+            if (index < 0 || index >= Count)
             {
                 throw new IndexOutOfRangeException(index.ToString());
             }
@@ -281,8 +282,13 @@ namespace FastCSV
             CsvWriter.WriteToStream(Header, this, destination);
         }
 
-        public Task CopyToAsync(Stream destination)
+        public Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return Task.FromCanceled(cancellationToken);
+            }
+
             CopyTo(destination);
             return Task.CompletedTask;
         }
@@ -359,7 +365,7 @@ namespace FastCSV
             {
                 int next = _index + 1;
 
-                if(next < _records.Count)
+                if (next < _records.Count)
                 {
                     _index = next;
                     return true;

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using FastCSV.Utils;
 
@@ -320,8 +321,12 @@ namespace FastCSV
             CsvWriter.WriteToStream(Header, this, destination);
         }
 
-        public Task CopyToAsync(Stream destination)
+        public Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default)
         {
+            if (cancellationToken.IsCancellationRequested) {
+                return Task.FromCanceled(cancellationToken);
+            }
+
             CopyTo(destination);
             return Task.CompletedTask;
         }
