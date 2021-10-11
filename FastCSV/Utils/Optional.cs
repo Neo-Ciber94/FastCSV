@@ -85,7 +85,7 @@ namespace FastCSV.Utils
         /// <param name="ifNone"></param>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Optional<TResult> Match<TResult>(Func<T, TResult> ifSome, Action ifNone) where TResult : notnull
+        public Optional<TResult> Fold<TResult>(Func<T, TResult> ifSome, Func<TResult> ifNone) where TResult : notnull
         {
             if (HasValue)
             {
@@ -94,8 +94,7 @@ namespace FastCSV.Utils
             }
             else
             {
-                ifNone();
-                return default;
+                return ifNone();
             }
         }
 

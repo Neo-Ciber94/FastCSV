@@ -76,18 +76,18 @@ namespace FastCSV.Utils.Tests
         public void MatchTest()
         {
             var opt1 = new Optional<int>(10);
-            var r1 = opt1.Match(
+            var r1 = opt1.Fold(
                 ifSome: (n) => n + 1,
                 ifNone: () => { throw new Exception(); });
 
             Assert.AreEqual(new Optional<int>(11), r1);
 
             var opt2 = new Optional<int>();
-            var r2 = opt2.Match(
+            var r2 = opt2.Fold(
                 ifSome: (n) => n + 1,
-                ifNone: () => { });
+                ifNone: () => 10 );
 
-            Assert.IsFalse(r2.HasValue);
+            Assert.AreEqual(r2.Value, 10);
         }
 
         [Test]
