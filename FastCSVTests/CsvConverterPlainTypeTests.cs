@@ -30,6 +30,24 @@ namespace FastCSV.Tests
         }
 
         [Test]
+        public void SerializeAndDeserializeCustomTypeNoHeaderTest()
+        {
+            var options = new CsvConverterOptions
+            {
+                Converters = new List<ICsvValueConverter> { new OddOrEvenNumberConverter() },
+                IncludeHeader = false
+            };
+
+            var n = new OddOrEvenNumber(34);
+
+            string serialized = CsvConverter.Serialize(n, options);
+            Assert.AreEqual("34:even", serialized);
+
+            OddOrEvenNumber deserialized = CsvConverter.Deserialize<OddOrEvenNumber>(serialized, options);
+            Assert.AreEqual(n, deserialized);
+        }
+
+        [Test]
         public void SerializeDeserializeCustomTypeCollectionTest()
         {
             var array = new OddOrEvenNumber[]
@@ -50,6 +68,32 @@ namespace FastCSV.Tests
 
             var deserialized = CsvConverter.Deserialize<OddOrEvenNumber[]>(serialized, options);
             CollectionAssert.AreEqual(array, deserialized);
+        }
+
+        [Test]
+        public void SerializeDeserializeCustomTypeCollectionNoHeaderTest()
+        {
+            var array = new OddOrEvenNumber[]
+            {
+                new (21),
+                new (50),
+                new (82),
+            };
+
+            var options = new CsvConverterOptions
+            {
+                Converters = new List<ICsvValueConverter> { new OddOrEvenNumberConverter() },
+                CollectionHandling = CollectionHandling.Default,
+                IncludeHeader = false
+            };
+
+            var serialized = CsvConverter.Serialize(array, options);
+            Assert.AreEqual("21:odd,50:even,82:even", serialized);
+
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                var deserialized = CsvConverter.Deserialize<OddOrEvenNumber[]>(serialized, options);
+            });
         }
 
         [Test]
