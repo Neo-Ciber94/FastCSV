@@ -88,8 +88,8 @@ namespace FastCSV.Tests
             };
 
             var serialized = CsvConverter.Serialize(array, options);
-            Assert.AreEqual("21:odd,50:even,82:even", serialized);
 
+            Assert.AreEqual("21:odd,50:even,82:even", serialized);
             Assert.Throws<InvalidOperationException>(() =>
             {
                 var deserialized = CsvConverter.Deserialize<OddOrEvenNumber[]>(serialized, options);
