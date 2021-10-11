@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using FastCSV.Converters;
-using FastCSV.Utils;
+using FastCSV.Extensions;
 
 namespace FastCSV
 {

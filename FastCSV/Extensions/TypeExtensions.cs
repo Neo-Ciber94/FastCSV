@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace FastCSV.Utils
+namespace FastCSV.Extensions
 {
     internal static class TypeExtensions
     {

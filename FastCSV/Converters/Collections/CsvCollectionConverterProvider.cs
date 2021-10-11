@@ -1,11 +1,11 @@
-﻿using FastCSV.Utils;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using FastCSV.Extensions;
 
 namespace FastCSV.Converters.Collections
 {

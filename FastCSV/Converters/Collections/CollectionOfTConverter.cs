@@ -1,6 +1,6 @@
-﻿using FastCSV.Utils;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using FastCSV.Extensions;
 
 namespace FastCSV.Converters.Collections
 {

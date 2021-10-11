@@ -1,5 +1,5 @@
-﻿using FastCSV.Utils;
-using System;
+﻿using System;
+using FastCSV.Extensions;
 
 namespace FastCSV.Converters
 {

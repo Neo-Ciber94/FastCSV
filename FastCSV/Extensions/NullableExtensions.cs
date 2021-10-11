@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text;
 
-namespace FastCSV.Utils
+namespace FastCSV.Extensions
 {
-    public static class NullableExtensions
+    internal static class NullableExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T? ToNullable<T>(this T value) where T: struct

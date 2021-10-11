@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace FastCSV.Utils
+namespace FastCSV.Extensions
 {
     internal static class ReflectionExtensions
     {

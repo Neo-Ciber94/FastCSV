@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace FastCSV.Utils
+namespace FastCSV.Extensions
 {
-    public static class MemberInfoExtensions
+    internal static class MemberInfoExtensions
     {
         public static object? GetValue(this MemberInfo memberInfo, object? obj)
         {

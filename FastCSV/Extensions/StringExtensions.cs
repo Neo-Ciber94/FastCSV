@@ -1,11 +1,11 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using FastCSV.Utils;
 
-namespace FastCSV.Utils
+namespace FastCSV.Extensions
 {
-    public static class StringExtensions
+    internal static class StringExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool EnclosedWith(this string s, string value) => s.StartsWith(value) && s.EndsWith(value);

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using FastCSV.Collections;
+using FastCSV.Extensions;
 
 namespace FastCSV.Utils
 {
