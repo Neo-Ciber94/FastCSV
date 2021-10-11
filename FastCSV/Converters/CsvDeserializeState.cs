@@ -95,6 +95,21 @@ namespace FastCSV.Converters
         }
 
         /// <summary>
+        /// Constructs a new <see cref="CsvDeserializeState"/>.
+        /// </summary>
+        /// <param name="options">Options to be used.</param>
+        /// <param name="type">Type to deserialize to.</param>
+        /// <param name="values">Values to deserialize.</param>
+        public CsvDeserializeState(CsvConverterOptions options, Type type, ReadOnlyMemory<string> values)
+        {
+            _values = values;
+            _elementType = type;
+            _singleValue = null;
+            Options = options;
+            Property = null;
+        }
+
+        /// <summary>
         /// Reads a <see cref="string"/> value to be deserialized.
         /// </summary>
         /// <param name="index">Index of the value to read.</param>

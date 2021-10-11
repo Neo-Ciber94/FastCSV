@@ -12,5 +12,10 @@ namespace FastCSV.Internal
         {
             return new InvalidOperationException($"Expected type {expected} but was {type}");
         }
+
+        public static Exception CollectionHandlingRequired()
+        {
+            return new InvalidOperationException("'CollectionHandling' option is required for collection types");
+        }
     }
 }

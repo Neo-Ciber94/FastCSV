@@ -25,6 +25,12 @@ namespace FastCSV.Utils
         /// <returns></returns>
         public static bool IsEnumerableType(this Type type)
         {
+            // Special case
+            if (type == typeof(string))
+            {
+                return false;
+            }
+
             return type.IsArray || typeof(ITuple).IsAssignableFrom(type) || typeof(IEnumerable).IsAssignableFrom(type);
         }
 

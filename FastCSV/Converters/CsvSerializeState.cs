@@ -9,7 +9,8 @@ namespace FastCSV.Converters
     /// </summary>
     public struct CsvSerializeState
     {
-        private readonly List<string> _serialized;
+        private readonly List<string> _buffer;
+        private readonly object? _value;
 
         /// <summary>
         /// Options used for serialization.
@@ -19,18 +20,24 @@ namespace FastCSV.Converters
         /// <summary>
         /// Gets sets the converter for the current state.
         /// </summary>
-        public ICsvValueConverter? Converter { get; set; }
+        public ICsvValueConverter? Converter { get; }
 
         /// <summary>
         /// Gets a readonly list of the current serialized values.
         /// </summary>
-        public IReadOnlyList<string> Serialized => _serialized;
+        public IReadOnlyList<string> Serialized => _buffer;
 
-        public CsvSerializeState(CsvConverterOptions options, int capacity = 0)
+        /// <summary>
+        /// The value being serialized.
+        /// </summary>
+        public object? Value => _value;
+
+        public CsvSerializeState(CsvConverterOptions options, object? value, List<string> buffer, ICsvValueConverter? converter = null)
         {
             Options = options;
-            Converter = null;
-            _serialized = new List<string>(capacity);
+            Converter = converter;
+            _value = value;
+            _buffer = buffer;
         }
 
         /// <summary>
@@ -49,7 +56,7 @@ namespace FastCSV.Converters
         /// <param name="value"></param>
         public void Write(string value)
         {
-            _serialized.Add(value);
+            _buffer.Add(value);
         }
 
         /// <summary>
@@ -57,7 +64,7 @@ namespace FastCSV.Converters
         /// </summary>
         public void WriteNull()
         {
-            _serialized.Add(CsvConverter.Null);
+            _buffer.Add(CsvConverter.Null);
         }
     }
 }

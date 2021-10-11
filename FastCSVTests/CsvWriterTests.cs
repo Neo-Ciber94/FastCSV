@@ -1,11 +1,7 @@
 ﻿using NUnit.Framework;
-using FastCSV;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using System.Threading.Tasks;
-using FastCSV.Tests;
 
 namespace FastCSV.Tests
 {
@@ -206,9 +202,9 @@ namespace FastCSV.Tests
             using var memory = new MemoryStream();
             using var writer = new CsvWriter(new StreamWriter(memory));
 
-            await writer.WriteAsync(default, "name", "age");
-            await writer.WriteAsync(default, "Kenny", 40);
-            await writer.WriteAsync(default, "Levi", 30);
+            await writer.WriteAsync("name", "age");
+            await writer.WriteAsync("Kenny", 40);
+            await writer.WriteAsync("Levi", 30);
 
             memory.Position = 0;
             using var streamReader = new StreamReader(memory);

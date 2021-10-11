@@ -7,32 +7,108 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FastCSV
+namespace FastCSV.Tests
 {
     [TestFixture]
     public class CsvConverterPlainTypeTests
     {
         [Test]
-        public void SerializeAndDeserializeCustomType()
+        public void SerializeAndDeserializeCustomTypeTest()
         {
-            // TODO: Add your test code here
-            var answer = 42;
-            Assert.That(answer, Is.EqualTo(42), "Some useful error message");
+            var options = new CsvConverterOptions
+            {
+                Converters = new List<ICsvValueConverter> { new OddOrEvenNumberConverter() }
+            };
+
+            var n = new OddOrEvenNumber(34);
+
+            string serialized = CsvConverter.Serialize(n, options);
+            Assert.AreEqual("value\n34:even", serialized);
+
+            OddOrEvenNumber deserialized = CsvConverter.Deserialize<OddOrEvenNumber>(serialized, options);
+            Assert.AreEqual(n, deserialized);
         }
 
-        record OddOrEvenNumber(int Value) : IValueConverter<OddOrEvenNumber>
+        [Test]
+        public void SerializeDeserializeCustomTypeCollectionTest()
+        {
+            var array = new OddOrEvenNumber[]
+            {
+                new (21),
+                new (50),
+                new (82)
+            };
+
+            var options = new CsvConverterOptions
+            {
+                Converters = new List<ICsvValueConverter> { new OddOrEvenNumberConverter() },
+                CollectionHandling = CollectionHandling.Default
+            };
+
+            var serialized = CsvConverter.Serialize(array, options);
+            Assert.AreEqual("item1,item2,item3\n21:odd,50:even,82:even", serialized);
+
+            var deserialized = CsvConverter.Deserialize<OddOrEvenNumber[]>(serialized, options);
+            CollectionAssert.AreEqual(array, deserialized);
+        }
+
+        [Test]
+        public void SerializeAndDeserializeBuiltinTypeCollectionTest()
+        {
+            var array = new int[] { 1, 2, 3, 4, 5 };
+            var options = new CsvConverterOptions { CollectionHandling = CollectionHandling.Default };
+
+            var serialized = CsvConverter.Serialize(array, options);
+            Assert.AreEqual("item1,item2,item3,item4,item5\n1,2,3,4,5", serialized);
+
+            var deserialized = CsvConverter.Deserialize<int[]>(serialized, options);
+            CollectionAssert.AreEqual(array, deserialized);
+        }
+
+        record OddOrEvenNumber(int Value) 
         {
             public bool IsEven => Value % 2 == 0;
 
+            public override string ToString()
+            {
+                return IsEven ? $"{Value}:even" : $"{Value}:odd";
+            }
+        }
+
+        class OddOrEvenNumberConverter : IValueConverter<OddOrEvenNumber>
+        {
             public string ConvertFrom(OddOrEvenNumber value)
             {
-                throw new NotImplementedException();
+                return value.ToString();
             }
 
             public bool ConvertTo(ReadOnlySpan<char> s, out OddOrEvenNumber value)
             {
-                throw new NotImplementedException();
+                value = default;
+                int separatorIndex = s.IndexOf(':');
+
+                if (separatorIndex == -1)
+                {
+                    return false;
+                }
+
+                var intStringValue = s.Slice(0, separatorIndex);
+                var typeStringValue = s.Slice(separatorIndex + 1).ToString();
+
+                if (!typeStringValue.SequenceEqual("even") && !typeStringValue.SequenceEqual("odd")) 
+                {
+                    return false;
+                }
+
+                if (!int.TryParse(intStringValue, out int v))
+                {
+                    return false;
+                }
+
+                value = new OddOrEvenNumber(v);
+                return true;
             }
         }
+
     }
 }

@@ -143,14 +143,8 @@ namespace FastCSV
         /// Writes the specified values asyncronously.
         /// </summary>
         /// <param name="values">The values.</param>
-        /// <param name="cancellationToken">A cancellation token for cancelling this operation.</param>
-        public Task WriteAsync(CancellationToken cancellationToken, params object[] values)
+        public Task WriteAsync(params object[] values)
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return Task.FromCanceled(cancellationToken);
-            }
-
             Write(values);
             return Task.CompletedTask;
         }
