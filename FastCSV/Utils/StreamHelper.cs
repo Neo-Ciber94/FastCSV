@@ -11,7 +11,7 @@ namespace FastCSV.Utils
         /// <returns>A stream containing the specified data.</returns>
         public static MemoryStream ToMemoryStream(string data)
         {
-            MemoryStream memory = new MemoryStream(data.Length);
+            MemoryStream memory = new MemoryStream(data.Length * sizeof(char));
             using (var writer = new StreamWriter(memory, leaveOpen: true))
             {
                 writer.Write(data);
