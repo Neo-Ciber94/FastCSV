@@ -9,7 +9,7 @@ namespace FastCSV.Utils
     public struct CsvBufferedReader : IDisposable
     {
         private static readonly Decoder Utf8Decoder = Encoding.UTF8.GetDecoder();
-        private const int DefaultBufferCapacity = 256;
+        public const int DefaultBufferCapacity = 256;
 
         private readonly char[]? _charBufferFromArrayPool;
         private readonly byte[]? _byteBufferFromArrayPool;
@@ -29,12 +29,10 @@ namespace FastCSV.Utils
 
         public int Offset => _charPos;
 
-        public long BytesLength => _line;
-
         public CsvBufferedReader(ReadOnlyMemory<char> csvData)
         {
             _csvData = csvData;
-            _length = Encoding.UTF8.GetByteCount(csvData.Span);
+            _length = csvData.Length;
             _stream = null;
             _pos = 0;
             _charPos = 0;
@@ -100,7 +98,6 @@ namespace FastCSV.Utils
             _charBufferFromArrayPool = ArrayPool<char>.Shared.Rent(_maxCharCount);
         }
 
-
         private ReadOnlySpan<char> GetCharBuffer()
         {
             int startIndex = _pos - _charsLen;
@@ -116,6 +113,7 @@ namespace FastCSV.Utils
             }
         }
 
+        #region Synchronous methods
         public string[] ReadRecord(CsvFormat format)
         {
             if (_charPos == _charsLen)
@@ -126,8 +124,8 @@ namespace FastCSV.Utils
                 }
             }
 
-            using ValueStringBuilder stringBuilder = new ValueStringBuilder(stackalloc char[512]);
-            using ArrayBuilder<string> records = new ArrayBuilder<string>(10);
+            using ValueStringBuilder stringBuilder = new(stackalloc char[512]);
+            using ArrayBuilder<string> records = new(10);
 
             char delimiter = format.Delimiter;
             char quote = format.Quote;
@@ -151,7 +149,7 @@ namespace FastCSV.Utils
 
                 // Convert the CharEnumerator into an IIterator
                 // which allow to inspect the next elements
-                SpanIterator<char> enumerator = new SpanIterator<char>(line);
+                SpanIterator<char> enumerator = new(line);
 
                 while (enumerator.MoveNext())
                 {
@@ -321,7 +319,7 @@ namespace FastCSV.Utils
                         goto ReturnString;
                     }
 
-                    sb ??= StringBuilderCache.Acquire(512);
+                    sb ??= StringBuilderCache.Acquire(128);
 
                     if (ch == '\n' || ch == '\r')
                     {
@@ -337,7 +335,6 @@ namespace FastCSV.Utils
                 }
             }
             while (ReadBuffer() > 0);
-
 
         // Returns the resulting string, if any
         ReturnString:
@@ -359,15 +356,6 @@ namespace FastCSV.Utils
 
             if (_stream != null)
             {
-                //int bytesRead = _stream.Read(_byteBuffer);
-
-                //if (bytesRead == 0)
-                //{
-                //    return 0;
-                //}
-
-                //int charsRead = Utf8Decoder.GetChars(_byteBuffer, _charBufferFromArrayPool.AsSpan(0, _maxCharCount), false);
-
                 int charsRead = ReadFromStream(_charBufferFromArrayPool.AsSpan(0, _maxCharCount));
                 _pos += charsRead;
                 _charsLen = charsRead;
@@ -388,29 +376,28 @@ namespace FastCSV.Utils
 
         private int ReadFromStream(Span<char> buffer)
         {
-            if (_stream == null)
-            {
-                throw new InvalidOperationException();
-            }
-
-            if (_stream is Stream s)
-            {
-                var byteBuffer = _byteBuffer.Span;
-                if(s.Read(byteBuffer) == 0)
-                {
-                    return 0;
-                }
-
-                return Utf8Decoder.GetChars(byteBuffer, buffer, false);
-            }
-
-            if (_stream is StreamReader reader)
+            if (_stream is TextReader reader)
             {
                 return reader.Read(buffer);
             }
 
-            return 0;
+            if (_stream is Stream s)
+            {
+                Span<byte> byteBuffer = _byteBuffer.Span;
+                int bytesRead = s.Read(byteBuffer);
+
+                if (bytesRead == 0)
+                {
+                    return 0;
+                }
+
+                Utf8Decoder.GetChars(byteBuffer, buffer, false);
+                return Utf8Decoder.GetCharCount(byteBuffer.Slice(0, bytesRead), false);
+            }
+
+            throw new InvalidOperationException($"Unable to read data from the stream: {_stream}");
         }
+        #endregion
 
         public void Dispose()
         {

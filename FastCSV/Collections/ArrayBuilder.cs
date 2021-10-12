@@ -5,64 +5,64 @@ namespace FastCSV.Collections
 {
     internal struct ArrayBuilder<T> : IDisposable
     {
-        private T[]? _array;
+        private T[]? _arrayFromPool;
         private int _count;
 
         public ArrayBuilder(int initialCapacity)
         {
-            _array = ArrayPool<T>.Shared.Rent(initialCapacity);
+            _arrayFromPool = ArrayPool<T>.Shared.Rent(initialCapacity);
             _count = 0;
         }
 
         public int Count => _count;
 
-        public int Capacity => _array?.Length ?? 0;
+        public int Capacity => _arrayFromPool?.Length ?? 0;
 
         public void Add(T value)
         {
-            if (_array == null)
+            if (_arrayFromPool == null)
             {
                 return;
             }
 
-            if (_count == _array.Length)
+            if (_count == _arrayFromPool.Length)
             {
                 Resize();
             }
 
-            _array[_count++] = value;
+            _arrayFromPool[_count++] = value;
         }
 
         public T[] Build()
         {
-            if (_array == null)
+            if (_arrayFromPool == null)
             {
                 return Array.Empty<T>();
             }
 
-            return _array.AsSpan(0, _count).ToArray();
+            return _arrayFromPool.AsSpan(0, _count).ToArray();
         }
 
         private void Resize()
         {
-            if (_array == null)
+            if (_arrayFromPool == null)
             {
                 return;
             }
 
             // Returns the array
-            ArrayPool<T>.Shared.Return(_array);
+            ArrayPool<T>.Shared.Return(_arrayFromPool);
 
-            int newCapacity = _array.Length * 2;
-            _array = ArrayPool<T>.Shared.Rent(newCapacity);
+            int newCapacity = _arrayFromPool.Length * 2;
+            _arrayFromPool = ArrayPool<T>.Shared.Rent(newCapacity);
         }
 
         public void Dispose()
         {
-            if (_array != null)
+            if (_arrayFromPool != null)
             {
-                ArrayPool<T>.Shared.Return(_array);
-                _array = null;
+                ArrayPool<T>.Shared.Return(_arrayFromPool);
+                _arrayFromPool = null;
                 _count = 0;
             }
         }
