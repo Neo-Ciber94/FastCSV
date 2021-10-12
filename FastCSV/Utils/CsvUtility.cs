@@ -175,6 +175,161 @@ namespace FastCSV.Utils
             return records;
         }
 
+        public static string[]? ReadRecordWithArrayBuilder(StreamReader reader, CsvFormat format)
+        {
+            if (reader.EndOfStream)
+            {
+                return default;
+            }
+
+            using ValueStringBuilder stringBuilder = new(stackalloc char[512]);
+            using ArrayBuilder<string> records = new(10);
+
+            char delimiter = format.Delimiter;
+            char quote = format.Quote;
+            QuoteStyle style = format.Style;
+            bool hasQuote = false;
+
+            // Position used for track current line and offset to provide information in case of errors.
+            Position currentPosition = Position.Zero;
+            Position quotePosition = Position.Zero;
+
+            // If the record don't contains multi-line values, this outer loop will only run once
+            while (true)
+            {
+                string? line = reader.ReadLine();
+
+                currentPosition = currentPosition
+                    .AddLine(1)
+                    .WithOffset(0);
+
+                if (line == null)
+                {
+                    break;
+                }
+
+                // Ignore empty entries if the format don't allow whitespaces
+                if (format.IgnoreWhitespace && string.IsNullOrWhiteSpace(line))
+                {
+                    continue;
+                }
+
+                // Convert the CharEnumerator into an IIterator
+                // which allow to inspect the next elements
+                SpanIterator<char> enumerator = new(line);
+
+                while (enumerator.MoveNext())
+                {
+                    char nextChar = enumerator.Current;
+
+                    currentPosition = currentPosition.AddOffset(1);
+
+                    // We ignore any CR (carrier return) or LF (line-break)
+                    if (!hasQuote && (nextChar == '\r' || nextChar == '\n'))
+                    {
+                        continue;
+                    }
+
+                    if (nextChar == delimiter)
+                    {
+                        if (hasQuote)
+                        {
+                            stringBuilder.Append(nextChar);
+                        }
+                        else
+                        {
+                            // Gets the current field and trim the whitespaces if required by the format
+                            string field = stringBuilder.ToString();
+
+                            if (format.IgnoreWhitespace)
+                            {
+                                field = field.Trim();
+                            }
+
+                            records.Add(field);
+                            stringBuilder.Clear();
+                        }
+                    }
+                    else if (nextChar == quote)
+                    {
+                        if (hasQuote)
+                        {
+                            // If the next char is a quote, the current is an escape so ignore it
+                            // and append the next char
+                            if (enumerator.Peek.Contains(quote) && enumerator.MoveNext())
+                            {
+                                currentPosition = currentPosition.AddOffset(1);
+
+                                if (style != QuoteStyle.Never)
+                                {
+                                    stringBuilder.Append(enumerator.Current);
+                                }
+                            }
+                            else
+                            {
+                                switch (style)
+                                {
+                                    case QuoteStyle.Always:
+                                        stringBuilder.Append(quote);
+                                        break;
+                                    case QuoteStyle.Never:
+                                        break;
+                                    case QuoteStyle.WhenNeeded:
+                                        if (!enumerator.HasNext() || !enumerator.Peek.Contains(delimiter))
+                                        {
+                                            stringBuilder.Append(quote);
+                                        }
+                                        break;
+                                }
+
+                                hasQuote = false;
+                            }
+                        }
+                        else
+                        {
+                            switch (style)
+                            {
+                                case QuoteStyle.Always:
+                                    stringBuilder.Append(quote);
+                                    break;
+                                case QuoteStyle.Never:
+                                    break;
+                                case QuoteStyle.WhenNeeded:
+                                    if (stringBuilder.Length > 0)
+                                    {
+                                        stringBuilder.Append(quote);
+                                    }
+                                    break;
+                            }
+
+                            quotePosition = currentPosition;
+                            hasQuote = true;
+                        }
+                    }
+                    else
+                    {
+                        stringBuilder.Append(nextChar);
+                    }
+                }
+
+                // Add the last record value
+                records.Add(stringBuilder.ToString());
+
+                // Exit if we aren't in a quote
+                if (!hasQuote)
+                {
+                    break;
+                }
+            }
+
+            if (hasQuote)
+            {
+                throw new CsvFormatException($"Quote wasn't closed. Position: {quotePosition}");
+            }
+
+            return records.Build();
+        }
+
         /// <summary>
         /// Writes a csv record using the specified <see cref="StreamWriter"/>.
         /// </summary>

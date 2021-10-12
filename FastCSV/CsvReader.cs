@@ -147,6 +147,27 @@ namespace FastCSV
             return new CsvRecord(Header, values, Format);
         }
 
+        public CsvRecord? Read2()
+        {
+            ThrowIfDisposed();
+
+            string[]? values = CsvUtility.ReadRecordWithArrayBuilder(_reader!, Format);
+
+            if (Format.IgnoreWhitespace && (values == null || values.Length == 0))
+            {
+                return null;
+            }
+
+            _recordNumber += 1;
+
+            if (values == null)
+            {
+                return new CsvRecord(Header, Array.Empty<string>(), Format);
+            }
+
+            return new CsvRecord(Header, values, Format);
+        }
+
         /// <summary>
         /// Reads the next record asynchronously.
         /// </summary>
