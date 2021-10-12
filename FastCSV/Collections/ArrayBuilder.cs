@@ -33,14 +33,16 @@ namespace FastCSV.Collections
             _arrayFromPool[_count++] = value;
         }
 
-        public T[] Build()
+        public T[] ToArray()
         {
             if (_arrayFromPool == null)
             {
                 return Array.Empty<T>();
             }
 
-            return _arrayFromPool.AsSpan(0, _count).ToArray();
+            T[] array = new T[_count];
+            Array.Copy(_arrayFromPool, array, _count);
+            return array;
         }
 
         private void Resize()
@@ -50,11 +52,12 @@ namespace FastCSV.Collections
                 return;
             }
 
-            // Returns the array
-            ArrayPool<T>.Shared.Return(_arrayFromPool);
-
             int newCapacity = _arrayFromPool.Length * 2;
-            _arrayFromPool = ArrayPool<T>.Shared.Rent(newCapacity);
+            T[] newArray = ArrayPool<T>.Shared.Rent(newCapacity);
+
+            Array.Copy(_arrayFromPool, newArray, _count);
+            ArrayPool<T>.Shared.Return(_arrayFromPool);
+            _arrayFromPool = newArray;
         }
 
         public void Dispose()
