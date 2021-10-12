@@ -1,22 +1,22 @@
-﻿using System;
+﻿using FastCSV.Collections;
+using System;
 using System.Buffers;
 using System.IO;
 using System.Text;
 
 namespace FastCSV.Utils
 {
-    public ref struct CsvBufferedReader
+    public struct CsvBufferedReader : IDisposable
     {
         private static readonly Decoder Utf8Decoder = Encoding.UTF8.GetDecoder();
-
-        private const int DefaultBufferCapacity = 512;
+        private const int DefaultBufferCapacity = 256;
 
         private readonly char[]? _charBufferFromArrayPool;
         private readonly byte[]? _byteBufferFromArrayPool;
 
-        private readonly Span<byte> _byteBuffer;
-        private readonly ReadOnlySpan<char> _csvData;
-        private readonly Stream? _stream;
+        private readonly Memory<byte> _byteBuffer;
+        private readonly ReadOnlyMemory<char> _csvData;
+        private readonly object? _stream;
         private readonly long _length;
         private readonly int _maxCharCount;
         private int _line;
@@ -31,10 +31,10 @@ namespace FastCSV.Utils
 
         public long BytesLength => _line;
 
-        public CsvBufferedReader(ReadOnlySpan<char> csvData)
+        public CsvBufferedReader(ReadOnlyMemory<char> csvData)
         {
             _csvData = csvData;
-            _length = Encoding.UTF8.GetByteCount(csvData);
+            _length = Encoding.UTF8.GetByteCount(csvData.Span);
             _stream = null;
             _pos = 0;
             _charPos = 0;
@@ -43,13 +43,13 @@ namespace FastCSV.Utils
 
             _maxCharCount = 0;
             _charBufferFromArrayPool = null;
-            _byteBuffer = Span<byte>.Empty;
+            _byteBuffer = Memory<byte>.Empty;
             _byteBufferFromArrayPool = null;
         }
 
-        public CsvBufferedReader(Stream stream, Span<byte> buffer)
+        public CsvBufferedReader(Stream stream, Memory<byte> buffer)
         {
-            _csvData = ReadOnlySpan<char>.Empty;
+            _csvData = ReadOnlyMemory<char>.Empty;
             _byteBuffer = buffer;
             _byteBufferFromArrayPool = null;
             _length = stream.Length;
@@ -66,7 +66,7 @@ namespace FastCSV.Utils
 
         public CsvBufferedReader(Stream stream, int capacity = DefaultBufferCapacity)
         {
-            _csvData = ReadOnlySpan<char>.Empty;
+            _csvData = ReadOnlyMemory<char>.Empty;
             _length = stream.Length;
             _stream = stream;
 
@@ -76,11 +76,30 @@ namespace FastCSV.Utils
             _line = 1;
 
             _byteBufferFromArrayPool = ArrayPool<byte>.Shared.Rent(capacity);
-            _byteBuffer = _byteBufferFromArrayPool.AsSpan(0, capacity);
+            _byteBuffer = _byteBufferFromArrayPool.AsMemory(0, capacity);
 
             _maxCharCount = Encoding.UTF8.GetMaxCharCount(_byteBuffer.Length);
             _charBufferFromArrayPool = ArrayPool<char>.Shared.Rent(_maxCharCount);
         }
+
+        public CsvBufferedReader(StreamReader stream, int capacity = DefaultBufferCapacity)
+        {
+            _csvData = ReadOnlyMemory<char>.Empty;
+            _length = stream.BaseStream.Length;
+            _stream = stream;
+
+            _pos = 0;
+            _charPos = 0;
+            _charsLen = 0;
+            _line = 1;
+
+            _byteBufferFromArrayPool = ArrayPool<byte>.Shared.Rent(capacity);
+            _byteBuffer = _byteBufferFromArrayPool.AsMemory(0, capacity);
+
+            _maxCharCount = Encoding.UTF8.GetMaxCharCount(_byteBuffer.Length);
+            _charBufferFromArrayPool = ArrayPool<char>.Shared.Rent(_maxCharCount);
+        }
+
 
         private ReadOnlySpan<char> GetCharBuffer()
         {
@@ -89,7 +108,7 @@ namespace FastCSV.Utils
             if (_stream == null)
             {
 
-                return _csvData.Slice(startIndex, _charsLen);
+                return _csvData.Span.Slice(startIndex, _charsLen);
             }
             else
             {
@@ -97,7 +116,7 @@ namespace FastCSV.Utils
             }
         }
 
-        public string[] NextRecord(CsvFormat format)
+        public string[] ReadRecord(CsvFormat format)
         {
             if (_charPos == _charsLen)
             {
@@ -107,7 +126,138 @@ namespace FastCSV.Utils
                 }
             }
 
-            throw new NotImplementedException();
+            using ValueStringBuilder stringBuilder = new ValueStringBuilder(stackalloc char[512]);
+            using ArrayBuilder<string> records = new ArrayBuilder<string>(10);
+
+            char delimiter = format.Delimiter;
+            char quote = format.Quote;
+            QuoteStyle style = format.Style;
+            bool hasQuote = false;
+
+            while (true)
+            {
+                string? line = ReadLine();
+
+                if (line == null)
+                {
+                    break;
+                }
+
+                // Ignore empty entries if the format don't allow whitespaces
+                if (format.IgnoreWhitespace && string.IsNullOrWhiteSpace(line))
+                {
+                    continue;
+                }
+
+                // Convert the CharEnumerator into an IIterator
+                // which allow to inspect the next elements
+                SpanIterator<char> enumerator = new SpanIterator<char>(line);
+
+                while (enumerator.MoveNext())
+                {
+                    char nextChar = enumerator.Current;
+
+                    // We ignore any CR (carrier return) or LF (line-break)
+                    if (!hasQuote && (nextChar == '\r' || nextChar == '\n'))
+                    {
+                        continue;
+                    }
+
+                    if (nextChar == delimiter)
+                    {
+                        if (hasQuote)
+                        {
+                            stringBuilder.Append(nextChar);
+                        }
+                        else
+                        {
+                            // Gets the current field and trim the whitespaces if required by the format
+                            string field = stringBuilder.ToString();
+
+                            if (format.IgnoreWhitespace)
+                            {
+                                field = field.Trim();
+                            }
+
+                            records.Add(field);
+                            stringBuilder.Clear();
+                        }
+                    }
+                    else if (nextChar == quote)
+                    {
+                        if (hasQuote)
+                        {
+                            // If the next char is a quote, the current is an escape so ignore it
+                            // and append the next char
+                            if (enumerator.Peek.Contains(quote) && enumerator.MoveNext())
+                            {
+                                if (style != QuoteStyle.Never)
+                                {
+                                    stringBuilder.Append(enumerator.Current);
+                                }
+                            }
+                            else
+                            {
+                                switch (style)
+                                {
+                                    case QuoteStyle.Always:
+                                        stringBuilder.Append(quote);
+                                        break;
+                                    case QuoteStyle.Never:
+                                        break;
+                                    case QuoteStyle.WhenNeeded:
+                                        if (!enumerator.HasNext() || !enumerator.Peek.Contains(delimiter))
+                                        {
+                                            stringBuilder.Append(quote);
+                                        }
+                                        break;
+                                }
+
+                                hasQuote = false;
+                            }
+                        }
+                        else
+                        {
+                            switch (style)
+                            {
+                                case QuoteStyle.Always:
+                                    stringBuilder.Append(quote);
+                                    break;
+                                case QuoteStyle.Never:
+                                    break;
+                                case QuoteStyle.WhenNeeded:
+                                    if (stringBuilder.Length > 0)
+                                    {
+                                        stringBuilder.Append(quote);
+                                    }
+                                    break;
+                            }
+
+                            hasQuote = true;
+                        }
+                    }
+                    else
+                    {
+                        stringBuilder.Append(nextChar);
+                    }
+                }
+
+                // Add the last record value
+                records.Add(stringBuilder.ToString());
+
+                // Exit if we aren't in a quote
+                if (!hasQuote)
+                {
+                    break;
+                }
+            }
+
+            if (hasQuote)
+            {
+                throw new CsvFormatException($"Quote wasn't closed. line '{Line}', offset '{Offset}'");
+            }
+
+            return records.Build();
         }
 
         public char? Read()
@@ -209,14 +359,16 @@ namespace FastCSV.Utils
 
             if (_stream != null)
             {
-                int bytesRead = _stream.Read(_byteBuffer);
+                //int bytesRead = _stream.Read(_byteBuffer);
 
-                if (bytesRead == 0)
-                {
-                    return 0;
-                }
+                //if (bytesRead == 0)
+                //{
+                //    return 0;
+                //}
 
-                int charsRead = Utf8Decoder.GetChars(_byteBuffer, _charBufferFromArrayPool.AsSpan(0, _maxCharCount), false);
+                //int charsRead = Utf8Decoder.GetChars(_byteBuffer, _charBufferFromArrayPool.AsSpan(0, _maxCharCount), false);
+
+                int charsRead = ReadFromStream(_charBufferFromArrayPool.AsSpan(0, _maxCharCount));
                 _pos += charsRead;
                 _charsLen = charsRead;
                 _charPos = 0;
@@ -232,6 +384,32 @@ namespace FastCSV.Utils
                 _charPos = 0;
                 return length;
             }
+        }
+
+        private int ReadFromStream(Span<char> buffer)
+        {
+            if (_stream == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            if (_stream is Stream s)
+            {
+                var byteBuffer = _byteBuffer.Span;
+                if(s.Read(byteBuffer) == 0)
+                {
+                    return 0;
+                }
+
+                return Utf8Decoder.GetChars(byteBuffer, buffer, false);
+            }
+
+            if (_stream is StreamReader reader)
+            {
+                return reader.Read(buffer);
+            }
+
+            return 0;
         }
 
         public void Dispose()
