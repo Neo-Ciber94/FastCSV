@@ -263,11 +263,11 @@ namespace FastCSV.Tests
 
             using var reader = CsvReader.FromStream(csv);
 
-            Person p1 = reader.ReadAs<Person>();
+            Person p1 = reader.ReadAs<Person>().Value;
             Assert.AreEqual("Homer", p1.Name);
             Assert.AreEqual(35, p1.Age);
 
-            Person p2 = reader.ReadAs<Person>();
+            Person p2 = reader.ReadAs<Person>().Value;
             Assert.AreEqual("Marge", p2.Name);
             Assert.AreEqual(28, p2.Age);
 
