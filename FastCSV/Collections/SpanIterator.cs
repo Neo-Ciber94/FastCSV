@@ -1,6 +1,7 @@
-﻿using System;
+﻿using FastCSV.Utils;
+using System;
 
-namespace FastCSV.Utils
+namespace FastCSV.Collections
 {
     public ref struct SpanIterator<T> where T: notnull
     {
@@ -20,14 +21,11 @@ namespace FastCSV.Utils
             get
             {
                 int length = _span.Length;
+                int next = _pos + 1;
 
-                if (_pos >= 0 && _pos < length)
+                if (next < length)
                 {
-                    int next = _pos + 1;
-                    if (next < length)
-                    {
-                        return _span[next];
-                    }
+                    return _span[next];
                 }
 
                 return default;

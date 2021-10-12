@@ -125,7 +125,7 @@ namespace FastCSV.Utils.Tests
             Optional<int> opt3 = default;
             Assert.Throws<InvalidOperationException>(() =>
             {
-                int p = opt3;
+                int p = opt3.Value;
             });
         }
     }

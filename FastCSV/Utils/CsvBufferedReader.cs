@@ -255,7 +255,7 @@ namespace FastCSV.Utils
                 throw new CsvFormatException($"Quote wasn't closed. line '{Line}', offset '{Offset}'");
             }
 
-            return records.Build();
+            return records.ToArray();
         }
 
         public char? Read()
