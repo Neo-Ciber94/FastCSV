@@ -251,18 +251,9 @@ namespace FastCSV
         /// <summary>
         /// Converts this record to a dictionary if has a header.
         /// </summary>
-        /// <returns>A dictionary containing the key and values of this record, or null if this record don't have a header</returns>
-        public Dictionary<string, string>? ToDictionary()
-        {
-            return ToDictionary(null);
-        }
-
-        /// <summary>
-        /// Converts this record to a dictionary if has a header.
-        /// </summary>
         /// <param name="comparer">The comparer.</param>
         /// <returns>A dictionary containing the key and values of this record, or null if this record don't have a header</returns>
-        public Dictionary<string, string>? ToDictionary(IEqualityComparer<string>? comparer)
+        public Dictionary<string, string>? ToDictionary(IEqualityComparer<string>? comparer = null)
         {
             if (Header == null)
             {
