@@ -17,3 +17,4 @@
 - [x] Move extensions to FastCSV.Extensions
 - [x] Allow serialize/deserialize any type with a converter, not just builtin types
 - [ ] Move exceptions to ThrowHelper
+- [ ] Valide if CsvRecord and CsvHeader can be change to 'readonly struct'
