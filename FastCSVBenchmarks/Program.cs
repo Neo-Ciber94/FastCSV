@@ -6,7 +6,7 @@ namespace FastCSV.Benchmarks
     {
         public static void Main()
         {
-            BenchmarkRunner.Run<ReadAllVsReadAllAsync>();
+            BenchmarkRunner.Run<CsvReaderWithArrayBuilderBenchmark>();
         }
     }
 }

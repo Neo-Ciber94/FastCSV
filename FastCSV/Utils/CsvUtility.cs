@@ -183,7 +183,7 @@ namespace FastCSV.Utils
             }
 
             using ValueStringBuilder stringBuilder = new(stackalloc char[512]);
-            using ArrayBuilder<string> records = new(10);
+            using ArrayBuilder<string> records = new(16);
 
             char delimiter = format.Delimiter;
             char quote = format.Quote;
@@ -327,7 +327,7 @@ namespace FastCSV.Utils
                 throw new CsvFormatException($"Quote wasn't closed. Position: {quotePosition}");
             }
 
-            return records.Build();
+            return records.ToArray();
         }
 
         /// <summary>

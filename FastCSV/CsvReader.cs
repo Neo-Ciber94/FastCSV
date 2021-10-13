@@ -147,7 +147,7 @@ namespace FastCSV
             return new CsvRecord(Header, values, Format);
         }
 
-        public CsvRecord? Read2()
+        public CsvRecord? ReadWithBuilder()
         {
             ThrowIfDisposed();
 

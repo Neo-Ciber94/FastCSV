@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Engines;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,8 +13,8 @@ namespace FastCSV.Benchmarks
     [MinColumn, MaxColumn]
     public class CsvReaderWithArrayBuilderBenchmark
     {
-        private static readonly string ProjectPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\"));
-        private static readonly string FilePath = ProjectPath + "example.csv";
+        private const string ProjectPath = "../../../../../../../";
+        private const string FilePath = ProjectPath + "example.csv";
         private static string CsvStringData;
 
         static CsvReaderWithArrayBuilderBenchmark()
@@ -26,12 +27,32 @@ namespace FastCSV.Benchmarks
         public void CsvReadFile()
         {
             using var reader = new CsvReader(FilePath);
+
+            while (true)
+            {
+                var record = reader.Read();
+
+                if (record == null)
+                {
+                    break;
+                }
+            }
         }
 
         [Benchmark]
-        public void CsvReadWithArrayBuilder()
+        public void CsvReadFileWithBuilder()
         {
             using var reader = new CsvReader(FilePath);
+
+            while (true)
+            {
+                var record = reader.ReadWithBuilder();
+
+                if (record == null)
+                {
+                    break;
+                }
+            }
         }
     }
 }
