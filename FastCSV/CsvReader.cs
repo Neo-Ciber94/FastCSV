@@ -198,45 +198,6 @@ namespace FastCSV
         }
 
         /// <summary>
-        /// Reads the next record as a value of type T.
-        /// </summary>
-        /// <typeparam name="T">Type to cast the record to.</typeparam>
-        /// <param name="parser">The parser.</param>
-        /// <returns>An optional with the value or none is there is no more records to read.</returns>
-        public Optional<T> ReadAs<T>(CsvConverterOptions? options = null) where T : notnull
-        {
-            Dictionary<string, string>? data = Read()?.ToDictionary();
-
-            if (data == null)
-            {
-                return Optional.None<T>();
-            }
-
-            var result = CsvConverter.DeserializeFromDictionary<T>(data, options);
-            return Optional.Some(result);
-        }
-
-        /// <summary>
-        /// Gets an <see cref="IEnumerable{T}"/> over the records of this reader csv and parser them to the type T,
-        /// this enumerable will read the records using this reader, so when the iteration
-        /// end the reader will be at the end of the file.
-        /// </summary>
-        /// <returns>An enumerable over the records of this reader csv.</returns>
-        public IEnumerable<T> ReadAllAs<T>(CsvConverterOptions? options = null)
-        {
-            List<T> result = new List<T>();
-
-            foreach(CsvRecord record in ReadAll())
-            {
-                Dictionary<string, string> data = record.ToDictionary()!;
-                T value = CsvConverter.DeserializeFromDictionary<T>(data, options);
-                result.Add(value);
-            }
-
-            return result;
-        }
-
-        /// <summary>
         /// Moves this reader to the start of the csv.
         /// </summary>
         /// <exception cref="InvalidOperationException">If is unable to move.</exception>
