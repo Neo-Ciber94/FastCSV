@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using FastCSV.Collections;
 using FastCSV.Extensions;
 
@@ -62,6 +64,170 @@ namespace FastCSV.Utils
 
                 // An iterator over the chars of the line
                 SpanIterator<char> enumerator = new SpanIterator<char>(line);
+
+                while (enumerator.MoveNext())
+                {
+                    char nextChar = enumerator.Current;
+
+                    currentPosition = currentPosition.AddOffset(1);
+
+                    // We ignore any CR (carrier return) or LF (line-break)
+                    if (!hasQuote && (nextChar == '\r' || nextChar == '\n'))
+                    {
+                        continue;
+                    }
+
+                    if (nextChar == delimiter)
+                    {
+                        if (hasQuote)
+                        {
+                            stringBuilder.Append(nextChar);
+                        }
+                        else
+                        {
+                            // Gets the current field and trim the whitespaces if required by the format
+                            string field = stringBuilder.ToString();
+
+                            if (format.IgnoreWhitespace)
+                            {
+                                field = field.Trim();
+                            }
+
+                            records.Add(field);
+                            stringBuilder.Clear();
+                        }
+                    }
+                    else if (nextChar == quote)
+                    {
+                        if (hasQuote)
+                        {
+                            // If the next char is a quote, the current is an escape so ignore it
+                            // and append the next char
+                            if (enumerator.Peek.Contains(quote) && enumerator.MoveNext())
+                            {
+                                currentPosition = currentPosition.AddOffset(1);
+
+                                if (style != QuoteStyle.Never)
+                                {
+                                    stringBuilder.Append(enumerator.Current);
+                                }
+                            }
+                            else
+                            {
+                                switch (style)
+                                {
+                                    case QuoteStyle.Always:
+                                        stringBuilder.Append(quote);
+                                        break;
+                                    case QuoteStyle.Never:
+                                        break;
+                                    case QuoteStyle.WhenNeeded:
+                                        if (!enumerator.HasNext() || !enumerator.Peek.Contains(delimiter))
+                                        {
+                                            stringBuilder.Append(quote);
+                                        }
+                                        break;
+                                }
+
+                                hasQuote = false;
+                            }
+                        }
+                        else
+                        {
+                            switch (style)
+                            {
+                                case QuoteStyle.Always:
+                                    stringBuilder.Append(quote);
+                                    break;
+                                case QuoteStyle.Never:
+                                    break;
+                                case QuoteStyle.WhenNeeded:
+                                    if (stringBuilder.Length > 0)
+                                    {
+                                        stringBuilder.Append(quote);
+                                    }
+                                    break;
+                            }
+
+                            quotePosition = currentPosition;
+                            hasQuote = true;
+                        }
+                    }
+                    else
+                    {
+                        stringBuilder.Append(nextChar);
+                    }
+                }
+
+                // Add the last record value
+                records.Add(stringBuilder.ToString());
+
+                // Exit if we aren't in a quote
+                if (!hasQuote)
+                {
+                    break;
+                }
+            }
+
+            if (hasQuote)
+            {
+                throw new CsvFormatException($"Quote wasn't closed. Position: {quotePosition}");
+            }
+
+            return records.ToArray();
+        }
+
+        /// <summary>
+        /// Reads the next csv record using the specified <see cref="StreamReader"/> asynchronously.
+        /// </summary>
+        /// <param name="reader">The reader.</param>
+        /// <param name="format">The format.</param>
+        /// <returns>A list with the fields of the record</returns>
+        /// <exception cref="FastCSV.CsvFormatException">If a quote is not closed.</exception>
+        public static async Task<string[]?> ReadRecordAsync(StreamReader reader, CsvFormat format, CancellationToken cancellationToken = default)
+        {
+            if (reader.EndOfStream)
+            {
+                return default;
+            }
+
+            StringBuilder stringBuilder = StringBuilderCache.Acquire(128);
+            using ArrayBuilder<string> records = new ArrayBuilder<string>(16);
+
+            char delimiter = format.Delimiter;
+            char quote = format.Quote;
+            QuoteStyle style = format.Style;
+            bool hasQuote = false;
+
+            // Position used for track current line and offset to provide information in case of errors.
+            Position currentPosition = Position.Zero;
+            Position quotePosition = Position.Zero;
+
+            // If the record don't contains multi-line values, this outer loop will only run once
+            while (true)
+            {
+                // To cancel the operation
+                cancellationToken.ThrowIfCancellationRequested();
+
+                string? line = await reader.ReadLineAsync();
+
+                currentPosition = currentPosition
+                    .AddLine(1)
+                    .WithOffset(0);
+
+                if (line == null)
+                {
+                    break;
+                }
+
+                // Ignore empty entries if the format don't allow whitespaces
+                if (format.IgnoreWhitespace && string.IsNullOrWhiteSpace(line))
+                {
+                    continue;
+                }
+
+                // An iterator over the chars of the line
+                MemoryIterator<char> enumerator = new(line.AsMemory());
 
                 while (enumerator.MoveNext())
                 {

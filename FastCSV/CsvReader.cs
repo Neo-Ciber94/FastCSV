@@ -152,15 +152,24 @@ namespace FastCSV
         /// </summary>
         /// <param name="cancellationToken">A cancellation token for cancelling this operation</param>
         /// <returns>The next record or null is there is not more records</returns>
-        public ValueTask<CsvRecord?> ReadAsync(CancellationToken cancellationToken = default)
+        public async ValueTask<CsvRecord?> ReadAsync(CancellationToken cancellationToken = default)
         {
-            if (cancellationToken.IsCancellationRequested)
+            ThrowIfDisposed();
+            string[]? values = await CsvUtility.ReadRecordAsync(_reader!, Format, cancellationToken);
+
+            if (Format.IgnoreWhitespace && (values == null || values.Length == 0))
             {
-                return ValueTask.FromCanceled<CsvRecord?>(cancellationToken);
+                return null;
             }
 
-            CsvRecord? record = Read();
-            return new ValueTask<CsvRecord?>(record);
+            _recordNumber += 1;
+
+            if (values == null)
+            {
+                return new CsvRecord(Header, Array.Empty<string>(), Format);
+            }
+
+            return new CsvRecord(Header, values, Format);
         }
 
         /// <summary>
@@ -215,11 +224,16 @@ namespace FastCSV
         /// <returns>An enumerable over the records of this reader csv.</returns>
         public IEnumerable<T> ReadAllAs<T>(CsvConverterOptions? options = null)
         {
-            return ReadAll().Select(record =>
+            List<T> result = new List<T>();
+
+            foreach(CsvRecord record in ReadAll())
             {
                 Dictionary<string, string> data = record.ToDictionary()!;
-                return CsvConverter.DeserializeFromDictionary<T>(data, options);
-            });
+                T value = CsvConverter.DeserializeFromDictionary<T>(data, options);
+                result.Add(value);
+            }
+
+            return result;
         }
 
         /// <summary>
