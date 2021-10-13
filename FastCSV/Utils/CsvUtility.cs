@@ -202,17 +202,24 @@ namespace FastCSV.Utils
             }
 
             // Helper local function to add quotes
-            string AddQuote(string s)
+            static string AddQuote(CsvFormat format, string s)
             {
-                return string.Concat(format.Quote, s, format.Quote);
+                int length = s.Length + 2;
+
+                return string.Create(length, (format.Quote, s), (span, state) =>
+                {
+                    char quote = state.Quote;
+                    string s = state.s;
+
+                    span[0] = quote;
+                    span[^1] = quote;
+                    s.AsSpan().CopyTo(span[1..^1]);
+                });
             }
 
             using var stringBuilder = new ValueStringBuilder(stackalloc char[128]);
             IEnumerator<string> enumerator = values.GetEnumerator();
             QuoteStyle style = format.Style;
-
-            // Clears the content of the provided StringBuilder
-            stringBuilder.Clear();
 
             if (enumerator.MoveNext())
             {
@@ -233,7 +240,7 @@ namespace FastCSV.Utils
                         case QuoteStyle.Always:
                             if (!field.EnclosedWith(format.Quote))
                             {
-                                field = AddQuote(field);
+                                field = AddQuote(format, field);
                             }
                             break;
                         case QuoteStyle.Never:
