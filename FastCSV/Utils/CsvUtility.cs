@@ -21,7 +21,7 @@ namespace FastCSV.Utils
         /// <param name="format">The format.</param>
         /// <returns>A list with the fields of the record</returns>
         /// <exception cref="FastCSV.CsvFormatException">If a quote is not closed.</exception>
-        public static List<string>? ReadRecord(StreamReader reader, CsvFormat format)
+        public static string[]? ReadRecord(StreamReader reader, CsvFormat format)
         {
             if (reader.EndOfStream)
             {
@@ -29,7 +29,8 @@ namespace FastCSV.Utils
             }
 
             using ValueStringBuilder stringBuilder = new ValueStringBuilder(stackalloc char[512]);
-            List<string> records = new List<string>();
+            using ArrayBuilder<string> records = new ArrayBuilder<string>(16);
+
             char delimiter = format.Delimiter;
             char quote = format.Quote;
             QuoteStyle style = format.Style;
@@ -59,9 +60,8 @@ namespace FastCSV.Utils
                     continue;
                 }
 
-                // Convert the CharEnumerator into an IIterator
-                // which allow to inspect the next elements
-                Iterator<char> enumerator = line.GetEnumerator().AsIterator();
+                // An iterator over the chars of the line
+                SpanIterator<char> enumerator = new SpanIterator<char>(line);
 
                 while (enumerator.MoveNext())
                 {
@@ -172,7 +172,7 @@ namespace FastCSV.Utils
                 throw new CsvFormatException($"Quote wasn't closed. Position: {quotePosition}");
             }
 
-            return records;
+            return records.ToArray();
         }
 
         /// <summary>

@@ -58,8 +58,8 @@ namespace FastCSV
 
             if (hasHeader)
             {
-                List<string>? values = CsvUtility.ReadRecord(_reader!, Format);
-                if (values != null && values.Count > 0)
+                string[]? values = CsvUtility.ReadRecord(_reader!, Format);
+                if (values != null && values.Length > 0)
                 {
                     Header = new CsvHeader(values, Format);
                     _recordNumber += 1;
@@ -130,9 +130,9 @@ namespace FastCSV
         {
             ThrowIfDisposed();
 
-            List<string>? values = CsvUtility.ReadRecord(_reader!, Format);
+            string[]? values = CsvUtility.ReadRecord(_reader!, Format);
 
-            if (Format.IgnoreWhitespace && (values == null || values.Count == 0))
+            if (Format.IgnoreWhitespace && (values == null || values.Length == 0))
             {
                 return null;
             }
