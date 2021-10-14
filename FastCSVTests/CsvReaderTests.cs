@@ -254,7 +254,7 @@ namespace FastCSV.Tests
         }
 
         [Test]
-        public void ReasAsTest()
+        public void ReadAsTest()
         {
             using var csv = StreamHelper.ToMemoryStream(
                 "Name,Age\n" +
@@ -275,7 +275,7 @@ namespace FastCSV.Tests
         }
 
         [Test]
-        public void ReasAllAsTest()
+        public void ReadAllAsTest()
         {
             using var csv = StreamHelper.ToMemoryStream(
                 "Name,Age\n" +
@@ -292,6 +292,48 @@ namespace FastCSV.Tests
             Assert.AreEqual("Marge", persons[1].Name);
             Assert.AreEqual(28, persons[1].Age);
         }
+
+        [Test]
+        public async Task ReadAsAsyncTest()
+        {
+            using var csv = StreamHelper.ToMemoryStream(
+                "Name,Age\n" +
+                "Homer,35\n" +
+                "Marge,28\n");
+
+            using var reader = CsvReader.FromStream(csv);
+
+            Person p1 = (await reader.ReadAsAsync<Person>()).Value;
+            Assert.AreEqual("Homer", p1.Name);
+            Assert.AreEqual(35, p1.Age);
+
+            Person p2 = (await reader.ReadAsAsync<Person>()).Value;
+            Assert.AreEqual("Marge", p2.Name);
+            Assert.AreEqual(28, p2.Age);
+
+            Assert.IsFalse((await reader.ReadAsAsync<Person>()).HasValue);
+        }
+
+        [Test]
+        public async Task ReadAllAsAsyncTest()
+        {
+            using var csv = StreamHelper.ToMemoryStream(
+                "Name,Age\n" +
+                "Homer,35\n" +
+                "Marge,28\n");
+
+            using var reader = CsvReader.FromStream(csv);
+            var persons = reader.ReadAllAsAsync<Person>();
+
+            await persons.MoveNextAsync();
+            Assert.AreEqual("Homer", persons.Current.Name);
+            Assert.AreEqual(35, persons.Current.Age);
+
+            await persons.MoveNextAsync();
+            Assert.AreEqual("Marge", persons.Current.Name);
+            Assert.AreEqual(28, persons.Current.Age);
+        }
+
 
         [Test()]
         public void ResetTest()
