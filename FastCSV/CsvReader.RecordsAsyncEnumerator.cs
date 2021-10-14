@@ -9,19 +9,19 @@ namespace FastCSV
         /// <summary>
         /// Represents an asynchronous iterator over the records of a csv.
         /// <para>
-        /// The iterator consume each value after advance and don't creates a new enumerator if <see cref="Records.GetAsyncEnumerator()"/> is called
-        /// just returns itself. To reset the enumerator use <see cref="Records.Reset()"/>.
+        /// The iterator consume each value after advance and don't creates a new enumerator if <see cref="RecordsEnumerator.GetAsyncEnumerator()"/> is called
+        /// just returns itself. To reset the enumerator use <see cref="RecordsEnumerator.Reset()"/>.
         /// </para>
         /// </summary>
         /// <seealso cref="System.Collections.Generic.IAsyncEnumerator{FastCSV.CsvRecord}" />
         /// <seealso cref="System.Collections.Generic.IAsyncEnumerable{FastCSV.CsvRecord}" />
-        public struct RecordsAsync : IAsyncEnumerator<CsvRecord>, IAsyncEnumerable<CsvRecord>
+        public struct RecordsAsyncEnumerator : IAsyncEnumerator<CsvRecord>, IAsyncEnumerable<CsvRecord>
         {
             private readonly CsvReader _reader;
             private readonly CancellationToken _cancellationToken;
             private CsvRecord? _record;
 
-            internal RecordsAsync(CsvReader reader, CancellationToken cancellationToken = default)
+            internal RecordsAsyncEnumerator(CsvReader reader, CancellationToken cancellationToken = default)
             {
                 _reader = reader;
                 _record = null;
@@ -65,14 +65,14 @@ namespace FastCSV
                 //_record = null;
             }
 
-            public RecordsAsync GetEnumerator(CancellationToken cancellationToken = default)
+            public RecordsAsyncEnumerator GetEnumerator(CancellationToken cancellationToken = default)
             {
-                return new RecordsAsync(_reader, cancellationToken);
+                return new RecordsAsyncEnumerator(_reader, cancellationToken);
             }
 
             public IAsyncEnumerator<CsvRecord> GetAsyncEnumerator(CancellationToken cancellationToken = default)
             {
-                return new RecordsAsync(_reader, cancellationToken);
+                return new RecordsAsyncEnumerator(_reader, cancellationToken);
             }
         }
     }

@@ -178,10 +178,10 @@ namespace FastCSV
         /// end the reader will be at the end of the file.
         /// </summary>
         /// <returns>An enumerable over the records of this reader csv.</returns>
-        public Records ReadAll()
+        public RecordsEnumerator ReadAll()
         {
             ThrowIfDisposed();
-            return new Records(this);
+            return new RecordsEnumerator(this);
         }
 
         /// <summary>
@@ -191,10 +191,10 @@ namespace FastCSV
         /// </summary>
         /// <param name="cancellationToken">A cancellation token for cancelling this operation</param>
         /// <returns>An enumerable over the records of this reader csv.</returns>
-        public RecordsAsync ReadAllAsync(CancellationToken cancellationToken = default)
+        public RecordsAsyncEnumerator ReadAllAsync(CancellationToken cancellationToken = default)
         {
             ThrowIfDisposed();
-            return new RecordsAsync(this, cancellationToken);
+            return new RecordsAsyncEnumerator(this, cancellationToken);
         }
 
         /// <summary>

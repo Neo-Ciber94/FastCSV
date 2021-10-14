@@ -8,18 +8,18 @@ namespace FastCSV
         /// <summary>
         /// Represents an iterator over the records of a csv.
         /// <para>
-        /// The iterator consume each value after advance and don't creates a new enumerator if <see cref="Records.GetEnumerator()"/> is called
-        /// just returns itself. To reset the enumerator use <see cref="Records.Reset()"/>.
+        /// The iterator consume each value after advance and don't creates a new enumerator if <see cref="RecordsEnumerator.GetEnumerator()"/> is called
+        /// just returns itself. To reset the enumerator use <see cref="RecordsEnumerator.Reset()"/>.
         /// </para>
         /// </summary>
         /// <seealso cref="System.Collections.Generic.IEnumerator{FastCSV.CsvRecord}" />
         /// <seealso cref="System.Collections.Generic.IEnumerable{FastCSV.CsvRecord}" />
-        public struct Records : IEnumerator<CsvRecord>, IEnumerable<CsvRecord>
+        public struct RecordsEnumerator : IEnumerator<CsvRecord>, IEnumerable<CsvRecord>
         {
             private readonly CsvReader _reader;
             private CsvRecord? _record;
 
-            internal Records(CsvReader reader)
+            internal RecordsEnumerator(CsvReader reader)
             {
                 _reader = reader;
                 _record = null;
@@ -54,7 +54,7 @@ namespace FastCSV
                 //_record = null;
             }
 
-            public Records GetEnumerator() => this;
+            public RecordsEnumerator GetEnumerator() => this;
 
             IEnumerator<CsvRecord> IEnumerable<CsvRecord>.GetEnumerator() => this;
 
