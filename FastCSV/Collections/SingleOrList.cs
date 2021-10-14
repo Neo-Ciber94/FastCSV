@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace FastCSV.Collections
 {
@@ -9,32 +10,32 @@ namespace FastCSV.Collections
     /// Represents a single value or a collection of values.
     /// </summary>
     /// <typeparam name="T">Type of the value.</typeparam>
-    public readonly struct ReadOnlyValueOrList<T> : IReadOnlyList<T>, IEquatable<ReadOnlyValueOrList<T>> where T : notnull
+    public struct SingleOrList<T> : IList<T>, IReadOnlyList<T>, IEquatable<SingleOrList<T>> where T: notnull
     {
         /// Single element list to throw the same exception message as List<T>
-        private static readonly List<T> _SingleElementList = new List<T> { default(T)! };
+        private static readonly List<T> _SingleElementList = new() { default! };
 
         /// <summary>
-        /// Gets an empty <see cref="ReadOnlyValueOrList{T}"/>.
+        /// Gets an empty <see cref="SingleOrList{T}"/>.
         /// </summary>
-        public static ReadOnlyValueOrList<T> Empty { get; } = new ReadOnlyValueOrList<T>(Array.Empty<T>());
+        public static SingleOrList<T> Empty { get; } = new SingleOrList<T>(Array.Empty<T>());
 
-        private readonly object _value;
+        private object _value;
 
         /// <summary>
-        /// Constructs a new <see cref="ReadOnlyValueOrList{T}"/>.
+        /// Constructs a new <see cref="SingleOrList{T}"/>.
         /// </summary>
         /// <param name="value">The value.</param>
-        public ReadOnlyValueOrList(T value)
+        public SingleOrList(T value)
         {
             _value = value;
         }
 
         /// <summary>
-        /// Constructs a new <see cref="ReadOnlyValueOrList{T}"/> with a collection of values.
+        /// Constructs a new <see cref="SingleOrList{T}"/> with a collection of values.
         /// </summary>
         /// <param name="values">The values to add.</param>
-        public ReadOnlyValueOrList(IEnumerable<T> values)
+        public SingleOrList(IEnumerable<T> values)
         {
             _value = new List<T>(values);
         }
@@ -43,6 +44,8 @@ namespace FastCSV.Collections
         /// Checks whether this instance is empty.
         /// </summary>
         public bool IsEmpty => Count == 0;
+
+        #region IList implementation
 
         public T this[int index]
         {
@@ -61,6 +64,24 @@ namespace FastCSV.Collections
 
                 return (T)_value;
             }
+
+            set
+            {
+                if (_value is List<T> list)
+                {
+                    list[index] = value;
+                }
+                else
+                {
+                    if (index != 0)
+                    {
+                        // Throws an exception
+                        _SingleElementList[index] = value;
+                    }
+
+                    _value = value;
+                }
+            }
         }
 
         public int Count
@@ -76,11 +97,88 @@ namespace FastCSV.Collections
             }
         }
 
-        /// <summary>
-        /// Determines whether an element is in the <see cref="ReadOnlyValueOrList{T}"/>.
-        /// </summary>
-        /// <param name="item">The item to locate..</param>
-        /// <returns><c>true</c> if the element is found.</returns>
+        public bool IsReadOnly => false;
+
+        public void Add(T item)
+        {
+            if (_value is not List<T> list)
+            {
+                list = new List<T>(2);
+                list.Add((T)_value);
+                _value = list;
+            }
+
+            list.Add(item);
+        }
+
+        public void Insert(int index, T item)
+        {
+            if (_value is List<T> list)
+            {
+                list.Insert(index, item);
+            }
+            else
+            {
+                if (index != 0)
+                {
+                    // Throw exception
+                    _SingleElementList.Insert(index, item);
+                }
+
+                _value = item;
+            }
+        }
+
+        public bool Remove(T item)
+        {
+            if (_value is List<T> list)
+            {
+                return list.Remove(item);
+            }
+            else
+            {
+                if (EqualityComparer<T>.Default.Equals(item, (T)_value))
+                {
+                    _value = new List<T>();
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void RemoveAt(int index)
+        {
+            if (_value is List<T> list)
+            {
+                list.RemoveAt(index);
+            }
+            else
+            {
+                if (index != 0)
+                {
+                    // Throw exception
+                    _SingleElementList.RemoveAt(index);
+                }
+                else
+                {
+                    _value = new List<T>();
+                }
+            }
+        }
+
+        public void Clear()
+        {
+            if (_value is List<T> list)
+            {
+                list.Clear();
+            }
+            else
+            {
+                _value = new List<T>();
+            }
+        }
+
         public bool Contains(T item)
         {
             if (_value is List<T> list)
@@ -93,12 +191,6 @@ namespace FastCSV.Collections
             }
         }
 
-        /// <summary>
-        /// Searches for the specified object and returns the zero-based index of the first
-        /// occurrence within the entire <see cref="ReadOnlyValueOrList{T}"/>.
-        /// </summary>
-        /// <param name="item">The item to locate.</param>
-        /// <returns>The index of the item or -1 if not found.</returns>
         public int IndexOf(T item)
         {
             if (_value is List<T> list)
@@ -116,11 +208,6 @@ namespace FastCSV.Collections
             }
         }
 
-        /// <summary>
-        /// Copies the values in this <see cref="ReadOnlyValueOrList{T}"/> to the array.
-        /// </summary>
-        /// <param name="array">The array to copies the values.</param>
-        /// <param name="arrayIndex">The array index where start to copies the elements.</param>
         public void CopyTo(T[] array, int arrayIndex)
         {
             if (_value is List<T> list)
@@ -137,6 +224,8 @@ namespace FastCSV.Collections
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        #endregion
+
         public Enumerator GetEnumerator()
         {
             return new Enumerator(this);
@@ -144,10 +233,10 @@ namespace FastCSV.Collections
 
         public override bool Equals(object? obj)
         {
-            return obj is ReadOnlyValueOrList<T> list && Equals(list);
+            return obj is SingleOrList<T> list && Equals(list);
         }
 
-        public bool Equals(ReadOnlyValueOrList<T> other)
+        public bool Equals(SingleOrList<T> other)
         {
             if (Count != other.Count)
             {
@@ -157,7 +246,7 @@ namespace FastCSV.Collections
             var comparer = EqualityComparer<T>.Default;
             int count = Count;
 
-            for (int i = 0; i < count; i++)
+            for(int i = 0; i < count; i++)
             {
                 if (!comparer.Equals(this[i], other[i]))
                 {
@@ -173,40 +262,35 @@ namespace FastCSV.Collections
             return HashCode.Combine(_value);
         }
 
-        public static implicit operator ReadOnlyValueOrList<T>(T value)
+        public static implicit operator SingleOrList<T>(T value)
         {
-            return new ReadOnlyValueOrList<T>(value);
+            return new SingleOrList<T>(value);
         }
 
-        public static implicit operator ReadOnlyValueOrList<T>(T[] values)
+        public static implicit operator SingleOrList<T>(T[] values)
         {
-            return new ReadOnlyValueOrList<T>(values);
+            return new SingleOrList<T>(values);
         }
 
-        public static implicit operator ReadOnlyValueOrList<T>(ValueOrList<T> values)
-        {
-            return Unsafe.As<ValueOrList<T>, ReadOnlyValueOrList<T>>(ref values);
-        }
-
-        public static bool operator ==(ReadOnlyValueOrList<T> left, ReadOnlyValueOrList<T> right)
+        public static bool operator ==(SingleOrList<T> left, SingleOrList<T> right)
         {
             return left.Equals(right);
         }
 
-        public static bool operator !=(ReadOnlyValueOrList<T> left, ReadOnlyValueOrList<T> right)
+        public static bool operator !=(SingleOrList<T> left, SingleOrList<T> right)
         {
             return !(left == right);
         }
 
         public struct Enumerator : IEnumerator<T>
         {
-            private readonly ReadOnlyValueOrList<T> _ReadOnlyValueOrList;
+            private readonly SingleOrList<T> _valueOrList;
             private T? _current;
             private int _index;
 
-            internal Enumerator(ReadOnlyValueOrList<T> ReadOnlyValueOrList)
+            internal Enumerator(SingleOrList<T> valueOrList)
             {
-                _ReadOnlyValueOrList = ReadOnlyValueOrList;
+                _valueOrList = valueOrList;
                 _current = default;
                 _index = 0;
             }
@@ -217,9 +301,9 @@ namespace FastCSV.Collections
 
             public bool MoveNext()
             {
-                if (_index < _ReadOnlyValueOrList.Count)
+                if (_index < _valueOrList.Count)
                 {
-                    _current = _ReadOnlyValueOrList[_index];
+                    _current = _valueOrList[_index];
                     _index += 1;
                     return true;
                 }

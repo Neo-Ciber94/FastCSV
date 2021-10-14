@@ -9,7 +9,7 @@ namespace FastCSV.Collections.Tests
         [Test]
         public void ContainsTest()
         {
-            ReadOnlyValueOrList<string> fruits = new string[] { "apple", "tomato" };
+            ReadOnlySingleOrList<string> fruits = new string[] { "apple", "tomato" };
 
             Assert.True(fruits.Contains("apple"));
             Assert.True(fruits.Contains("tomato"));
@@ -18,7 +18,7 @@ namespace FastCSV.Collections.Tests
         [Test]
         public void IndexOfTest()
         {
-            ReadOnlyValueOrList<string> values = new string[] { "1", "2", "3", "4" };
+            ReadOnlySingleOrList<string> values = new string[] { "1", "2", "3", "4" };
 
             Assert.AreEqual(0, values.IndexOf("1"));
             Assert.AreEqual(1, values.IndexOf("2"));
@@ -32,7 +32,7 @@ namespace FastCSV.Collections.Tests
         [Test]
         public void IndexOfSingleValueTest()
         {
-            ReadOnlyValueOrList<string> values = "rock";
+            ReadOnlySingleOrList<string> values = "rock";
 
             Assert.AreEqual(0, values.IndexOf("rock"));
             Assert.AreEqual(-1, values.IndexOf("papper"));
@@ -41,7 +41,7 @@ namespace FastCSV.Collections.Tests
         [Test]
         public void CopyToTest()
         {
-            var values = new ReadOnlyValueOrList<string>("blue");
+            var values = new ReadOnlySingleOrList<string>("blue");
             var array = new string[3];
 
             values.CopyTo(array, 1);
@@ -52,7 +52,7 @@ namespace FastCSV.Collections.Tests
         [Test]
         public void CopyToFromCollectionTest()
         {
-            var values = new ReadOnlyValueOrList<string>(new string[] { "white", "gray", "black" });
+            var values = new ReadOnlySingleOrList<string>(new string[] { "white", "gray", "black" });
             var array = new string[3];
 
             values.CopyTo(array, 0);
@@ -63,7 +63,7 @@ namespace FastCSV.Collections.Tests
         [Test]
         public void IndexerTest()
         {
-            var values = new ReadOnlyValueOrList<string>(new string[] { "red", "blue", "green" });
+            var values = new ReadOnlySingleOrList<string>(new string[] { "red", "blue", "green" });
 
             Assert.AreEqual("red", values[0]);
             Assert.AreEqual("blue", values[1]);
@@ -78,9 +78,9 @@ namespace FastCSV.Collections.Tests
         [Test]
         public void ValueOrListConvertionTest()
         {
-            var values = new ValueOrList<int>(new int[] { 1, 2, 3 });
+            var values = new SingleOrList<int>(new int[] { 1, 2, 3 });
 
-            ReadOnlyValueOrList<int> readOnly = values;
+            ReadOnlySingleOrList<int> readOnly = values;
 
             Assert.AreEqual(new int[] { 1, 2, 3 }, values);
             Assert.AreEqual(new int[] { 1, 2, 3 }, readOnly);

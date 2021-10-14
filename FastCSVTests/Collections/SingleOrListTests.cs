@@ -4,12 +4,12 @@ using System;
 namespace FastCSV.Collections.Tests
 {
     [TestFixture]
-    public class ValueOrListTests
+    public class SingleOrListTests
     {
         [Test]
         public void AddTest()
         {
-            var values = new ValueOrList<string>("fruits");
+            var values = new SingleOrList<string>("fruits");
             Assert.AreEqual(1, values.Count);
 
             values.Add("vegetables");
@@ -21,7 +21,7 @@ namespace FastCSV.Collections.Tests
         [Test]
         public void AddCollectionTest()
         {
-            var values = new ValueOrList<string>(new string[] { "red", "blue", "green" });
+            var values = new SingleOrList<string>(new string[] { "red", "blue", "green" });
             Assert.AreEqual(3, values.Count);
 
             values.Add("pink");
@@ -31,7 +31,7 @@ namespace FastCSV.Collections.Tests
         [Test]
         public void InsertTest()
         {
-            var values = ValueOrList<string>.Empty;
+            var values = SingleOrList<string>.Empty;
             Assert.AreEqual(0, values.Count);
 
             values.Add("1");
@@ -44,7 +44,7 @@ namespace FastCSV.Collections.Tests
         [Test]
         public void RemoveTest()
         {
-            var values = new ValueOrList<string>(new string[] { "1", "2", "3", "4" });
+            var values = new SingleOrList<string>(new string[] { "1", "2", "3", "4" });
             Assert.True(values.Remove("2"));
             Assert.True(values.Remove("4"));
 
@@ -54,7 +54,7 @@ namespace FastCSV.Collections.Tests
         [Test]
         public void RemoveAtTest()
         {
-            var values = new ValueOrList<string>(new string[] { "1", "2", "3", "4" });
+            var values = new SingleOrList<string>(new string[] { "1", "2", "3", "4" });
             values.RemoveAt(0);
             values.RemoveAt(2);
 
@@ -74,7 +74,7 @@ namespace FastCSV.Collections.Tests
         [Test]
         public void ClearTest()
         {
-            var colors = new ValueOrList<int>(100);
+            var colors = new SingleOrList<int>(100);
             Assert.AreEqual(1, colors.Count);
 
             colors.Clear();
@@ -84,7 +84,7 @@ namespace FastCSV.Collections.Tests
         [Test]
         public void ClearFromEnumerableTest()
         {
-            var numbers = new ValueOrList<int>(new int[] { 1, 2, 3});
+            var numbers = new SingleOrList<int>(new int[] { 1, 2, 3});
             Assert.AreEqual(3, numbers.Count);
 
             numbers.Clear();
@@ -94,7 +94,7 @@ namespace FastCSV.Collections.Tests
         [Test]
         public void ContainsTest()
         {
-            ValueOrList<string> fruits = "apple";
+            SingleOrList<string> fruits = "apple";
 
             Assert.True(fruits.Contains("apple"));
             Assert.False(fruits.Contains("tomato"));
@@ -106,7 +106,7 @@ namespace FastCSV.Collections.Tests
         [Test]
         public void IndexOfTest()
         {
-            ValueOrList<string> values = new string[] { "1", "2", "3", "4" };
+            SingleOrList<string> values = new string[] { "1", "2", "3", "4" };
 
             Assert.AreEqual(0, values.IndexOf("1"));
             Assert.AreEqual(1, values.IndexOf("2"));
@@ -120,7 +120,7 @@ namespace FastCSV.Collections.Tests
         [Test]
         public void IndexOfSingleValueTest()
         {
-            ValueOrList<string> values = "rock";
+            SingleOrList<string> values = "rock";
 
             Assert.AreEqual(0, values.IndexOf("rock"));
             Assert.AreEqual(-1, values.IndexOf("papper"));
@@ -129,7 +129,7 @@ namespace FastCSV.Collections.Tests
         [Test]
         public void CopyToTest()
         {
-            var values = new ValueOrList<string>("blue");
+            var values = new SingleOrList<string>("blue");
             var array = new string[3];
 
             values.CopyTo(array, 1);
@@ -140,7 +140,7 @@ namespace FastCSV.Collections.Tests
         [Test]
         public void CopyToFromCollectionTest()
         {
-            var values = new ValueOrList<string>(new string[] { "white", "gray", "black" });
+            var values = new SingleOrList<string>(new string[] { "white", "gray", "black" });
             var array = new string[3];
 
             values.CopyTo(array, 0);
@@ -151,7 +151,7 @@ namespace FastCSV.Collections.Tests
         [Test]
         public void IndexerTest()
         {
-            var values = new ValueOrList<string>(new string[] { "red", "blue", "green" });
+            var values = new SingleOrList<string>(new string[] { "red", "blue", "green" });
 
             Assert.AreEqual("red", values[0]);
             Assert.AreEqual("blue", values[1]);
