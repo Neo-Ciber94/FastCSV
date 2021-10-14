@@ -18,4 +18,5 @@
 - [x] Allow serialize/deserialize any type with a converter, not just builtin types
 - [ ] Move exceptions to ThrowHelper
 - [ ] Valide if CsvRecord and CsvHeader can be change to 'readonly struct'
-- [ ] Add more async API
+- [x] Add more async API
+- [ ] Add api to cache reflection results to reduce allocations
