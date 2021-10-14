@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -50,6 +51,18 @@ namespace FastCSV
         }
 
         /// <summary>
+        /// Gets an enumerator over the records of this reader csv and parser them to the type T,
+        /// this enumerable will read the records using this reader, so when the iteration
+        /// end the reader will be at the end of the file.
+        /// </summary>
+        /// <param name="options">The options used for deserialize.</param>
+        /// <returns>An enumerable over the records of this reader csv.</returns>
+        public RecordsEnumeratorTyped<T> ReadAllAsWithEnumerator<T>(CsvConverterOptions? options = null) where T: notnull
+        {
+            return new RecordsEnumeratorTyped<T>(this, options);
+        }
+
+        /// <summary>
         /// Reads the next record as a value of type T asyncronously.
         /// </summary>
         /// <typeparam name="T">Type to cast the record to.</typeparam>
@@ -70,6 +83,21 @@ namespace FastCSV
             return Optional.Some(result);
         }
 
+        public async IAsyncEnumerable<T> ReadAllAsAsync<T>(CsvConverterOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default) where T : notnull
+        {
+            while (true)
+            {
+                Optional<T> value = await ReadAsAsync<T>(options, cancellationToken);
+
+                if (!value.HasValue)
+                {
+                    break;  
+                }
+
+                yield return value.Value;
+            }
+        }
+
         /// <summary>
         /// Gets an enumerator over the records of this reader csv and parser them to the type T,
         /// this enumerable will read the records using this reader, so when the iteration
@@ -77,12 +105,12 @@ namespace FastCSV
         /// </summary>
         /// <param name="options">The options used for deserialize.</param>
         /// <returns>An enumerable over the records of this reader csv.</returns>
-        public RecordsEnumeratorAsyncTyped<T> ReadAllAsAsync<T>(CsvConverterOptions? options = null, CancellationToken cancellationToken = default) where T: notnull
+        public RecordsEnumeratorAsyncTyped<T> ReadAllAsAsyncWithAsyncEnumerator<T>(CsvConverterOptions? options = null, CancellationToken cancellationToken = default) where T: notnull
         {
             return new RecordsEnumeratorAsyncTyped<T>(this, options, cancellationToken);
         }
 
-        public struct RecordsEnumeratorTyped<T> : IEnumerator<T> where T: notnull
+        public struct RecordsEnumeratorTyped<T> : IEnumerable<T>, IEnumerator<T> where T: notnull
         {
             private readonly CsvReader _reader;
             private readonly CsvConverterOptions? _options;
@@ -99,7 +127,7 @@ namespace FastCSV
             {
                 get
                 {
-                    if (_current.HasValue)
+                    if (!_current.HasValue)
                     {
                         throw new InvalidOperationException("No values available");
                     }
@@ -107,8 +135,6 @@ namespace FastCSV
                     return _current.Value;
                 }
             }
-
-            object IEnumerator.Current => Current;
 
             public bool MoveNext()
             {
@@ -121,12 +147,18 @@ namespace FastCSV
                 _reader.Reset();
             }
 
-            void IDisposable.Dispose()
-            {
-            }
+            public RecordsEnumeratorTyped<T> GetEnumerator() => new RecordsEnumeratorTyped<T>(_reader, _options);
+
+            void IDisposable.Dispose() { }
+
+            object IEnumerator.Current => Current;
+
+            IEnumerator<T> IEnumerable<T>.GetEnumerator() => this;
+
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
 
-        public struct RecordsEnumeratorAsyncTyped<T> : IAsyncEnumerator<T> where T: notnull
+        public struct RecordsEnumeratorAsyncTyped<T> : IAsyncEnumerable<T>, IAsyncEnumerator<T> where T: notnull
         {
             private readonly CsvReader _reader;
             private readonly CsvConverterOptions? _options;
@@ -145,7 +177,7 @@ namespace FastCSV
             {
                 get
                 {
-                    if (_current.HasValue)
+                    if (!_current.HasValue)
                     {
                         throw new InvalidOperationException("No values available");
                     }
@@ -154,11 +186,18 @@ namespace FastCSV
                 }
             }
 
-            public async ValueTask<bool> MoveNextAsync()
+            public RecordsEnumeratorAsyncTyped<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+            {
+                return new RecordsEnumeratorAsyncTyped<T>(_reader, _options, cancellationToken);
+            }
+
+            IAsyncEnumerator<T> IAsyncEnumerable<T>.GetAsyncEnumerator(CancellationToken cancellationToken) => GetAsyncEnumerator(cancellationToken);
+
+            public ValueTask<bool> MoveNextAsync()
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-                _current = await _reader.ReadAsAsync<T>(_options, _cancellationToken);
-                return _current.HasValue;
+                _current = _reader.ReadAs<T>(_options);
+                return ValueTask.FromResult(_current.HasValue);
             }
 
             public void Reset()
