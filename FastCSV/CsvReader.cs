@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FastCSV.Struct;
 using FastCSV.Utils;
 
 namespace FastCSV
@@ -62,6 +63,7 @@ namespace FastCSV
                 if (values != null && values.Length > 0)
                 {
                     Header = new CsvHeader(values, Format);
+                    HeaderStruct = new CsvHeaderStruct(values, Format);
                     _recordNumber += 1;
                 }
             }
@@ -97,6 +99,8 @@ namespace FastCSV
         /// The header.
         /// </value>
         public CsvHeader? Header { get; }
+
+        public CsvHeaderStruct? HeaderStruct { get; }
 
         /// <summary>
         /// Gets the number of read records.
@@ -145,6 +149,27 @@ namespace FastCSV
             }
 
             return new CsvRecord(Header, values, Format);
+        }
+
+        public CsvRecordStruct? ReadStruct()
+        {
+            ThrowIfDisposed();
+
+            string[]? values = CsvUtility.ReadRecord(_reader!, Format);
+
+            if (Format.IgnoreWhitespace && (values == null || values.Length == 0))
+            {
+                return null;
+            }
+
+            _recordNumber += 1;
+
+            if (values == null)
+            {
+                return new CsvRecordStruct(HeaderStruct, Array.Empty<string>(), Format);
+            }
+
+            return new CsvRecordStruct(HeaderStruct, values, Format);
         }
 
         /// <summary>
