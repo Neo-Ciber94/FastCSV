@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Net;
 using System.Runtime.CompilerServices;
 using FastCSV.Utils;
+using FastCSV.Collections;
 
 namespace FastCSV
 {
@@ -115,21 +116,21 @@ namespace FastCSV
         /// </para>
         /// </summary>
         /// <param name="csv">The CSV.</param>
-        /// <param name="format">The format.</param>
-        /// <param name="parser">The parser.</param>
+        /// <param name="options">Options used to deserialize the values.</param>
         /// <returns>A csv document from the given data.</returns>
-        public static CsvDocument<T> FromCsv<T>(string csv, CsvFormat? format = null, CsvConverterOptions? options = null)
+        public static CsvDocument<T> FromCsv<T>(string csv, CsvConverterOptions? options = null)
         {
             List<T> list = new List<T>();
             MemoryStream memory = StreamHelper.ToMemoryStream(csv);
 
-            format ??= CsvFormat.Default;
+            options ??= CsvConverterOptions.Default;
+            CsvFormat format = options.Format;
 
             using (CsvReader reader = CsvReader.FromStream(memory, format))
             {
                 foreach (CsvRecord record in reader.ReadAll())
                 {
-                    Dictionary<string, string> data = record.ToDictionary()!;
+                    Dictionary<string, SingleOrList<string>>? data = record.ToDictionary()!;
                     T value = CsvConverter.DeserializeFromDictionary<T>(data, options);
                     list.Add(value);
                 }
@@ -146,11 +147,11 @@ namespace FastCSV
         /// <param name="parser">The parser.</param>
         /// <returns>A csv document from the file at the given path.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument<T> FromPath<T>(string path, CsvFormat? format = null, CsvConverterOptions? options = null)
+        public static CsvDocument<T> FromPath<T>(string path, CsvConverterOptions? options = null)
         {
             using (StreamReader streamReader = new StreamReader(path))
             {
-                return FromCsv<T>(streamReader.ReadToEnd(), format ?? CsvFormat.Default, options);
+                return FromCsv<T>(streamReader.ReadToEnd(), options);
             }
         }
     }

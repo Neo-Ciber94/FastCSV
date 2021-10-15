@@ -253,14 +253,14 @@ namespace FastCSV
         /// </summary>
         /// <param name="comparer">The comparer.</param>
         /// <returns>A dictionary containing the key and values of this record, or null if this record don't have a header</returns>
-        public Dictionary<string, string>? ToDictionary(IEqualityComparer<string>? comparer = null)
+        public Dictionary<string, SingleOrList<string>>? ToDictionary(IEqualityComparer<string>? comparer = null)
         {
             if (Header == null)
             {
                 return null;
             }
 
-            Dictionary<string, string> result = new Dictionary<string, string>(Length, comparer);
+            Dictionary<string, SingleOrList<string>> result = new(Length, comparer);
 
             foreach (string key in Header)
             {

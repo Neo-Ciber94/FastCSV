@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FastCSV.Collections;
 
 namespace FastCSV.Tests
 {
@@ -104,7 +105,7 @@ namespace FastCSV.Tests
         [Test()]
         public void DeserializeFromDictionaryTest()
         {
-            var dictionary = new Dictionary<string, string>
+            var dictionary = new Dictionary<string, SingleOrList<string>>
             {
                 { "Name", "Keyboard" },
                 { "Price", "1000" }
@@ -117,7 +118,7 @@ namespace FastCSV.Tests
         [Test()]
         public void DeserializeFromDictionaryGenericTest()
         {
-            var dictionary = new Dictionary<string, string>
+            var dictionary = new Dictionary<string, SingleOrList<string>>
             {
                 { "Name", "Keyboard" },
                 { "Price", "1000" }

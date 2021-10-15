@@ -95,7 +95,12 @@ namespace FastCSV.Tests
                 "Red,23,200-1200\r\n" +
                 "Blue,24,233-5565\r\n";
 
-            var document = CsvDocument.FromCsv<Employee>(csv);
+            var options = new CsvConverterOptions
+            {
+                Converters = new List<ICsvValueConverter>() { new PhoneNumberConverter() }
+            };
+
+            var document = CsvDocument.FromCsv<Employee>(csv, options: options);
 
             Assert.AreEqual(2, document.Count);
             Assert.AreEqual(new Employee("Red", 23, new PhoneNumber(2, 0, 0, 1, 2, 0, 0)), document.GetValue(0));

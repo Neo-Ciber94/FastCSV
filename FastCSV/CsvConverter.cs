@@ -288,66 +288,6 @@ namespace FastCSV
         /// <param name="data">The dictionary containing the data of the instance.</param>
         /// <param name="options">Options used, if null will use the default options.</param>
         /// <returns>An object of the given type using the values from the dictionary.</returns>
-        public static T DeserializeFromDictionary<T>(IReadOnlyDictionary<string, string> data, CsvConverterOptions? options = null)
-        {
-            return (T)DeserializeFromDictionary(data, typeof(T), options)!;
-        }
-
-        /// <summary>
-        /// Converts the data in the given dictionary to an object of the given type.
-        /// </summary>
-        /// <param name="data">The dictionary containing the data of the instance.</param>
-        /// <param name="type">Type of the object to construct.</param>
-        /// <param name="options">Options used, if null will use the default options.</param>
-        /// <returns>An object of the given type using the values from the dictionary.</returns>
-        public static object? DeserializeFromDictionary(IReadOnlyDictionary<string, string> data, Type type, CsvConverterOptions? options = null)
-        {
-            options ??= CsvConverterOptions.Default;
-
-            if (HasConverter(type, options))
-            {
-                if (!data.TryGetValue(PlainTypeHeaderName, out string? v) || data.Count != 1)
-                {
-                    throw new ArgumentException($"Type '{nameof(data)}' should contains a header named '{PlainTypeHeaderName}'");
-                }
-
-                CsvDeserializeState state = new CsvDeserializeState(options, type, v);
-                return ParseString(type, ref state)!;
-            }
-
-            List<CsvProperty> csvProps = GetCsvProperties(type, options, Permission.Setter, instance: null);
-            object result = FormatterServices.GetUninitializedObject(type);
-
-            foreach (var (key, value) in data)
-            {
-                CsvProperty? p = csvProps.FirstOrDefault(f => f.Name == key);
-
-                if (p == null)
-                {
-                    throw new InvalidOperationException($"Field '{key}' not found");
-                }
-
-                if (p.Ignore)
-                {
-                    continue;
-                }
-
-                MemberInfo member = p.Member;
-                CsvDeserializeState state = new CsvDeserializeState(options, p.Type, value);
-                object? obj = ParseString(p.Type, ref state, p.Converter);
-                member.SetValue(result, obj);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Converts the data in the given dictionary to an object of type <c>T</c>.
-        /// </summary>
-        /// <typeparam name="T">Type of the object.</typeparam>
-        /// <param name="data">The dictionary containing the data of the instance.</param>
-        /// <param name="options">Options used, if null will use the default options.</param>
-        /// <returns>An object of the given type using the values from the dictionary.</returns>
         public static T DeserializeFromDictionary<T>(IReadOnlyDictionary<string, SingleOrList<string>> data, CsvConverterOptions? options = null)
         {
             return (T)DeserializeFromDictionary(data, typeof(T), options)!;
@@ -413,12 +353,12 @@ namespace FastCSV
                 {
                     if (value.Count == 1)
                     {
-                        CsvDeserializeState state = new CsvDeserializeState(options, propertyType, value[0]);
+                        CsvDeserializeState state = new(options, propertyType, value[0]);
                         obj = ParseString(propertyType, ref state);
                     }
                     else
                     {
-                        CsvDeserializeState state = new CsvDeserializeState(options, propertyType, value.AsMemory());
+                        CsvDeserializeState state = new(options, propertyType, value.AsMemory());
                         obj = ParseString(propertyType, ref state);
                     }
                 }

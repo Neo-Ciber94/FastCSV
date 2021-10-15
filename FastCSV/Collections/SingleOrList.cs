@@ -2,8 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace FastCSV.Collections
 {
@@ -11,7 +9,7 @@ namespace FastCSV.Collections
     /// Represents a single value or a collection of values.
     /// </summary>
     /// <typeparam name="T">Type of the value.</typeparam>
-    public struct SingleOrList<T> : IList<T>, IReadOnlyList<T>, IEquatable<SingleOrList<T>> where T: notnull
+    public struct SingleOrList<T> : IList<T>, IReadOnlyList<T>, IEquatable<SingleOrList<T>>, IEquatable<T> where T: notnull
     {
         /// Single element list to throw the same exception message as List<T>
         private static readonly T[] s_EmptyArray = Array.Empty<T>();
@@ -291,6 +289,26 @@ namespace FastCSV.Collections
         public override int GetHashCode()
         {
             return HashCode.Combine(_value);
+        }
+
+        public override string ToString()
+        {
+            return string.Join(", ", this);
+        }
+
+        public bool Equals(T? other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            if (_count > 1)
+            {
+                return false;
+            }
+
+            return EqualityComparer<T>.Default.Equals((T)_value, other);
         }
 
         public static implicit operator SingleOrList<T>(T value)

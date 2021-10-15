@@ -1,4 +1,5 @@
-﻿using FastCSV.Utils;
+﻿using FastCSV.Collections;
+using FastCSV.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ namespace FastCSV
         public async ValueTask<Optional<T>> ReadAsAsync<T>(CsvConverterOptions? options = null, CancellationToken cancellationToken = default) where T : notnull
         {
             CsvRecord? record = await ReadAsync(cancellationToken);
-            Dictionary<string, string>? data = record?.ToDictionary();
+            Dictionary<string, SingleOrList<string>>? data = record?.ToDictionary();
 
             if (data == null)
             {
