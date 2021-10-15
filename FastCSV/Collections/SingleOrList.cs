@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -13,14 +14,15 @@ namespace FastCSV.Collections
     public struct SingleOrList<T> : IList<T>, IReadOnlyList<T>, IEquatable<SingleOrList<T>> where T: notnull
     {
         /// Single element list to throw the same exception message as List<T>
-        private static readonly List<T> _SingleElementList = new() { default! };
+        private static readonly T[] s_EmptyArray = Array.Empty<T>();
 
         /// <summary>
         /// Gets an empty <see cref="SingleOrList{T}"/>.
         /// </summary>
-        public static SingleOrList<T> Empty { get; } = new SingleOrList<T>(Array.Empty<T>());
+        public static SingleOrList<T> Empty { get; } = new SingleOrList<T>(s_EmptyArray);
 
         private object _value;
+        private int _count;
 
         /// <summary>
         /// Constructs a new <see cref="SingleOrList{T}"/>.
@@ -29,15 +31,19 @@ namespace FastCSV.Collections
         public SingleOrList(T value)
         {
             _value = value;
+            _count = 1;
         }
 
         /// <summary>
         /// Constructs a new <see cref="SingleOrList{T}"/> with a collection of values.
         /// </summary>
         /// <param name="values">The values to add.</param>
-        public SingleOrList(IEnumerable<T> values)
+        public SingleOrList(IEnumerable<T> values) : this(values.ToArray()) { }
+
+        internal SingleOrList(T[] array)
         {
-            _value = new List<T>(values);
+            _value = array;
+            _count = array.Length;
         }
 
         /// <summary>
@@ -45,21 +51,37 @@ namespace FastCSV.Collections
         /// </summary>
         public bool IsEmpty => Count == 0;
 
+        public int Count => _count;
+
+        /// <summary>
+        /// Creates a <see cref="Memory{T}"/> from this instance.
+        /// </summary>
+        /// <returns></returns>
+        public ReadOnlyMemory<T> AsMemory()
+        {
+            if (_value is not T[] array)
+            {
+                array = new T[1] { (T)_value };
+            }
+
+            return array.AsMemory(0, _count);
+        }
+
         #region IList implementation
 
         public T this[int index]
         {
             get
             {
-                if (_value is List<T> list)
+                if (_value is T[] array)
                 {
-                    return list[index];
+                    return array[index];
                 }
 
                 if (index != 0)
                 {
                     // Throws an exception
-                    return _SingleElementList[index];
+                    return s_EmptyArray[index];
                 }
 
                 return (T)_value;
@@ -67,16 +89,16 @@ namespace FastCSV.Collections
 
             set
             {
-                if (_value is List<T> list)
+                if (_value is T[] array)
                 {
-                    list[index] = value;
+                    array[index] = value;
                 }
                 else
                 {
                     if (index != 0)
                     {
                         // Throws an exception
-                        _SingleElementList[index] = value;
+                        s_EmptyArray[index] = value;
                     }
 
                     _value = value;
@@ -84,64 +106,84 @@ namespace FastCSV.Collections
             }
         }
 
-        public int Count
-        {
-            get
-            {
-                if (_value == null)
-                {
-                    return 0;
-                }
-
-                return _value is List<T> list ? list.Count : 1;
-            }
-        }
-
         public bool IsReadOnly => false;
 
         public void Add(T item)
         {
-            if (_value is not List<T> list)
+            if (_value is T[])
             {
-                list = new List<T>(2);
-                list.Add((T)_value);
-                _value = list;
+                int length = ((T[])_value).Length;
+                if (_count == length)
+                {
+                    Resize(1);
+                }
+
+                ((T[])_value)[_count] = item;
+            }
+            else
+            {
+                _value = new T[2] { (T)_value, item };
             }
 
-            list.Add(item);
+            _count += 1;
+        }
+
+        private void Resize(int required)
+        {
+            int minCapacity = _count + required;
+            int length = _value is T[] array ? array.Length : 1;
+
+            if (minCapacity > length)
+            {
+                int newCapacity = Math.Max(minCapacity, _count * 2);
+                T[] newArray = new T[newCapacity];
+
+                if (_value is T[] oldArray)
+                {
+                    Array.Copy(oldArray, newArray, _count);
+                }
+                else
+                {
+                    newArray[0] = (T)_value;
+                }
+
+                _value = newArray;
+            }
         }
 
         public void Insert(int index, T item)
         {
-            if (_value is List<T> list)
+            if (_count == 0)
             {
-                list.Insert(index, item);
+                throw new InvalidOperationException("this instance is empty");
             }
-            else
-            {
-                if (index != 0)
-                {
-                    // Throw exception
-                    _SingleElementList.Insert(index, item);
-                }
 
-                _value = item;
+            if (index < 0 || index > _count)
+            {
+                throw new IndexOutOfRangeException($"index cannot be negative or greater than {_count} but was: {index}");
             }
+
+            if (_value is not T[])
+            {
+                _value = new T[1] { (T)_value };
+            }
+
+            Resize(1);
+
+            T[] array = (T[])_value;
+            Array.Copy(array, index, array, index + 1, _count - index);
+            array[index] = item;
+            _count += 1;
         }
 
         public bool Remove(T item)
         {
-            if (_value is List<T> list)
+            int index = IndexOf(item);
+
+            if (index >= 0)
             {
-                return list.Remove(item);
-            }
-            else
-            {
-                if (EqualityComparer<T>.Default.Equals(item, (T)_value))
-                {
-                    _value = new List<T>();
-                    return true;
-                }
+                RemoveAt(index);
+                return true;
             }
 
             return false;
@@ -149,74 +191,63 @@ namespace FastCSV.Collections
 
         public void RemoveAt(int index)
         {
-            if (_value is List<T> list)
+            if (index < 0 || index > _count)
             {
-                list.RemoveAt(index);
+                throw new IndexOutOfRangeException($"index cannot be negative or greater than {_count} but was {index}");
             }
-            else
+
+            if (_value is T[] array)
             {
-                if (index != 0)
+                _count -= 1;
+
+                if (index < _count)
                 {
-                    // Throw exception
-                    _SingleElementList.RemoveAt(index);
+                    Array.Copy(array, index + 1, array, index, _count - index);
                 }
-                else
-                {
-                    _value = new List<T>();
-                }
+
+                array[_count] = default!;
+            }
+            else if (index == 0)
+            {
+                _value = s_EmptyArray;
             }
         }
 
         public void Clear()
         {
-            if (_value is List<T> list)
+            if (_value is T[] array)
             {
-                list.Clear();
+                Array.Clear(array, 0, _count);
             }
-            else
-            {
-                _value = new List<T>();
-            }
+
+            _count = 0;
         }
 
         public bool Contains(T item)
         {
-            if (_value is List<T> list)
-            {
-                return list.Contains(item);
-            }
-            else
-            {
-                return EqualityComparer<T>.Default.Equals(item, (T)_value);
-            }
+            return IndexOf(item) >= 0;
         }
 
         public int IndexOf(T item)
         {
-            if (_value is List<T> list)
+            if (_value is T[] array)
             {
-                return list.IndexOf(item);
+                return Array.IndexOf(array, item);
             }
-            else
-            {
-                if (EqualityComparer<T>.Default.Equals(item, (T)_value))
-                {
-                    return 0;
-                }
 
-                return -1;
-            }
+            var comparer = EqualityComparer<T>.Default;
+            return comparer.Equals(item, (T)_value) ? 0 : -1;
         }
 
-        public void CopyTo(T[] array, int arrayIndex)
+        public void CopyTo(T[] destination, int arrayIndex)
         {
-            if (_value is List<T> list)
+            if (_value is T[] array)
             {
-                list.CopyTo(array, arrayIndex);
+                Array.Copy(array, 0, destination, arrayIndex, _count);
             }
             else
             {
-                array[arrayIndex] = (T)_value;
+                destination[arrayIndex] = (T)_value;
             }
         }
 
@@ -284,15 +315,15 @@ namespace FastCSV.Collections
 
         public struct Enumerator : IEnumerator<T>
         {
-            private readonly SingleOrList<T> _valueOrList;
+            private readonly SingleOrList<T> _singleOrList;
             private T? _current;
             private int _index;
 
             internal Enumerator(SingleOrList<T> valueOrList)
             {
-                _valueOrList = valueOrList;
+                _singleOrList = valueOrList;
                 _current = default;
-                _index = 0;
+                _index = -1;
             }
 
             public T Current => _current!;
@@ -301,10 +332,11 @@ namespace FastCSV.Collections
 
             public bool MoveNext()
             {
-                if (_index < _valueOrList.Count)
+                int next = _index + 1;
+                if (next < _singleOrList.Count)
                 {
-                    _current = _valueOrList[_index];
-                    _index += 1;
+                    _current = _singleOrList[next];
+                    _index = next;
                     return true;
                 }
 

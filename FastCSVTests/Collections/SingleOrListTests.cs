@@ -15,7 +15,40 @@ namespace FastCSV.Collections.Tests
             values.Add("vegetables");
             values.Add("grains");
 
+            Assert.AreEqual("fruits", values[0]);
+            Assert.AreEqual("vegetables", values[1]);
+            Assert.AreEqual("grains", values[2]);
             Assert.AreEqual(3, values.Count);
+        }
+
+        [Test]
+        public void AddWithResizeTest()
+        {
+            var values = new SingleOrList<string>("fruits");
+            Assert.AreEqual(1, values.Count);
+
+            values.Add("vegetables");
+            values.Add("grains");
+            values.Add("meats");
+            values.Add("sweets");
+            values.Add("cakes");
+            values.Add("bread");
+            values.Add("noodles");
+            values.Add("soup");
+            values.Add("mushroom");
+
+            Assert.AreEqual("fruits", values[0]);
+            Assert.AreEqual("vegetables", values[1]);
+            Assert.AreEqual("grains", values[2]);
+            Assert.AreEqual("meats", values[3]);
+            Assert.AreEqual("sweets", values[4]);
+            Assert.AreEqual("cakes", values[5]);
+            Assert.AreEqual("bread", values[6]);
+            Assert.AreEqual("noodles", values[7]);
+            Assert.AreEqual("soup", values[8]);
+            Assert.AreEqual("mushroom", values[9]);
+
+            Assert.AreEqual(10, values.Count);
         }
 
         [Test]
@@ -42,6 +75,16 @@ namespace FastCSV.Collections.Tests
         }
 
         [Test]
+        public void InsertIntoSingleTest()
+        {
+            var values = new SingleOrList<string>("colors");
+            values.Insert(0, "red");
+
+            Assert.AreEqual("red", values[0]);
+            Assert.AreEqual("colors", values[1]);
+        }
+
+        [Test]
         public void RemoveTest()
         {
             var values = new SingleOrList<string>(new string[] { "1", "2", "3", "4" });
@@ -58,12 +101,14 @@ namespace FastCSV.Collections.Tests
             values.RemoveAt(0);
             values.RemoveAt(2);
 
-            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            CollectionAssert.AreEqual(new string[] { "2", "3" }, values);
+
+            Assert.Throws<IndexOutOfRangeException>(() =>
             {
                 values.RemoveAt(-1);
             });
 
-            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Assert.Throws<IndexOutOfRangeException>(() =>
             {
                 values.RemoveAt(3);
             });
@@ -157,7 +202,7 @@ namespace FastCSV.Collections.Tests
             Assert.AreEqual("blue", values[1]);
             Assert.AreEqual("green", values[2]);
 
-            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Assert.Throws<IndexOutOfRangeException>(() =>
             {
                 var _ = values[3];
             });
@@ -170,7 +215,7 @@ namespace FastCSV.Collections.Tests
             Assert.AreEqual("1", values[1]);
             Assert.AreEqual("2", values[2]);
 
-            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Assert.Throws<IndexOutOfRangeException>(() =>
             {
                 values[3] = "3";
             });
