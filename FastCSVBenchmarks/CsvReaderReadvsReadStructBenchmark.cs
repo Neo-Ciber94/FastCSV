@@ -17,23 +17,11 @@ namespace FastCSV.Benchmarks
         [Params(Records1000, Records10000, Records100000)]
         public string FilePath { get; set; }
 
-        private CsvReader reader;
-
-        [IterationSetup]
-        public void SetupReader()
-        {
-            reader = new CsvReader(FilePath);
-        }
-
-        [IterationCleanup]
-        public void CleanupReader()
-        {
-            reader.Dispose();
-        }
-
         [Benchmark(Baseline = true)]
         public void Read()
         {
+            using var reader = new CsvReader(FilePath);
+
             while (true)
             {
                 CsvRecord? record = reader.Read();
@@ -50,6 +38,7 @@ namespace FastCSV.Benchmarks
         [Benchmark]
         public void ReadStruct()
         {
+            using var reader = new CsvReader(FilePath);
             while (true)
             {
                 CsvRecordStruct? record = reader.ReadStruct();
