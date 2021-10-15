@@ -383,8 +383,7 @@ namespace FastCSV
                 }
                 else
                 {
-                    var s = new ReadOnlyMemory<string>(v.ToArray());
-                    CsvDeserializeState state = new CsvDeserializeState(options, type, s);
+                    CsvDeserializeState state = new CsvDeserializeState(options, type, v.AsMemory());
                     return ParseString(type, ref state)!;
                 }
             }
@@ -419,8 +418,7 @@ namespace FastCSV
                     }
                     else
                     {
-                        ReadOnlyMemory<string> s = new ReadOnlyMemory<string>(value.ToArray());
-                        CsvDeserializeState state = new CsvDeserializeState(options, propertyType, s);
+                        CsvDeserializeState state = new CsvDeserializeState(options, propertyType, value.AsMemory());
                         obj = ParseString(propertyType, ref state);
                     }
                 }
