@@ -18,7 +18,7 @@ namespace FastCSV.Tests
         [Test()]
         public unsafe void CsvReaderTest()
         {
-            using var csv = StreamHelper.ToMemoryStream(
+            using var csv = StreamHelper.CreateStreamFromString(
                 "name,age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");
@@ -33,7 +33,7 @@ namespace FastCSV.Tests
         [Test()]
         public void CsvReaderTest1()
         {
-            using var csv = StreamHelper.ToMemoryStream(
+            using var csv = StreamHelper.CreateStreamFromString(
                     "name,age\n" +
                     "Homer,35\n" +
                     "Marge,28\n");
@@ -49,7 +49,7 @@ namespace FastCSV.Tests
         [Test()]
         public void CsvReaderTest2()
         {
-            using var csv = StreamHelper.ToMemoryStream(
+            using var csv = StreamHelper.CreateStreamFromString(
                     "name,age\n" +
                     "Homer,35\n" +
                     "Marge,28\n");
@@ -64,7 +64,7 @@ namespace FastCSV.Tests
         [Test()]
         public void FromStreamTest()
         {
-            using var csv = StreamHelper.ToMemoryStream(
+            using var csv = StreamHelper.CreateStreamFromString(
                     "name,age\n" +
                     "Homer,35\n" +
                     "Marge,28\n");
@@ -79,7 +79,7 @@ namespace FastCSV.Tests
         [Test()]
         public void ReadTest()
         {
-            using var csv = StreamHelper.ToMemoryStream(
+            using var csv = StreamHelper.CreateStreamFromString(
                 "name,age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");
@@ -99,7 +99,7 @@ namespace FastCSV.Tests
         [Test()]
         public void ReadEmptyTest1()
         {
-            using var csv = StreamHelper.ToMemoryStream("");
+            using var csv = StreamHelper.CreateStreamFromString("");
 
             using var reader = new CsvReader(new StreamReader(csv), hasHeader: false);
             Assert.IsNull(reader.Read());
@@ -108,7 +108,7 @@ namespace FastCSV.Tests
         [Test()]
         public void ReadEmptyTest2()
         {
-            using var csv = StreamHelper.ToMemoryStream("");
+            using var csv = StreamHelper.CreateStreamFromString("");
 
             var format = CsvFormat.Default.WithIgnoreWhitespace(false);
             using var reader = new CsvReader(new StreamReader(csv), format, hasHeader: false);
@@ -118,7 +118,7 @@ namespace FastCSV.Tests
         [Test()]
         public void ReadBlackTest1()
         {
-            using var csv = StreamHelper.ToMemoryStream(" ");
+            using var csv = StreamHelper.CreateStreamFromString(" ");
 
             using var reader = new CsvReader(new StreamReader(csv), hasHeader: false);
             Assert.IsNull(reader.Read());
@@ -127,7 +127,7 @@ namespace FastCSV.Tests
         [Test()]
         public void ReadBlackTest2()
         {
-            using var csv = StreamHelper.ToMemoryStream(" ");
+            using var csv = StreamHelper.CreateStreamFromString(" ");
 
             var format = CsvFormat.Default.WithIgnoreWhitespace(false);
             using var reader = new CsvReader(new StreamReader(csv), hasHeader: false, format: format);
@@ -137,7 +137,7 @@ namespace FastCSV.Tests
         [Test()]
         public void ReadRecordWithWhiteSpaceTest()
         {
-            using var csv = StreamHelper.ToMemoryStream(
+            using var csv = StreamHelper.CreateStreamFromString(
                 "Name,Age\n" +
                 "Homer , 35\n" +
                 " Marge,28\n");
@@ -151,7 +151,7 @@ namespace FastCSV.Tests
         [Test()]
         public void ReadWithUnclosedQuoteTest()
         {
-            using var csv = StreamHelper.ToMemoryStream(
+            using var csv = StreamHelper.CreateStreamFromString(
                 "Name,Age\n" +
                 "Mario \"The plumber, 20\n" +
                 "Luigi, 19\n");
@@ -167,7 +167,7 @@ namespace FastCSV.Tests
         [Test()]
         public void ReadWithQuoteAlwaysTest()
         {
-            using var csv = StreamHelper.ToMemoryStream(
+            using var csv = StreamHelper.CreateStreamFromString(
                 "Name,Age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");
@@ -181,7 +181,7 @@ namespace FastCSV.Tests
         [Test()]
         public void ReadWithQuoteNeverTest()
         {
-            using var csv = StreamHelper.ToMemoryStream(
+            using var csv = StreamHelper.CreateStreamFromString(
                 "Name,Age\n" +
                 "Frida \"The Painter\", 35\n" +
                 "Pagannini \"The violinist\",28\n");
@@ -194,7 +194,7 @@ namespace FastCSV.Tests
         [Test()]
         public async Task ReadAsyncTest()
         {
-            using var csv = StreamHelper.ToMemoryStream(
+            using var csv = StreamHelper.CreateStreamFromString(
                 "name,age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");
@@ -214,7 +214,7 @@ namespace FastCSV.Tests
         [Test()]
         public void ReadAllTest()
         {
-            using var csv = StreamHelper.ToMemoryStream(
+            using var csv = StreamHelper.CreateStreamFromString(
                 "name,age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");
@@ -235,7 +235,7 @@ namespace FastCSV.Tests
         [Test()]
         public async Task ReadAllAsyncTest()
         {
-            using var csv = StreamHelper.ToMemoryStream(
+            using var csv = StreamHelper.CreateStreamFromString(
                 "name,age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");
@@ -256,7 +256,7 @@ namespace FastCSV.Tests
         [Test]
         public void ReadAsTest()
         {
-            using var csv = StreamHelper.ToMemoryStream(
+            using var csv = StreamHelper.CreateStreamFromString(
                 "Name,Age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");
@@ -277,7 +277,7 @@ namespace FastCSV.Tests
         [Test]
         public void ReadAllAsTest()
         {
-            using var csv = StreamHelper.ToMemoryStream(
+            using var csv = StreamHelper.CreateStreamFromString(
                 "Name,Age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");
@@ -296,7 +296,7 @@ namespace FastCSV.Tests
         [Test]
         public async Task ReadAsAsyncTest()
         {
-            using var csv = StreamHelper.ToMemoryStream(
+            using var csv = StreamHelper.CreateStreamFromString(
                 "Name,Age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");
@@ -317,7 +317,7 @@ namespace FastCSV.Tests
         [Test]
         public async Task ReadAllAsAsyncTest()
         {
-            using var csv = StreamHelper.ToMemoryStream(
+            using var csv = StreamHelper.CreateStreamFromString(
                 "Name,Age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");
@@ -338,7 +338,7 @@ namespace FastCSV.Tests
         [Test()]
         public void ResetTest()
         {
-            using var csv = StreamHelper.ToMemoryStream(
+            using var csv = StreamHelper.CreateStreamFromString(
                 "name,age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");
@@ -367,7 +367,7 @@ namespace FastCSV.Tests
         [Test()]
         public void TryResetTest()
         {
-            using var csv = StreamHelper.ToMemoryStream(
+            using var csv = StreamHelper.CreateStreamFromString(
                 "name,age\n" +
                 "Homer,35\n" +
                 "Marge,28\n");

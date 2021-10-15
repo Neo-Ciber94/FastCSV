@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Text;
 
 namespace FastCSV.Utils
 {
@@ -7,20 +9,17 @@ namespace FastCSV.Utils
         /// <summary>
         /// Gets a <see cref="MemoryStream"/> containing the specified <see cref="string"/> data.
         /// </summary>
-        /// <param name="data">The data.</param>
+        /// <param name="s">The data.</param>
         /// <returns>A stream containing the specified data.</returns>
-        public static MemoryStream ToMemoryStream(string data)
+        public static Stream CreateStreamFromString(string s)
         {
-            MemoryStream memory = new MemoryStream(data.Length * sizeof(char));
-            using (var writer = new StreamWriter(memory, leaveOpen: true))
+            if (string.IsNullOrEmpty(s))
             {
-                writer.Write(data);
-                writer.Flush();
-                memory.Position = 0;
+                return MemoryStream.Null;
             }
 
-            return memory;
+            byte[] byteArray = Encoding.UTF8.GetBytes(s);
+            return new MemoryStream(byteArray);
         }
-
     }
 }

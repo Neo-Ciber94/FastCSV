@@ -194,7 +194,7 @@ namespace FastCSV
 
                 if (options.IncludeHeader)
                 {
-                    using MemoryStream stream = StreamHelper.ToMemoryStream(csv);
+                    using Stream stream = StreamHelper.CreateStreamFromString(csv);
                     using CsvReader reader = CsvReader.FromStream(stream, options.Format, options.IncludeHeader);
                     CsvRecord? record = reader.Read();
 
@@ -575,7 +575,7 @@ namespace FastCSV
                 throw new InvalidOperationException("IncludeHeader must be true when deserializing arrays");
             }
 
-            using MemoryStream stream = StreamHelper.ToMemoryStream(csv);
+            using Stream stream = StreamHelper.CreateStreamFromString(csv);
             using CsvReader reader = CsvReader.FromStream(stream, options.Format, options.IncludeHeader);
             bool handleNestedObjects = options.NestedObjectHandling != null;
             bool handleCollections = options.CollectionHandling != null;
