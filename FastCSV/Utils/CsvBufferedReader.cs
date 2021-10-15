@@ -6,10 +6,10 @@ using System.Text;
 
 namespace FastCSV.Utils
 {
-    public struct CsvBufferedReader : IDisposable
+    public class CsvBufferedReader : IDisposable
     {
         private static readonly Decoder Utf8Decoder = Encoding.UTF8.GetDecoder();
-        public const int DefaultBufferCapacity = 256;
+        public const int DefaultBufferCapacity = 4096;
 
         private readonly char[]? _charBufferFromArrayPool;
         private readonly byte[]? _byteBufferFromArrayPool;
@@ -100,16 +100,14 @@ namespace FastCSV.Utils
 
         private ReadOnlySpan<char> GetCharBuffer()
         {
-            int startIndex = _pos - _charsLen;
-
             if (_stream == null)
             {
-
+                int startIndex = _pos - _charsLen;
                 return _csvData.Span.Slice(startIndex, _charsLen);
             }
             else
             {
-                return _charBufferFromArrayPool.AsSpan(startIndex, _charsLen);
+                return _charBufferFromArrayPool.AsSpan(0, _charsLen);
             }
         }
 
@@ -399,6 +397,24 @@ namespace FastCSV.Utils
         }
         #endregion
 
+        public Stream? Stream
+        {
+            get
+            {
+                if (_stream is Stream stream)
+                {
+                    return stream;
+                }
+
+                if (_stream is StreamReader streamReader)
+                {
+                    return streamReader.BaseStream;
+                }
+
+                return null;
+            }
+        }
+
         public void Dispose()
         {
             if (_byteBufferFromArrayPool != null)
@@ -409,6 +425,16 @@ namespace FastCSV.Utils
             if (_charBufferFromArrayPool != null)
             {
                 ArrayPool<char>.Shared.Return(_charBufferFromArrayPool);
+            }
+
+            if (_stream is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+
+            if (_stream is StreamReader reader)
+            {
+                reader.Dispose();
             }
         }
     }

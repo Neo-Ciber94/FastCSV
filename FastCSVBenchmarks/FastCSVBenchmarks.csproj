@@ -22,4 +22,10 @@
     <ProjectReference Include="..\FastCSV\FastCSV.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="example.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
