@@ -17,5 +17,15 @@ namespace FastCSV.Internal
         {
             return new InvalidOperationException("'CollectionHandling' option is required for collection types");
         }
+
+        public static Exception ArgumentOutOfRange(string paramName, int index, int length)
+        {
+            return new ArgumentOutOfRangeException(paramName, $"index must be positive an lower than {length} but was {index}");
+        }
+
+        public static Exception IndexOutOfRange(int index, int length)
+        {
+            return new IndexOutOfRangeException($"index must be positive an lower than {length} but was {index}");
+        }
     }
 }

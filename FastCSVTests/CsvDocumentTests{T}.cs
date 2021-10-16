@@ -201,8 +201,8 @@ namespace FastCSV.Tests
             Assert.AreEqual(2, document.Count);
 
 
-            Assert.AreEqual(new CsvRecord(document.Header, new string[] { "Akari", "20" }), document[0]);
-            Assert.AreEqual(new CsvRecord(document.Header, new string[] { "Chinatsu", "19" }), document[1]);
+            CollectionAssert.AreEqual(new CsvRecord(document.Header, new string[] { "Akari", "20" }), document[0]);
+            CollectionAssert.AreEqual(new CsvRecord(document.Header, new string[] { "Chinatsu", "19" }), document[1]);
         }
 
         [Test]

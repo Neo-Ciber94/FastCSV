@@ -48,5 +48,10 @@ namespace FastCSV
             record = Record;
             value = _value;
         }
+
+        public override string ToString()
+        {
+            return _value?.ToString() ?? string.Empty;
+        }
     }
 }

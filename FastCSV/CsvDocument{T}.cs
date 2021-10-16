@@ -3,9 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using FastCSV.Collections;
+using FastCSV.Internal;
 using FastCSV.Utils;
 
 namespace FastCSV
@@ -17,7 +20,10 @@ namespace FastCSV
     /// <seealso cref="FastCSV.ICsvDocument" />
     public partial class CsvDocument<T> : ICsvDocument
     {
-        private readonly List<CsvRecordWithValue<T>> _records = new List<CsvRecordWithValue<T>>();
+        private static readonly CsvRecordWithValue<T>[] s_EmptyArray = Array.Empty<CsvRecordWithValue<T>>();
+
+        private CsvRecordWithValue<T>[] _records;
+        private int _count = 0;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CsvDocument{T}"/> class.
@@ -29,10 +35,7 @@ namespace FastCSV
         /// </summary>
         /// <param name="format">The format.</param>
         public CsvDocument(CsvFormat format)
-        {
-            Header = new CsvHeader(CsvConverter.GetHeader<T>(), format);
-            Format = format;
-        }
+            : this(s_EmptyArray, new CsvHeader(CsvConverter.GetHeader<T>(), format), format) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CsvDocument{T}"/> class.
@@ -47,6 +50,7 @@ namespace FastCSV
         /// <param name="format">The format.</param>
         public CsvDocument(IEnumerable<T> elements, CsvFormat format)
         {
+            _records = s_EmptyArray;
             Header = new CsvHeader(CsvConverter.GetHeader<T>(), format);
             Format = format;
 
@@ -56,7 +60,7 @@ namespace FastCSV
             }
         }
 
-        internal CsvDocument(List<CsvRecordWithValue<T>> records, CsvHeader header, CsvFormat format)
+        internal CsvDocument(CsvRecordWithValue<T>[] records, CsvHeader header, CsvFormat format)
         {
             if (header.Format != format)
             {
@@ -100,7 +104,7 @@ namespace FastCSV
         /// <value>
         /// The number of records in the csv.
         /// </value>
-        public int Count => _records.Count;
+        public int Count => _count;
 
         /// <summary>
         /// Gets a value indicating whether this csv is empty.
@@ -116,7 +120,7 @@ namespace FastCSV
         /// <value>
         /// The values.
         /// </value>
-        public ValueCollection Values => new ValueCollection(_records);
+        public ValueCollection Values => new ValueCollection(this);
 
         /// <summary>
         /// Writes the specified value as a record.
@@ -124,7 +128,27 @@ namespace FastCSV
         /// <param name="value">The value.</param>
         public void Write(T value)
         {
-            _records.Add(new CsvRecordWithValue<T>(value, Format));
+            if (_count == _records.Length)
+            {
+                Resize(1);
+            }
+
+            _records[_count++] = new CsvRecordWithValue<T>(value, Format);
+        }
+
+        private void Resize(int required)
+        {
+            int minCapacity = _count + required;
+
+            if (minCapacity > _records.Length)
+            {
+                int size = _count == 0 ? 1 : _count;
+                int newCapacity = Math.Max(minCapacity, size * 2);
+
+                CsvRecordWithValue<T>[] newArray = new CsvRecordWithValue<T>[newCapacity];
+                Array.Copy(_records, newArray, _count);
+                _records = newArray;
+            }
         }
 
         /// <summary>
@@ -134,7 +158,21 @@ namespace FastCSV
         /// <param name="value">The value.</param>
         public void WriteAt(int index, T value)
         {
-            _records.Insert(index, new CsvRecordWithValue<T>(value, Format));
+            // _records.Insert(index, new CsvRecordWithValue<T>(value, Format));
+
+            if (index < 0 || index >= _count)
+            {
+                throw ThrowHelper.ArgumentOutOfRange(nameof(index), index, _count);
+            }
+
+            if (_count == _records.Length)
+            {
+                Resize(1);
+            }
+
+            Array.Copy(_records, index, _records, index + 1, _count - index);
+            _records[index] = new CsvRecordWithValue<T>(value, Format);
+            _count += 1;
         }
 
         /// <summary>
@@ -144,7 +182,30 @@ namespace FastCSV
         /// <param name="value">The value.</param>
         public void Update(int index, T value)
         {
+            if (index < 0 || index >= _count)
+            {
+                throw ThrowHelper.ArgumentOutOfRange(nameof(index), index, _count);
+            }
+
             _records[index] = new CsvRecordWithValue<T>(value, Format);
+        }
+
+        /// <summary>
+        /// Removes the value from this document.
+        /// </summary>
+        /// <param name="value">The value to remove.</param>
+        /// <returns><c>true</c> if the item was removed, otherwise false.</returns>
+        public bool Remove(T value)
+        {
+            int index = IndexOf(value);
+
+            if (index >= 0)
+            {
+                RemoveAt(index);
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -153,17 +214,22 @@ namespace FastCSV
         /// <param name="index">The index.</param>
         /// <returns>The removed record an the value associate to it.</returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public (CsvRecord, T) RemoveAt(int index)
+        public (CsvRecord, T) RemoveAt(int index) // TODO: Remove/change return type
         {
-            if (index < 0 || index >= Count)
+            if (index < 0 || index >= _count)
             {
-                throw new ArgumentOutOfRangeException(index.ToString());
+                throw ThrowHelper.ArgumentOutOfRange(nameof(index), index, _count);
             }
 
-            CsvRecordWithValue<T> typedRecord = _records[index];
-            _records.RemoveAt(index);
+            _count -= 1;
 
-            (CsvRecord record, T value) = typedRecord;
+            if (index < _count)
+            {
+                Array.Copy(_records, index + 1, _records, index, _count - index);
+            }
+
+            (CsvRecord record, T value) = _records[index];
+            _records[_count] = default!;
             return (record, value);
         }
 
@@ -174,7 +240,37 @@ namespace FastCSV
         /// <returns>The number of removed records</returns>
         public int RemoveAll(Predicate<T> match)
         {
-            return _records.RemoveAll((n) => match(n.Value));
+            int index = 0;
+
+            while (index < _count)
+            {
+                if (match(_records[index].Value))
+                {
+                    break;
+                }
+
+                index += 1;
+            }
+
+            int current = index + 1;
+
+            while (current < _count)
+            {
+                if (!match(_records[current].Value))
+                {
+                    if (index < current)
+                    {
+                        _records[index++] = _records[current];
+                    }
+                }
+
+                current += 1;
+            }
+
+            Array.Clear(_records, index, _count - index);
+            int removed = _count - index;
+            _count -= removed;
+            return removed;
         }
 
         /// <summary>
@@ -182,7 +278,12 @@ namespace FastCSV
         /// </summary>
         public void Clear()
         {
-            _records.Clear();
+            if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+            {
+                Array.Clear(_records, 0, _count);
+            }
+
+            _count = 0;
         }
 
         /// <summary>
@@ -194,17 +295,7 @@ namespace FastCSV
         /// </returns>
         public bool Contains(T value)
         {
-            EqualityComparer<T> comparer = EqualityComparer<T>.Default;
-
-            foreach (CsvRecordWithValue<T> e in _records)
-            {
-                if (comparer.Equals(e.Value, value))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return IndexOf(value) >= 0;
         }
 
         /// <summary>
@@ -215,13 +306,12 @@ namespace FastCSV
         public int IndexOf(T value)
         {
             EqualityComparer<T> comparer = EqualityComparer<T>.Default;
-            int length = _records.Count;
 
-            for (int i = 0; i < length; i++)
+            for (int i = 0; i < _count; i++)
             {
-                T current = _records[i].Value;
+                T recordValue = _records[i].Value;
 
-                if (comparer.Equals(current, value))
+                if (comparer.Equals(recordValue, value))
                 {
                     return i;
                 }
@@ -238,13 +328,12 @@ namespace FastCSV
         public int LastIndexOf(T value)
         {
             EqualityComparer<T> comparer = EqualityComparer<T>.Default;
-            int length = _records.Count;
 
-            for (int i = length - 1; i >= 0; i--)
+            for (int i = _count - 1; i >= 0; i--)
             {
-                T current = _records[i].Value;
+                T recordValue = _records[i].Value;
 
-                if (comparer.Equals(current, value))
+                if (comparer.Equals(recordValue, value))
                 {
                     return i;
                 }
@@ -276,7 +365,7 @@ namespace FastCSV
         /// <returns></returns>
         public CsvDocument<T> WithFormat(CsvFormat format)
         {
-            return new CsvDocument<T>(_records.ToList(), Header.WithFormat(format), format);
+            return new CsvDocument<T>(_records.ToArray(), Header.WithFormat(format), format);
         }
 
         public void CopyTo(Stream destination)
@@ -340,7 +429,7 @@ namespace FastCSV
         /// Gets the enumerator.
         /// </summary>
         /// <returns></returns>
-        public Enumerator GetEnumerator() => new Enumerator(_records);
+        public Enumerator GetEnumerator() => new Enumerator(_records, _count);
 
         IEnumerator<CsvRecord> IEnumerable<CsvRecord>.GetEnumerator() => GetEnumerator();
 
@@ -348,28 +437,39 @@ namespace FastCSV
 
         public struct Enumerator : IEnumerator<CsvRecord>
         {
-            private readonly List<CsvRecordWithValue<T>> _records;
-            private int _index;
+            private readonly CsvRecordWithValue<T>[]? items;
+            private readonly int count;
+            private int index;
 
-            internal Enumerator(List<CsvRecordWithValue<T>> records)
+            internal Enumerator(CsvRecordWithValue<T>[] items, int count)
             {
-                _records = records;
-                _index = -1;
+                this.items = items;
+                this.count = count;
+                this.index = -1;
             }
 
-            public CsvRecord Current => _records[_index].Record;
+            public CsvRecord Current
+            {
+                get
+                {
+                    if (index == -1 || items == null)
+                    {
+                        throw new InvalidOperationException("enumerator is not initialized");
+                    }
 
-            object? IEnumerator.Current => Current;
+                    return items[index].Record;
+                }
+            }
 
-            public void Dispose() { }
+            object IEnumerator.Current => Current!;
 
             public bool MoveNext()
             {
-                int next = _index + 1;
+                int next = index + 1;
 
-                if (next < _records.Count)
+                if (next < count)
                 {
-                    _index = next;
+                    index = next;
                     return true;
                 }
 
@@ -378,24 +478,34 @@ namespace FastCSV
 
             public void Reset()
             {
-                _index = -1;
+                index = -1;
             }
+
+            void IDisposable.Dispose() { }
         }
 
-        public struct ValueCollection : IReadOnlyList<T>
+        public readonly struct ValueCollection : IReadOnlyList<T>
         {
-            private readonly List<CsvRecordWithValue<T>> _records;
+            private readonly CsvDocument<T> _document;
 
-            internal ValueCollection(List<CsvRecordWithValue<T>> records)
+            internal ValueCollection(CsvDocument<T> document)
             {
-                _records = records;
+                _document = document;
             }
 
-            public int Count => _records.Count;
+            public readonly int Count => _document._count;
 
-            public T this[int index] => _records[index].Value;
+            public readonly T this[int index] => _document.GetValue(index);
 
-            public IEnumerator<T> GetEnumerator() => _records.Select(e => e.Value).GetEnumerator();
+            public readonly IEnumerator<T> GetEnumerator()
+            {
+                // TODO: Create custom Enumerator<T>
+                int length = _document._count;
+                return _document._records
+                    .Take(length)
+                    .Select(e => e.Value)
+                    .GetEnumerator();
+            }
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
