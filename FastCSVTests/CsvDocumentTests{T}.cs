@@ -111,8 +111,8 @@ namespace FastCSV.Tests
         public void WriteTest()
         {
             var document = new CsvDocument<Person>();
-            document.Write(new Person { Name = "Akari", Age = 20 });
-            document.Write(new Person { Name = "Mirakurun", Age = 19 });
+            document.Add(new Person { Name = "Akari", Age = 20 });
+            document.Add(new Person { Name = "Mirakurun", Age = 19 });
 
             Assert.AreEqual(2, document.Count);
             Assert.IsFalse(document.IsEmpty);
@@ -125,10 +125,10 @@ namespace FastCSV.Tests
         public void WriteAtTest()
         {
             var document = new CsvDocument<Person>();
-            document.Write(new Person { Name = "Akari", Age = 20 });
-            document.Write(new Person { Name = "Mirakurun", Age = 19 });
+            document.Add(new Person { Name = "Akari", Age = 20 });
+            document.Add(new Person { Name = "Mirakurun", Age = 19 });
 
-            document.WriteAt(1, new Person { Name = "Yui", Age = 20 });
+            document.Insert(1, new Person { Name = "Yui", Age = 20 });
             Assert.AreEqual(3, document.Count);
             Assert.IsFalse(document.IsEmpty);
 
@@ -141,8 +141,8 @@ namespace FastCSV.Tests
         public void UpdateTest()
         {
             var document = new CsvDocument<Person>();
-            document.Write(new Person { Name = "Akari", Age = 20 });
-            document.Write(new Person { Name = "Mirakurun", Age = 19 });
+            document.Add(new Person { Name = "Akari", Age = 20 });
+            document.Add(new Person { Name = "Mirakurun", Age = 19 });
 
             document.Update(1, new Person { Name = "Yui", Age = 20 });
 

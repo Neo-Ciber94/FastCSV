@@ -4,7 +4,7 @@ namespace FastCSV
 {
     internal struct CsvRecordWithValue<T>
     {
-        private readonly T _value;
+        internal readonly T _value;
         private readonly CsvFormat _format;
         private CsvRecord? _record;
 

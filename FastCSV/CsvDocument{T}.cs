@@ -56,7 +56,7 @@ namespace FastCSV
 
             foreach (var e in elements)
             {
-                Write(e);
+                Add(e);
             }
         }
 
@@ -126,7 +126,7 @@ namespace FastCSV
         /// Writes the specified value as a record.
         /// </summary>
         /// <param name="value">The value.</param>
-        public void Write(T value)
+        public void Add(T value)
         {
             if (_count == _records.Length)
             {
@@ -136,30 +136,13 @@ namespace FastCSV
             _records[_count++] = new CsvRecordWithValue<T>(value, Format);
         }
 
-        private void Resize(int required)
-        {
-            int minCapacity = _count + required;
-
-            if (minCapacity > _records.Length)
-            {
-                int size = _count == 0 ? 1 : _count;
-                int newCapacity = Math.Max(minCapacity, size * 2);
-
-                CsvRecordWithValue<T>[] newArray = new CsvRecordWithValue<T>[newCapacity];
-                Array.Copy(_records, newArray, _count);
-                _records = newArray;
-            }
-        }
-
         /// <summary>
         /// Writes the specified value as a record in the given index.
         /// </summary>
         /// <param name="index">The index.</param>
         /// <param name="value">The value.</param>
-        public void WriteAt(int index, T value)
+        public void Insert(int index, T value)
         {
-            // _records.Insert(index, new CsvRecordWithValue<T>(value, Format));
-
             if (index < 0 || index >= _count)
             {
                 throw ThrowHelper.ArgumentOutOfRange(nameof(index), index, _count);
@@ -345,12 +328,27 @@ namespace FastCSV
         /// <exception cref="IndexOutOfRangeException"></exception>
         public T GetValue(int index)
         {
-            if (index < 0 || index >= Count)
+            if (index < 0 || index >= _count)
             {
-                throw new IndexOutOfRangeException(index.ToString());
+                throw ThrowHelper.ArgumentOutOfRange(nameof(index), index, _count);
             }
 
             return _records[index].Value;
+        }
+
+        /// <summary>
+        /// Gets a readonly reference to the element at the given index.
+        /// </summary>
+        /// <param name="index">The index of the element.</param>
+        /// <returns>A readonly reference to the index.</returns>
+        public ref readonly T GetValueRef(int index)
+        {
+            if (index < 0 || index >= _count)
+            {
+                throw ThrowHelper.ArgumentOutOfRange(nameof(index), index, _count);
+            }
+
+            return ref _records[index]._value;
         }
 
         /// <summary>
@@ -361,6 +359,21 @@ namespace FastCSV
         public CsvDocument<T> WithFormat(CsvFormat format)
         {
             return new CsvDocument<T>(_records.ToArray(), Header.WithFormat(format), format);
+        }
+
+        private void Resize(int required)
+        {
+            int minCapacity = _count + required;
+
+            if (minCapacity > _records.Length)
+            {
+                int size = _count == 0 ? 1 : _count;
+                int newCapacity = Math.Max(minCapacity, size * 2);
+
+                CsvRecordWithValue<T>[] newArray = new CsvRecordWithValue<T>[newCapacity];
+                Array.Copy(_records, newArray, _count);
+                _records = newArray;
+            }
         }
 
         public void CopyTo(Stream destination)
