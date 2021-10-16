@@ -212,9 +212,8 @@ namespace FastCSV
         /// Removes the record at the specified index.
         /// </summary>
         /// <param name="index">The index.</param>
-        /// <returns>The removed record an the value associate to it.</returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public (CsvRecord, T) RemoveAt(int index) // TODO: Remove/change return type
+        public void RemoveAt(int index)
         {
             if (index < 0 || index >= _count)
             {
@@ -227,10 +226,6 @@ namespace FastCSV
             {
                 Array.Copy(_records, index + 1, _records, index, _count - index);
             }
-
-            (CsvRecord record, T value) = _records[index];
-            _records[_count] = default!;
-            return (record, value);
         }
 
         /// <summary>
