@@ -245,7 +245,11 @@ namespace FastCSV
                 current += 1;
             }
 
-            Array.Clear(_records, index, _count - index);
+            if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+            {
+                Array.Clear(_records, index, _count - index);
+            }
+
             int removed = _count - index;
             _count -= removed;
             return removed;
