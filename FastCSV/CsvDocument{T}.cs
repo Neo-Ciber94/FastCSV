@@ -17,7 +17,7 @@ namespace FastCSV
     /// <seealso cref="FastCSV.ICsvDocument" />
     public partial class CsvDocument<T> : ICsvDocument
     {
-        private readonly List<TypedCsvRecord<T>> _records = new List<TypedCsvRecord<T>>();
+        private readonly List<CsvRecordWithValue<T>> _records = new List<CsvRecordWithValue<T>>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CsvDocument{T}"/> class.
@@ -56,7 +56,7 @@ namespace FastCSV
             }
         }
 
-        internal CsvDocument(List<TypedCsvRecord<T>> records, CsvHeader header, CsvFormat format)
+        internal CsvDocument(List<CsvRecordWithValue<T>> records, CsvHeader header, CsvFormat format)
         {
             if (header.Format != format)
             {
@@ -124,7 +124,7 @@ namespace FastCSV
         /// <param name="value">The value.</param>
         public void Write(T value)
         {
-            _records.Add(new TypedCsvRecord<T>(value, Format));
+            _records.Add(new CsvRecordWithValue<T>(value, Format));
         }
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace FastCSV
         /// <param name="value">The value.</param>
         public void WriteAt(int index, T value)
         {
-            _records.Insert(index, new TypedCsvRecord<T>(value, Format));
+            _records.Insert(index, new CsvRecordWithValue<T>(value, Format));
         }
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace FastCSV
         /// <param name="value">The value.</param>
         public void Update(int index, T value)
         {
-            _records[index] = new TypedCsvRecord<T>(value, Format);
+            _records[index] = new CsvRecordWithValue<T>(value, Format);
         }
 
         /// <summary>
@@ -160,9 +160,11 @@ namespace FastCSV
                 throw new ArgumentOutOfRangeException(index.ToString());
             }
 
-            TypedCsvRecord<T> typedRecord = _records[index];
+            CsvRecordWithValue<T> typedRecord = _records[index];
             _records.RemoveAt(index);
-            return typedRecord.ToTuple();
+
+            (CsvRecord record, T value) = typedRecord;
+            return (record, value);
         }
 
         /// <summary>
@@ -194,7 +196,7 @@ namespace FastCSV
         {
             EqualityComparer<T> comparer = EqualityComparer<T>.Default;
 
-            foreach (TypedCsvRecord<T> e in _records)
+            foreach (CsvRecordWithValue<T> e in _records)
             {
                 if (comparer.Equals(e.Value, value))
                 {
@@ -306,7 +308,7 @@ namespace FastCSV
 
             sb.AppendLine(Header.ToString(format));
 
-            foreach (TypedCsvRecord<T> typedRecord in _records)
+            foreach (CsvRecordWithValue<T> typedRecord in _records)
             {
                 sb.AppendLine(typedRecord.Record.ToString(format));
             }
@@ -346,10 +348,10 @@ namespace FastCSV
 
         public struct Enumerator : IEnumerator<CsvRecord>
         {
-            private readonly List<TypedCsvRecord<T>> _records;
+            private readonly List<CsvRecordWithValue<T>> _records;
             private int _index;
 
-            internal Enumerator(List<TypedCsvRecord<T>> records)
+            internal Enumerator(List<CsvRecordWithValue<T>> records)
             {
                 _records = records;
                 _index = -1;
@@ -382,9 +384,9 @@ namespace FastCSV
 
         public struct ValueCollection : IReadOnlyList<T>
         {
-            private readonly List<TypedCsvRecord<T>> _records;
+            private readonly List<CsvRecordWithValue<T>> _records;
 
-            internal ValueCollection(List<TypedCsvRecord<T>> records)
+            internal ValueCollection(List<CsvRecordWithValue<T>> records)
             {
                 _records = records;
             }
