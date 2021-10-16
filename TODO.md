@@ -20,3 +20,4 @@
 - [ ] Valide if CsvRecord and CsvHeader can be change to 'readonly struct'
 - [x] Add more async API
 - [ ] Add api to cache reflection results to reduce allocations
+- [ ] Add more utility methods to CsvDocument<T>
