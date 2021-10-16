@@ -193,11 +193,12 @@ namespace FastCSV.Tests
                 new Person {Name = "Akari", Age = 20},
                 new Person {Name = "Kyoko", Age = 21},
                 new Person {Name = "Yui", Age = 22},
-                new Person {Name = "Chinatsu", Age = 19}
+                new Person {Name = "Chinatsu", Age = 19},
+                new Person {Name = "Chitose", Age = 26},
             });
 
-            Assert.AreEqual(4, document.Count);
-            Assert.AreEqual(2, document.RemoveAll(e => e.Age > 20));
+            Assert.AreEqual(5, document.Count);
+            Assert.AreEqual(3, document.RemoveAll(e => e.Age > 20));
             Assert.AreEqual(2, document.Count);
 
 
