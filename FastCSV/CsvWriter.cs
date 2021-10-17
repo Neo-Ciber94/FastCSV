@@ -65,11 +65,11 @@ namespace FastCSV
         /// <param name="format">The format.</param>
         /// <param name="flexible">if set to <c>true</c> the writer will allow records of diferent lenghts.</param>
         /// <returns></returns>
-        public static CsvWriter FromStream(Stream stream, CsvFormat? format = null, bool flexible = false)
+        public static CsvWriter FromStream(Stream stream, CsvFormat? format = null, bool flexible = false, bool leaveOpen = false)
         {
             format ??= CsvFormat.Default;
 
-            StreamWriter writer = new StreamWriter(stream);
+            StreamWriter writer = new StreamWriter(stream, leaveOpen: leaveOpen);
             return new CsvWriter(writer, format, flexible);
         }
 

@@ -17,7 +17,7 @@ namespace FastCSV
         [Obsolete("Use CsvDocument.CopyTo instead")]
         public static void CopyToFile(this ICsvDocument document, string path, bool append = false)
         {
-            CsvWriter.WriteToFile(document.Header, document, path, false, append);
+            CsvWriter.WriteToFile(document, document.Header, path, false, append);
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace FastCSV
         [Obsolete("Use CsvDocument.CopyToAsync instead")]
         public static Task CopyToFileAsync(this ICsvDocument document, string path, bool append = false)
         {
-            CsvWriter.WriteToFile(document.Header, document, path, false, append);
+            CsvWriter.WriteToFile(document, document.Header, path, false, append);
             return Task.CompletedTask;
         }
     }

@@ -294,9 +294,39 @@ namespace FastCSV.Tests
             Assert.AreEqual(new Person { Name = "Yui", Age = 22 }, document.GetValue(2));
             Assert.AreEqual(new Person { Name = "Chinatsu", Age = 19 }, document.GetValue(3));
 
-            Assert.Throws<IndexOutOfRangeException>(() =>
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
             {
                 var _ = document.GetValue(-1);
+            });
+
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            {
+                var _ = document.GetValue(4);
+            });
+        }
+
+        [Test]
+        public void GetValueRefTest()
+        {
+            var document = new CsvDocument<Person>(new Person[]
+            {
+                new Person {Name = "Akari", Age = 20},
+                new Person {Name = "Kyoko", Age = 21},
+                new Person {Name = "Yui", Age = 22},
+                new Person {Name = "Chinatsu", Age = 19}
+            });
+
+            Assert.AreEqual(new Person { Name = "Kyoko", Age = 21 }, document.GetValueRef(1));
+            Assert.AreEqual(new Person { Name = "Chinatsu", Age = 19 }, document.GetValueRef(3));
+
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            {
+                var _ = document.GetValueRef(-1);
+            });
+
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            {
+                var _ = document.GetValueRef(4);
             });
         }
 

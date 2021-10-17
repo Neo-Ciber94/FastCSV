@@ -318,7 +318,7 @@ namespace FastCSV
 
         public void CopyTo(Stream destination)
         {
-            CsvWriter.WriteToStream(Header, this, destination);
+            CsvWriter.WriteToStream(this, Header, destination);
         }
 
         public Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default)

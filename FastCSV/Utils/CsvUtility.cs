@@ -342,16 +342,29 @@ namespace FastCSV.Utils
         }
 
         /// <summary>
-        /// Writes a csv record using the specified <see cref="StreamWriter"/>.
+        /// Writes a csv record using the specified <see cref="TextWriter"/>.
         /// </summary>
         /// <param name="writer">The writer.</param>
         /// <param name="values">The values to write.</param>
         /// <param name="format">The format used to write the record.</param>
-        public static void WriteRecord(StreamWriter writer, IEnumerable<string> values, CsvFormat format)
+        public static void WriteRecord(TextWriter writer, IEnumerable<string> values, CsvFormat format)
         {
             string record = ToCsvString(values, format);
             writer.WriteLine(record);
             writer.Flush();
+        }
+
+        /// <summary>
+        /// Writes a csv record using the specified <see cref="TextWriter"/> asynchronously.
+        /// </summary>
+        /// <param name="writer">The writer.</param>
+        /// <param name="values">The values to write.</param>
+        /// <param name="format">The format used to write the record.</param>
+        public static async Task WriteRecordAsync(TextWriter writer, IEnumerable<string> values, CsvFormat format)
+        {
+            string record = ToCsvString(values, format);
+            await writer.WriteLineAsync(record);
+            await writer.FlushAsync();
         }
 
         /// <summary>

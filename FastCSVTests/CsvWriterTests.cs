@@ -78,7 +78,7 @@ namespace FastCSV.Tests
 
             using (var tempFile = new TempFile())
             {
-                CsvWriter.WriteToFile(header, records, tempFile.FullName);
+                CsvWriter.WriteToFile(records, header, tempFile.FullName);
 
                 using (var reader = new StreamReader(tempFile.FullName))
                 {
