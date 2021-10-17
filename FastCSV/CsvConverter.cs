@@ -840,13 +840,16 @@ namespace FastCSV
                 return null;
             }
 
-            string s = state.Read();
-
-            if (NullableObject.IsNullableType(type))
+            if (type.IsNullable())
             {
-                if (string.IsNullOrEmpty(s))
+                if (state.Count == 1) 
                 {
-                    return null;
+                    string s = state.Read();
+
+                    if (string.IsNullOrEmpty(s))
+                    {
+                        return null;
+                    }
                 }
 
                 type = Nullable.GetUnderlyingType(type)!;
@@ -856,7 +859,8 @@ namespace FastCSV
 
             if (converter == null || !converter.CanConvert(type) || !converter.TryDeserialize(out object? value, type, ref state))
             {
-                throw new InvalidOperationException($"Cannot convert '{s}' to '{type}'");
+                var values = string.Join(", ", state.Values.ToArray());
+                throw new InvalidOperationException($"Cannot convert '{values}' to '{type}'");
             }
 
             return value;
@@ -871,20 +875,15 @@ namespace FastCSV
                 throw new ArgumentException($"Type missmatch, expected {type} but was {value.GetType()}");
             }
 
-            if (NullableObject.IsNullableType(type))
+            if (type.IsNullable())
             {
-                var nullable = new NullableObject(value);
-
-                if (nullable.HasValue)
-                {
-                    value = nullable.Value;
-                    type = value.GetType();
-                }
-                else
+                if (value == null)
                 {
                     state.WriteNull();
                     return;
                 }
+
+                type = Nullable.GetUnderlyingType(type)!;
             }
 
             converter = GetConverter(type, state.Options, converter);
@@ -968,7 +967,7 @@ namespace FastCSV
 
         private static bool HasConverter(Type type, CsvConverterOptions options)
         {
-            if (type.IsGenericType && NullableObject.IsNullableType(type))
+            if (type.IsGenericType && type.IsNullable())
             {
                 type = Nullable.GetUnderlyingType(type)!;
             }
@@ -983,12 +982,12 @@ namespace FastCSV
          */
         private static bool EqualTypes(Type leftType, Type rightType)
         {
-            if (leftType.IsGenericType && NullableObject.IsNullableType(leftType))
+            if (leftType.IsGenericType && leftType.IsNullable())
             {
                 leftType = Nullable.GetUnderlyingType(leftType)!;
             }
 
-            if (rightType.IsGenericType && NullableObject.IsNullableType(rightType))
+            if (rightType.IsGenericType && rightType.IsNullable())
             {
                 rightType = Nullable.GetUnderlyingType(rightType)!;
             }

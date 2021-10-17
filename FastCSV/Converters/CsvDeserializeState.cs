@@ -28,6 +28,11 @@ namespace FastCSV.Converters
         public int Count => _singleValue == null ? _values.Length : 1;
 
         /// <summary>
+        /// The values to deserialize.
+        /// </summary>
+        public ReadOnlyMemory<string> Values => _values;
+
+        /// <summary>
         /// Type of the elements being deserialized.
         /// 
         /// <para>
