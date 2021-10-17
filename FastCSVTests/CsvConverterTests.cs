@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FastCSV.Collections;
+using FastCSV.Converters;
 
 namespace FastCSV.Tests
 {
@@ -143,5 +144,99 @@ namespace FastCSV.Tests
 
             Assert.AreEqual(new string[] { "Name", "Price" }, header);
         }
+
+        [Test]
+        public void SerializeTypeWithoutConverterTest()
+        {
+            var options = new CsvConverterOptions
+            {
+                Converters = new List<ICsvValueConverter> { new PositiveNumberConverter() }
+            };
+
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                var _ = CsvConverter.Serialize(new Wrapper<PositiveNumber>(new PositiveNumber(23)));
+            });
+
+            Assert.AreEqual("Value\n+(32)", CsvConverter.Serialize(new Wrapper<PositiveNumber>(new PositiveNumber(32)), options));
+        }
+
+        [Test]
+        public void SerializeDeserializeReadOnlyFieldTest()
+        {
+            var options = new CsvConverterOptions
+            {
+                IncludeFields = true
+            };
+
+            Assert.AreEqual("Value\nHello", CsvConverter.Serialize(new ReadOnlyField<string>("Hello"), options));
+
+            var result = CsvConverter.Deserialize<ReadOnlyField<string>>("Value\nHello", options);
+            Assert.Null(result.Value);
+        }
+
+        [Test]
+        public void SerializeDeserializeReadOnlyPropertyTest()
+        {
+            Assert.AreEqual("Value\nBye", CsvConverter.Serialize(new ReadOnlyProperty<string>("Bye")));
+
+            var result = CsvConverter.Deserialize<ReadOnlyProperty<string>>("Value\nBye");
+            Assert.Null(result.Value);
+        }
+
+        #region Helper Classes
+
+        record ReadOnlyField<T>
+        {
+            public readonly T Value;
+
+            public ReadOnlyField(T value)
+            {
+                Value = value;
+            }
+        }
+
+        record ReadOnlyProperty<T>
+        {
+            public T Value { get; }
+
+            public ReadOnlyProperty(T value)
+            {
+                Value = value;
+            }
+        }
+
+        record Wrapper<T>(T Value);
+
+        record PositiveNumber(uint Number);
+
+        class PositiveNumberConverter : IValueConverter<PositiveNumber>
+        {
+            public string ConvertFrom(PositiveNumber value)
+            {
+                return $"+({value.Number})";
+            }
+
+            public bool ConvertTo(ReadOnlySpan<char> s, out PositiveNumber value)
+            {
+                value = default!;
+
+                if (s.Length > 3)
+                {
+                    if (s[0] == '+' && s[1] == '(' && s[^1] == ')')
+                    {
+                        var rest = s[2..^2];
+                        if (uint.TryParse(rest, out uint result))
+                        {
+                            value = new PositiveNumber(result);
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
+        #endregion
     }
 }

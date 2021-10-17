@@ -27,5 +27,16 @@ namespace FastCSV.Internal
         {
             return new IndexOutOfRangeException($"index must be positive an lower than {length} but was {index}");
         }
+
+        public static Exception CannotSerializeToType(object? obj, Type type)
+        {
+            return new InvalidOperationException($"Cannot convert '{obj}' to {type}");
+        }
+
+        public static Exception CannotDeserializeToType(IEnumerable<string> values, Type type)
+        {
+            string messageValues = string.Join(", ", values);
+            return new InvalidOperationException($"Cannot convert '{messageValues}' to {type}");
+        }
     }
 }

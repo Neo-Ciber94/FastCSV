@@ -133,7 +133,7 @@ namespace FastCSV
 
                 if (converter == null || !converter.CanConvert(elementType) || !converter.TrySerialize(obj, elementType, ref state))
                 {
-                    throw new InvalidOperationException($"Cannot convert '{obj}' to '{elementType}'");
+                    throw ThrowHelper.CannotSerializeToType(obj, elementType);
                 }
 
                 int serializedCount = state.Serialized.Count;
@@ -225,9 +225,13 @@ namespace FastCSV
 
             foreach (var p in props)
             {
-                var property = p.Property;
-                var value = p.Value;
-                property.SetValue(obj, value);
+                CsvProperty csvProperty = p.Property;
+
+                if (!csvProperty.IsReadOnly)
+                {
+                    var value = p.Value;
+                    csvProperty.SetValue(obj, value);
+                }
             }
 
             return obj;
@@ -859,8 +863,7 @@ namespace FastCSV
 
             if (converter == null || !converter.CanConvert(type) || !converter.TryDeserialize(out object? value, type, ref state))
             {
-                var values = string.Join(", ", state.Values.ToArray());
-                throw new InvalidOperationException($"Cannot convert '{values}' to '{type}'");
+                throw ThrowHelper.CannotDeserializeToType(state.Values.ToArray(), type);
             }
 
             return value;
