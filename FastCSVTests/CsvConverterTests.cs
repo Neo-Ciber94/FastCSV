@@ -184,6 +184,16 @@ namespace FastCSV.Tests
             Assert.Null(result.Value);
         }
 
+        [Test]
+        public void DeserializeToDifferentTypeTest()
+        {
+            var serialized = CsvConverter.Serialize(new Wrapper<string>("230"));
+            Assert.AreEqual("Value\n230", serialized);
+
+            var deserialized = CsvConverter.Deserialize<Wrapper<int>>(serialized);
+            Assert.AreEqual(230, deserialized.Value);
+        }
+
         #region Helper Classes
 
         record ReadOnlyField<T>
