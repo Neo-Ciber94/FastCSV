@@ -21,4 +21,4 @@
 - [x] Add more async API
 - [ ] Add api to cache reflection results to reduce allocations
 - [ ] Add more utility methods to CsvDocument<T>
-- [ ] Add \r\n terminator to csv writers
+- [ ] Add \r\n terminator to csv writers (depending platform)
