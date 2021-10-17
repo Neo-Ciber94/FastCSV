@@ -1,12 +1,12 @@
 # TODO
 
 - [x] Support for nullable types
-- [ ] Tests for serialize invalid types with `CsvConverter`
-- [ ] Tests for deserialize invalid types with `CsvConverter`
+- [x] Tests for serialize invalid types with `CsvConverter`
+- [x] Tests for deserialize invalid types with `CsvConverter`
 - [x] Add IPEndpoint to builtin types
 - [x] Allow custom serialization/deserialization for array
 - [x] Add cancellation tokens for async functions
-- [ ] Allow override format when reading csv
+- [x] Allow override format when reading csv
 - [x] Change Optional.Match to Optional.Fold
 - [-] Change ToString method to show all digits in float and double value converter
 - [x] Add Object as a builtin type?

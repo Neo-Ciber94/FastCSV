@@ -19,18 +19,22 @@ namespace FastCSV
         {
             private readonly CsvReader _reader;
             private readonly CancellationToken _cancellationToken;
+            private readonly CsvFormat _format;
             private CsvRecord? _record;
 
-            internal RecordsAsyncEnumerator(CsvReader reader, CancellationToken cancellationToken = default)
+            internal RecordsAsyncEnumerator(CsvReader reader, CsvFormat? format = null, CancellationToken cancellationToken = default)
             {
                 _reader = reader;
                 _record = null;
+                _format = format?? reader.Format;
                 _cancellationToken = cancellationToken;
             }
 
             public CsvRecord Current => _record!;
 
             public bool IsDone => _reader.IsDone;
+
+            public RecordsAsyncEnumerator WithFormat(CsvFormat format) => new RecordsAsyncEnumerator(_reader, format, _cancellationToken);
 
             public CancellationToken CancellationToken => _cancellationToken;
 
@@ -46,7 +50,7 @@ namespace FastCSV
                     return new ValueTask<bool>(false);
                 }
 
-                if ((_record = _reader.Read()) == null)
+                if ((_record = _reader.Read(_format)) == null)
                 {
                     return new ValueTask<bool>(false);
                 }
@@ -62,17 +66,16 @@ namespace FastCSV
             public void Reset()
             {
                 _reader.Reset();
-                //_record = null;
             }
 
             public RecordsAsyncEnumerator GetEnumerator(CancellationToken cancellationToken = default)
             {
-                return new RecordsAsyncEnumerator(_reader, cancellationToken);
+                return new RecordsAsyncEnumerator(_reader, _format, cancellationToken);
             }
 
             public IAsyncEnumerator<CsvRecord> GetAsyncEnumerator(CancellationToken cancellationToken = default)
             {
-                return new RecordsAsyncEnumerator(_reader, cancellationToken);
+                return new RecordsAsyncEnumerator(_reader, _format, cancellationToken);
             }
         }
     }

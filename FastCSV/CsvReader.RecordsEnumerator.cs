@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace FastCSV
@@ -18,14 +19,29 @@ namespace FastCSV
         {
             private readonly CsvReader _reader;
             private CsvRecord? _record;
+            private CsvFormat _format;
 
-            internal RecordsEnumerator(CsvReader reader)
+            internal RecordsEnumerator(CsvReader reader, CsvFormat? format = null)
             {
                 _reader = reader;
                 _record = null;
+                _format = format ?? reader.Format;
             }
 
-            public CsvRecord Current => _record!;
+            public RecordsEnumerator WithFormat(CsvFormat format) => new RecordsEnumerator(_reader, format);
+
+            public CsvRecord Current
+            {
+                get
+                {
+                    if (_record == null)
+                    {
+                        throw new InvalidOperationException("no records available");
+                    }
+
+                    return _record;
+                }
+            }
 
             object? IEnumerator.Current => _record;
 
@@ -40,7 +56,7 @@ namespace FastCSV
                     return false;
                 }
 
-                if ((_record = _reader.Read()) == null)
+                if ((_record = _reader.Read(_format)) == null)
                 {
                     return false;
                 }
@@ -51,7 +67,6 @@ namespace FastCSV
             public void Reset()
             {
                 _reader.Reset();
-                //_record = null;
             }
 
             public RecordsEnumerator GetEnumerator() => this;
@@ -60,6 +75,5 @@ namespace FastCSV
 
             IEnumerator IEnumerable.GetEnumerator() => this;
         }
-
     }
 }

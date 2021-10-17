@@ -125,8 +125,9 @@ namespace FastCSV
         /// <summary>
         /// Reads the next record.
         /// </summary>
+        /// <param name="overrideFormat">Overrides the format used for this reader to read the records.</param>
         /// <returns>The next record or null is there is not more records</returns>
-        public CsvRecord? Read()
+        public CsvRecord? Read(CsvFormat? overrideFormat = null)
         {
             ThrowIfDisposed();
 
@@ -139,20 +140,20 @@ namespace FastCSV
 
             _recordNumber += 1;
 
-            if (values == null)
-            {
-                return new CsvRecord(Header, Array.Empty<string>(), Format);
-            }
+            CsvFormat format = overrideFormat ?? Format;
+            CsvHeader? header = overrideFormat == null ? Header : Header?.WithFormat(format);
+            values ??= Array.Empty<string>();
 
-            return new CsvRecord(Header, values, Format);
+            return new CsvRecord(header, values, format);
         }
 
         /// <summary>
         /// Reads the next record asynchronously.
         /// </summary>
+        /// <param name="overrideFormat">Overrides the format used for this reader to read the records.</param>
         /// <param name="cancellationToken">A cancellation token for cancelling this operation</param>
         /// <returns>The next record or null is there is not more records</returns>
-        public async ValueTask<CsvRecord?> ReadAsync(CancellationToken cancellationToken = default)
+        public async ValueTask<CsvRecord?> ReadAsync(CsvFormat? overrideFormat = null, CancellationToken cancellationToken = default)
         {
             ThrowIfDisposed();
             string[]? values = await CsvUtility.ReadRecordAsync(_reader!, Format, cancellationToken);
@@ -164,12 +165,11 @@ namespace FastCSV
 
             _recordNumber += 1;
 
-            if (values == null)
-            {
-                return new CsvRecord(Header, Array.Empty<string>(), Format);
-            }
+            CsvFormat format = overrideFormat ?? Format;
+            CsvHeader? header = overrideFormat == null ? Header : Header?.WithFormat(format);
+            values ??= Array.Empty<string>();
 
-            return new CsvRecord(Header, values, Format);
+            return new CsvRecord(header, values, format);
         }
 
         /// <summary>
@@ -177,11 +177,12 @@ namespace FastCSV
         /// this enumerable will read the records using this reader, so when the iteration
         /// end the reader will be at the end of the file.
         /// </summary>
+        /// <param name="overrideFormat">Overrides the format used for this reader to read the records.</param>
         /// <returns>An enumerable over the records of this reader csv.</returns>
-        public RecordsEnumerator ReadAll()
+        public RecordsEnumerator ReadAll(CsvFormat? overrideFormat = null)
         {
             ThrowIfDisposed();
-            return new RecordsEnumerator(this);
+            return new RecordsEnumerator(this, overrideFormat?? Format);
         }
 
         /// <summary>
@@ -191,10 +192,10 @@ namespace FastCSV
         /// </summary>
         /// <param name="cancellationToken">A cancellation token for cancelling this operation</param>
         /// <returns>An enumerable over the records of this reader csv.</returns>
-        public RecordsAsyncEnumerator ReadAllAsync(CancellationToken cancellationToken = default)
+        public RecordsAsyncEnumerator ReadAllAsync(CsvFormat? overrideFormat = null, CancellationToken cancellationToken = default)
         {
             ThrowIfDisposed();
-            return new RecordsAsyncEnumerator(this, cancellationToken);
+            return new RecordsAsyncEnumerator(this, overrideFormat?? Format, cancellationToken);
         }
 
         /// <summary>

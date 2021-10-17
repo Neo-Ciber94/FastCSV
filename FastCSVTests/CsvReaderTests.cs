@@ -393,6 +393,21 @@ namespace FastCSV.Tests
             Assert.IsTrue(reader.IsDone);
         }
 
+        [Test]
+        public void ReadAllChangeFormatTest()
+        {
+            using var csvStream = StreamHelper.CreateStreamFromString(
+                "name,age\n" +
+                "Homer,35\n" +
+                "Marge,28\n");
+
+            using var reader = CsvReader.FromStream(csvStream);
+            var readRecords = reader.ReadAll(new CsvFormat(delimiter: '|')).ToArray();
+
+            Assert.AreEqual("Homer|35", readRecords[0].ToString());
+            Assert.AreEqual("Marge|28", readRecords[1].ToString());
+        }
+
         [Test()]
         public void CloseTest()
         {

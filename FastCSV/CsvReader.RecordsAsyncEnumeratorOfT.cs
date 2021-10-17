@@ -19,7 +19,7 @@ namespace FastCSV
         /// <returns>An optional with the value or none is there is no more records to read.</returns>
         public async ValueTask<Optional<T>> ReadAsAsync<T>(CsvConverterOptions? options = null, CancellationToken cancellationToken = default) where T : notnull
         {
-            CsvRecord? record = await ReadAsync(cancellationToken);
+            CsvRecord? record = await ReadAsync(overrideFormat: null, cancellationToken);
             Dictionary<string, SingleOrList<string>>? data = record?.ToDictionary();
 
             if (data == null)

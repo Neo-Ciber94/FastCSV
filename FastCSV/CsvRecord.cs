@@ -245,6 +245,11 @@ namespace FastCSV
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public CsvRecord WithFormat(CsvFormat format)
         {
+            if (Format == format)
+            {
+                return this;
+            }
+
             return new CsvRecord(Header?.WithFormat(format), _values, format);
         }
 
