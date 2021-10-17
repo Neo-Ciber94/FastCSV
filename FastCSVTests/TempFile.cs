@@ -18,6 +18,12 @@ namespace FastCSV.Tests
             using var _ = _fileInfo.Create();
         }        
 
+        public string GetText()
+        {
+            using var reader = new StreamReader(FullName);
+            return reader.ReadToEnd();
+        }
+
         public string FullName
         {
             get
@@ -84,10 +90,8 @@ namespace FastCSV.Tests
                     writer.Flush();
                 }
 
-                using (var reader = new StreamReader(fileName))
-                {
-                    Assert.AreEqual("Hello World", reader.ReadToEnd());
-                }
+                var text = tempFile.GetText();
+                Assert.AreEqual("Hello World", text);
             }
 
             Assert.IsFalse(File.Exists(fileName));
