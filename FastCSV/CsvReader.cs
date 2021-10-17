@@ -73,12 +73,12 @@ namespace FastCSV
         /// <param name="stream">The stream.</param>
         /// <param name="format">The format.</param>
         /// <param name="hasHeader">if set to <c>true</c> the first record will be considered the header.</param>
-        /// <returns></returns>
-        public static CsvReader FromStream(Stream stream, CsvFormat? format = null, bool hasHeader = true)
+        /// <param name="leaveOpen">Whether if leave the stream open after write, default is false.</param>
+        /// <returns>A <c>CsvReader</c> with the given stream.</returns>
+        public static CsvReader FromStream(Stream stream, CsvFormat? format = null, bool hasHeader = true, bool leaveOpen = false)
         {
             format ??= CsvFormat.Default;
-
-            StreamReader reader = new StreamReader(stream);
+            StreamReader reader = new StreamReader(stream, leaveOpen: leaveOpen);
             return new CsvReader(reader, format, hasHeader);
         }
 
