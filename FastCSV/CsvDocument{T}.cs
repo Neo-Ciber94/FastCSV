@@ -387,13 +387,7 @@ namespace FastCSV
 
         public Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default)
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return Task.FromCanceled(cancellationToken);
-            }
-
-            CopyTo(destination);
-            return Task.CompletedTask;
+            return CsvWriter.WriteToStreamAsync(this, Header, destination, cancellationToken: cancellationToken);
         }
 
         /// <summary>

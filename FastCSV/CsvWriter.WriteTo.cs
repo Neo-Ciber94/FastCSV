@@ -18,7 +18,7 @@ namespace FastCSV
         /// <param name="format">The format used to write the data.</param>
         /// <param name="flexible">If set to <c>true</c> the writer will allow records of diferent lenghts.</param>
         /// <param name="append">If <c>true</c> the data will be written at the end of the file.</param>
-        public static void WriteToFile<T>(IEnumerable<T> values, string path, CsvFormat? format = null, bool flexible = false, bool append = false)
+        public static void WriteValuesToFile<T>(IEnumerable<T> values, string path, CsvFormat? format = null, bool flexible = false, bool append = false)
         {
             format ??= CsvFormat.Default;
             CsvHeader header = CsvHeader.FromType<T>(format);
@@ -51,7 +51,7 @@ namespace FastCSV
         /// <param name="flexible">If set to <c>true</c> the writer will allow records of diferent lenghts.</param>
         /// <param name="append">If <c>true</c> the data will be written at the end of the file.</param>
         /// <param name="cancellationToken">The token to cancel this operation.</param>
-        public static async Task WriteToFileAsync<T>(IEnumerable<T> values, string path, CsvFormat? format = null, bool flexible = false, bool append = false, CancellationToken cancellationToken = default)
+        public static async Task WriteValuesToFileAsync<T>(IEnumerable<T> values, string path, CsvFormat? format = null, bool flexible = false, bool append = false, CancellationToken cancellationToken = default)
         {
             format ??= CsvFormat.Default;
             CsvHeader header = CsvHeader.FromType<T>(format);
@@ -83,7 +83,7 @@ namespace FastCSV
         /// <param name="destination">The destination stream.</param>
         /// <param name="format">The format used to write the records.</param>
         /// <param name="leaveOpen">Whether if close the stream after write the data, default is true.</param>
-        public static void WriteToStream<T>(IEnumerable<T> values, Stream destination, CsvFormat? format = null, bool leaveOpen = true)
+        public static void WriteValuesToStream<T>(IEnumerable<T> values, Stream destination, CsvFormat? format = null, bool leaveOpen = true)
         {
             format ??= CsvFormat.Default;
             CsvHeader header = CsvHeader.FromType<T>(format);
@@ -148,7 +148,7 @@ namespace FastCSV
         /// <param name="format">The format used to write the records.</param>
         /// <param name="leaveOpen">Whether if close the stream after write the data, default is true.</param>
         /// <param name="cancellationToken">The token to cancel this operation.</param>
-        public static async Task WriteToStreamAsync<T>(IEnumerable<T> values, Stream destination, CsvFormat? format = null, bool leaveOpen = true, CancellationToken cancellationToken = default)
+        public static async Task WriteValuesToStreamAsync<T>(IEnumerable<T> values, Stream destination, CsvFormat? format = null, bool leaveOpen = true, CancellationToken cancellationToken = default)
         {
             format ??= CsvFormat.Default;
             CsvHeader header = CsvHeader.FromType<T>(format);
