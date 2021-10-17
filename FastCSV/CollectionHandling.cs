@@ -10,12 +10,12 @@
         /// </summary>
         public static CollectionHandling Default { get; } = new CollectionHandling();
 
-        private readonly string _itemName = "item";
+        private readonly string _itemName = "item"; // FIXME: Renamed to _tag
 
         /// <summary>
         /// Suffix used for serialized and deserialized items.
         /// </summary>
-        public string ItemName
+        public string ItemName // FIXME: Rename to Tag
         {
             get => _itemName;
             init
