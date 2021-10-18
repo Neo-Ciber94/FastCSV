@@ -12,14 +12,15 @@
 - [x] Add Object as a builtin type?
 - [x] Rename IValueConverter methods to 'string ConvertTo(T)' and 'bool ConvertFrom(string, out T)'
 - [ ] Update README
-- [ ] Add tests for builtin types converters
-- [ ] Add tests for floating points converters
+- [x] Add tests for builtin types converters
+- [x] Add tests for floating points converters
 - [x] Move extensions to FastCSV.Extensions
 - [x] Allow serialize/deserialize any type with a converter, not just builtin types
 - [ ] Move exceptions to ThrowHelper
-- [ ] Valide if CsvRecord and CsvHeader can be change to 'readonly struct'
+- [-] Valide if CsvRecord and CsvHeader can be change to 'readonly struct'
 - [x] Add more async API
 - [ ] Add api to cache reflection results to reduce allocations
 - [ ] Add more utility methods to CsvDocument<T>
-- [ ] Add \r\n terminator to csv writers (depending platform)
+- [ ] Add \r\n newlines to csv writers (depending platform)
 - [ ] Rename collection itemName to tag
+- [ ] Add custom null handling for CsvConverterOptions
