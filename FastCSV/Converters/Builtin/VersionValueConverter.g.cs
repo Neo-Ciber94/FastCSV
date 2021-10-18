@@ -7,7 +7,7 @@ namespace FastCSV.Converters.Builtin
     /// <summary>
     /// A value converter for <see cref="System.Version"/>.
     /// </summary>
-    public class VersionValueConverter : IValueConverter<System.Version>
+    public class VersionValueConverter : ICsvCustomConverter<System.Version>
     {
         public string? ConvertFrom(System.Version value)
         {

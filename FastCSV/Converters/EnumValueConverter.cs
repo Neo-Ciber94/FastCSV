@@ -6,7 +6,7 @@ namespace FastCSV.Converters
     /// A value converter for an enum of type <c>T</c>.
     /// </summary>
     /// <typeparam name="TEnum"></typeparam>
-    public class EnumValueConverter<TEnum> : IValueConverter<TEnum> where TEnum : struct, Enum
+    public class EnumValueConverter<TEnum> : ICsvCustomConverter<TEnum> where TEnum : struct, Enum
     {
         public string? ConvertFrom(TEnum value)
         {
@@ -22,7 +22,7 @@ namespace FastCSV.Converters
     /// <summary>
     /// A value converter for an enum of any type.
     /// </summary>
-    public class EnumObjectValueConverter : IValueConverter
+    public class EnumObjectValueConverter : ICsvCustomConverter
     {
         /// <summary>
         /// Type of the enum.

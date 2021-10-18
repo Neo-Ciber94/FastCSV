@@ -7,7 +7,7 @@ namespace FastCSV.Converters.Builtin
     /// <summary>
     /// A value converter for <see cref="System.UInt16"/>.
     /// </summary>
-    public class UShortValueConverter : IValueConverter<System.UInt16>
+    public class UShortValueConverter : ICsvCustomConverter<System.UInt16>
     {
         public string? ConvertFrom(System.UInt16 value)
         {

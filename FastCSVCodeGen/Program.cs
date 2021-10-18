@@ -44,7 +44,7 @@ namespace FastCSVCodeGen
             string convertersPath = @$"{path}\\Converters";
             string convertersBuiltinPath = @$"{convertersPath}\\Builtin";
 
-            ValueConverterCodeGenerator.WriteTo(convertersBuiltinPath, Types);
+            CsvConverterCodeGenerator.WriteTo(convertersBuiltinPath, Types);
             BuiltInTypeCodeGenerator.WriteTo_DefaultValueConverterProviderBuiltInTypes(convertersPath, Types);
             BuiltInTypeCodeGenerator.WriteTo_CsvConverterIsBuiltInType(path, Types);
 

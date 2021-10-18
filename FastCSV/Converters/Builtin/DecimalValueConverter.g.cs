@@ -7,7 +7,7 @@ namespace FastCSV.Converters.Builtin
     /// <summary>
     /// A value converter for <see cref="System.Decimal"/>.
     /// </summary>
-    public class DecimalValueConverter : IValueConverter<System.Decimal>
+    public class DecimalValueConverter : ICsvCustomConverter<System.Decimal>
     {
         public string? ConvertFrom(System.Decimal value)
         {

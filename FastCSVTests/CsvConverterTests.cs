@@ -220,7 +220,7 @@ namespace FastCSV.Tests
 
         record PositiveNumber(uint Number);
 
-        class PositiveNumberConverter : IValueConverter<PositiveNumber>
+        class PositiveNumberConverter : ICsvCustomConverter<PositiveNumber>
         {
             public string ConvertFrom(PositiveNumber value)
             {

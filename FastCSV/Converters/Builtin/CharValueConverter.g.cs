@@ -7,7 +7,7 @@ namespace FastCSV.Converters.Builtin
     /// <summary>
     /// A value converter for <see cref="System.Char"/>.
     /// </summary>
-    public class CharValueConverter : IValueConverter<System.Char>
+    public class CharValueConverter : ICsvCustomConverter<System.Char>
     {
         public string? ConvertFrom(System.Char value)
         {

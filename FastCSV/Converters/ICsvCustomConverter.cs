@@ -3,9 +3,9 @@
 namespace FastCSV.Converters
 {
     /// <summary>
-    /// Provides a mechanism for converts a value from and to <see cref="string"/>.
+    /// A simplified version of the <see cref="ICsvValueConverter"/> to convert string from and to objects.
     /// </summary>
-    public interface IValueConverter : ICsvValueConverter
+    public interface ICsvCustomConverter : ICsvValueConverter
     {
         /// <summary>
         /// Attempts to parse a <see cref="string"/> to a specify value.
@@ -41,10 +41,10 @@ namespace FastCSV.Converters
     }
 
     /// <summary>
-    /// Provides a mechanism for converts a typed value from and to <see cref="string"/>.
+    /// A simplified version of the <see cref="ICsvValueConverter{T}"/> to convert string from and to objects.
     /// </summary>
     /// <typeparam name="T">The value to convert.</typeparam>
-    public interface IValueConverter<T> : IValueConverter
+    public interface ICsvCustomConverter<T> : ICsvCustomConverter
     {
         /// <summary>
         /// Attempts to parse a <see cref="string"/> to a value of type <see cref="T"/>.
@@ -68,13 +68,13 @@ namespace FastCSV.Converters
         }
 
         /// <inheritdoc/>
-        string? IValueConverter.ConvertFrom(object? value)
+        string? ICsvCustomConverter.ConvertFrom(object? value)
         {
             return ConvertFrom((T)value!);
         }
 
         /// <inheritdoc/>
-        bool IValueConverter.ConvertTo(ReadOnlySpan<char> s, out object? value)
+        bool ICsvCustomConverter.ConvertTo(ReadOnlySpan<char> s, out object? value)
         {
             value = null;
 

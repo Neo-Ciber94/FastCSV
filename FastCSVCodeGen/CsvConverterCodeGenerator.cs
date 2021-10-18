@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace FastCSVCodeGen
 {
-    public class ValueConverterCodeGenerator
+    public class CsvConverterCodeGenerator
     {
         private const string Template = @"#nullable enable
 
@@ -12,7 +12,7 @@ namespace FastCSV.Converters.Builtin
     /// <summary>
     /// A value converter for <see cref=""{1}""/>.
     /// </summary>
-    public class {0}ValueConverter : IValueConverter<{1}>
+    public class {0}ValueConverter : ICsvCustomConverter<{1}>
     {
         public string? ConvertFrom({1} value)
         {

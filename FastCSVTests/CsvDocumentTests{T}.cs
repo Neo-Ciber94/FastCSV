@@ -575,7 +575,7 @@ namespace FastCSV.Tests
             }
         }
 
-        class PhoneNumberConverter : IValueConverter<PhoneNumber>
+        class PhoneNumberConverter : ICsvCustomConverter<PhoneNumber>
         {
             public string ConvertFrom(PhoneNumber value)
             {

@@ -7,7 +7,7 @@ namespace FastCSV.Converters.Builtin
     /// <summary>
     /// A value converter for <see cref="System.SByte"/>.
     /// </summary>
-    public class SByteValueConverter : IValueConverter<System.SByte>
+    public class SByteValueConverter : ICsvCustomConverter<System.SByte>
     {
         public string? ConvertFrom(System.SByte value)
         {

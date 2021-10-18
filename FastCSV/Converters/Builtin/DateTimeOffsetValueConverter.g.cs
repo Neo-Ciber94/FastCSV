@@ -7,7 +7,7 @@ namespace FastCSV.Converters.Builtin
     /// <summary>
     /// A value converter for <see cref="System.DateTimeOffset"/>.
     /// </summary>
-    public class DateTimeOffsetValueConverter : IValueConverter<System.DateTimeOffset>
+    public class DateTimeOffsetValueConverter : ICsvCustomConverter<System.DateTimeOffset>
     {
         public string? ConvertFrom(System.DateTimeOffset value)
         {

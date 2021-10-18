@@ -927,7 +927,7 @@ namespace FastCSV
             return options.ConverterProvider.GetConverter(elementType);
         }
 
-        private static IValueConverter? GetValueConverterFromAttribute(CsvValueConverterAttribute? attribute)
+        private static ICsvCustomConverter? GetValueConverterFromAttribute(CsvValueConverterAttribute? attribute)
         {
             if (attribute == null || attribute.ConverterType == null)
             {
@@ -936,9 +936,9 @@ namespace FastCSV
 
             Type converterType = attribute.ConverterType;
 
-            if (!typeof(IValueConverter).IsAssignableFrom(converterType))
+            if (!typeof(ICsvCustomConverter).IsAssignableFrom(converterType))
             {
-                throw new ArgumentException($"Type {converterType} does not implements {typeof(IValueConverter)}");
+                throw new ArgumentException($"Type {converterType} does not implements {typeof(ICsvCustomConverter)}");
             }
 
             ConstructorInfo? constructor = converterType.GetConstructor(Type.EmptyTypes);
@@ -949,7 +949,7 @@ namespace FastCSV
             }
 
             object converter = constructor.Invoke(Array.Empty<object>());
-            return (IValueConverter)converter;
+            return (ICsvCustomConverter)converter;
         }
 
         private static CsvProperty CreateCsvProperty(MemberInfo member, CsvConverterOptions options, object? instance)
@@ -963,7 +963,7 @@ namespace FastCSV
             Type type = member.GetMemberType();
             object? value = instance != null ? member.GetValue(instance) : null;
             bool ignore = member.GetCustomAttribute<CsvIgnoreAttribute>() != null || member.GetCustomAttribute<NonSerializedAttribute>() != null;
-            IValueConverter? converter = GetValueConverterFromAttribute(converterAttribute);
+            ICsvCustomConverter? converter = GetValueConverterFromAttribute(converterAttribute);
 
             return new(originalName, name, value, type, member, ignore, converter);
         }

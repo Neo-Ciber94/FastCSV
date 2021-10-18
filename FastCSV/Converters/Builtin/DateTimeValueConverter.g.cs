@@ -7,7 +7,7 @@ namespace FastCSV.Converters.Builtin
     /// <summary>
     /// A value converter for <see cref="System.DateTime"/>.
     /// </summary>
-    public class DateTimeValueConverter : IValueConverter<System.DateTime>
+    public class DateTimeValueConverter : ICsvCustomConverter<System.DateTime>
     {
         public string? ConvertFrom(System.DateTime value)
         {

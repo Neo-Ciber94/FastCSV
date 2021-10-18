@@ -7,7 +7,7 @@ namespace FastCSV.Converters.Builtin
     /// <summary>
     /// A value converter for <see cref="System.Boolean"/>.
     /// </summary>
-    public class BoolValueConverter : IValueConverter<System.Boolean>
+    public class BoolValueConverter : ICsvCustomConverter<System.Boolean>
     {
         public string? ConvertFrom(System.Boolean value)
         {

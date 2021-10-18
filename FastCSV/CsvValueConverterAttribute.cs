@@ -4,7 +4,7 @@ using FastCSV.Converters;
 namespace FastCSV
 {
     /// <summary>
-    /// Provides a <see cref="IValueConverter"/> for the decorated field.
+    /// Provides a <see cref="ICsvCustomConverter"/> for the decorated field.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, Inherited = false, AllowMultiple = false)]
     public sealed class CsvValueConverterAttribute : Attribute

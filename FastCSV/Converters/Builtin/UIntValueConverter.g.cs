@@ -7,7 +7,7 @@ namespace FastCSV.Converters.Builtin
     /// <summary>
     /// A value converter for <see cref="System.UInt32"/>.
     /// </summary>
-    public class UIntValueConverter : IValueConverter<System.UInt32>
+    public class UIntValueConverter : ICsvCustomConverter<System.UInt32>
     {
         public string? ConvertFrom(System.UInt32 value)
         {

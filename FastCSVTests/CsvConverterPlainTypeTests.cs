@@ -119,7 +119,7 @@ namespace FastCSV.Tests
             }
         }
 
-        class OddOrEvenNumberConverter : IValueConverter<OddOrEvenNumber>
+        class OddOrEvenNumberConverter : ICsvCustomConverter<OddOrEvenNumber>
         {
             public string ConvertFrom(OddOrEvenNumber value)
             {

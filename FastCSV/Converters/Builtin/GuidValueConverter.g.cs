@@ -7,7 +7,7 @@ namespace FastCSV.Converters.Builtin
     /// <summary>
     /// A value converter for <see cref="System.Guid"/>.
     /// </summary>
-    public class GuidValueConverter : IValueConverter<System.Guid>
+    public class GuidValueConverter : ICsvCustomConverter<System.Guid>
     {
         public string? ConvertFrom(System.Guid value)
         {

@@ -77,7 +77,7 @@ namespace FastCSV
             }
         }
 
-        public CsvProperty(string originalName, string name, object? value, Type type, MemberInfo member, bool ignore, IValueConverter? valueConverter)
+        public CsvProperty(string originalName, string name, object? value, Type type, MemberInfo member, bool ignore, ICsvCustomConverter? valueConverter)
         {
             OriginalName = originalName;
             Name = name;
@@ -88,7 +88,7 @@ namespace FastCSV
             Converter = valueConverter;
         }
 
-        public CsvProperty(string name, object? value, Type type, MemberInfo member, bool ignore, IValueConverter? valueConverter) 
+        public CsvProperty(string name, object? value, Type type, MemberInfo member, bool ignore, ICsvCustomConverter? valueConverter) 
             : this(name, name, value, type, member, ignore, valueConverter) { }
 
         /// <summary>
