@@ -24,3 +24,4 @@
 - [ ] Add \r\n newlines to csv writers (depending platform)
 - [x] Rename collection itemName to tag
 - [ ] Add custom null handling for CsvConverterOptions
+- [ ] Use ICsvValueConverter for builtin types to avoid extra interface generation
