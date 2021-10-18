@@ -34,7 +34,7 @@ namespace FastCSV
         /// <exception cref="ArgumentException">Header cannot be empty</exception>
         public CsvDocument(IEnumerable<string> header, CsvFormat format, bool flexible) 
         {
-            if(header.Count() == 0)
+            if(!header.Any())
             {
                 throw new ArgumentException("Header cannot be empty");
             }
@@ -181,7 +181,7 @@ namespace FastCSV
         /// Writes a record using a <see cref="Builder"/>
         /// </summary>
         /// <param name="action">The action that provides the builder.</param>
-        public void WriteFields(Action<Builder> action)
+        public void WriteFields(Action<Builder> action) // AddWith
         {
             Builder builder = new Builder(this);
             action(builder);

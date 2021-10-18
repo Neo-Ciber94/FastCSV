@@ -56,7 +56,7 @@ namespace FastCSV
 
             foreach (var e in elements)
             {
-                Add(e);
+                Write(e);
             }
         }
 
@@ -126,7 +126,7 @@ namespace FastCSV
         /// Writes the specified value as a record.
         /// </summary>
         /// <param name="value">The value.</param>
-        public void Add(T value)
+        public void Write(T value)
         {
             if (_count == _records.Length)
             {
@@ -141,7 +141,7 @@ namespace FastCSV
         /// </summary>
         /// <param name="index">The index.</param>
         /// <param name="value">The value.</param>
-        public void Insert(int index, T value)
+        public void WriteAt(int index, T value)
         {
             if (index < 0 || index >= _count)
             {
