@@ -489,31 +489,5 @@ namespace FastCSV
 
             void IDisposable.Dispose() { }
         }
-
-        public readonly struct ValueCollection : IReadOnlyList<T>
-        {
-            private readonly CsvDocument<T> _document;
-
-            internal ValueCollection(CsvDocument<T> document)
-            {
-                _document = document;
-            }
-
-            public readonly int Count => _document._count;
-
-            public readonly T this[int index] => _document.GetValue(index);
-
-            public readonly IEnumerator<T> GetEnumerator()
-            {
-                // TODO: Create custom Enumerator<T>
-                int length = _document._count;
-                return _document._records
-                    .Take(length)
-                    .Select(e => e.Value)
-                    .GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        }
     }
 }
