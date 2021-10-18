@@ -8,11 +8,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastCSV.Collections;
 using FastCSV.Extensions;
+using FastCSV.Utils;
 
-namespace FastCSV.Utils
+namespace FastCSV
 {
     /// <summary>
-    /// Utility class for work with CSV.
+    /// Utility class for work with CSV and provides low level operations.
     /// </summary>
     public static class CsvUtility
     {

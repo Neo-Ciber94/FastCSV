@@ -136,7 +136,7 @@ namespace FastCSV.Tests
                 new ("Monitor", 24500.99m, "gray"),
             };
 
-            CsvWriter.WriteValuesToStream(products, memoryStream, new CsvFormat(delimiter: ';'));
+            await CsvWriter.WriteValuesToStreamAsync(products, memoryStream, new CsvFormat(delimiter: ';'));
             memoryStream.Position = 0;
 
             string data = ReadAllStream(memoryStream);
