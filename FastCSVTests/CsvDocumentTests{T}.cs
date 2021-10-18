@@ -393,6 +393,28 @@ namespace FastCSV.Tests
         }
 
         [Test]
+        public void ReverseTests()
+        {
+            var document = new CsvDocument<Person>(new Person[]
+{
+                new Person {Name = "Akari", Age = 20},
+                new Person {Name = "Kyoko", Age = 21},
+                new Person {Name = "Yui", Age = 22},
+                new Person {Name = "Chinatsu", Age = 19}
+            });
+
+            document.Reverse();
+
+            CollectionAssert.AreEqual(new Person[]
+            {
+                new Person {Name = "Chinatsu", Age = 19},
+                new Person {Name = "Yui", Age = 22},
+                new Person {Name = "Kyoko", Age = 21},
+                new Person {Name = "Akari", Age = 20},
+            }, document.Values);
+        }
+
+        [Test]
         public void SortTest()
         {
             var document = new CsvDocument<int>(new[]

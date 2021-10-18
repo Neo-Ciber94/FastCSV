@@ -355,6 +355,14 @@ namespace FastCSV
         }
 
         /// <summary>
+        /// Reverse the order of the elements of this <see cref="CsvDocument{T}"/>.
+        /// </summary>
+        public void Reverse()
+        {
+            Array.Reverse(_records, 0, _count);
+        }
+
+        /// <summary>
         /// Gets a copy of this csv with the specified format.
         /// </summary>
         /// <param name="format">The format.</param>
