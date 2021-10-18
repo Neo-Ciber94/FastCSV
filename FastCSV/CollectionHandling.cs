@@ -10,22 +10,26 @@
         /// </summary>
         public static CollectionHandling Default { get; } = new CollectionHandling();
 
-        private readonly string _itemName = "item"; // FIXME: Renamed to _tag
+        private readonly string _tag = "item";
 
         /// <summary>
         /// Suffix used for serialized and deserialized items.
+        /// 
+        /// <para>
+        /// This is used to locate the items of an collection.
+        /// </para>
         /// </summary>
-        public string ItemName // FIXME: Rename to Tag
+        public string Tag
         {
-            get => _itemName;
+            get => _tag;
             init
             {
                 if (string.IsNullOrWhiteSpace(value))
                 {
-                    throw new System.Exception($"{nameof(ItemName)} cannot be empty");
+                    throw new System.Exception($"{nameof(Tag)} cannot be empty");
                 }
 
-                _itemName = value;
+                _tag = value;
             }
         }
     }

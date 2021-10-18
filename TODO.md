@@ -20,7 +20,7 @@
 - [-] Valide if CsvRecord and CsvHeader can be change to 'readonly struct'
 - [x] Add more async API
 - [ ] Add api to cache reflection results to reduce allocations
-- [ ] Add more utility methods to CsvDocument<T>
+- [c] Add more utility methods to CsvDocument<T>
 - [ ] Add \r\n newlines to csv writers (depending platform)
-- [ ] Rename collection itemName to tag
+- [x] Rename collection itemName to tag
 - [ ] Add custom null handling for CsvConverterOptions

@@ -97,7 +97,7 @@ namespace FastCSV
                             throw ThrowHelper.CollectionHandlingRequired();
                         }
      
-                        string itemName = collectionHandling.ItemName;
+                        string itemName = collectionHandling.Tag;
                         int count = state.Serialized.Count;
                         string[] headerArray = new string[count];
 
@@ -534,7 +534,7 @@ namespace FastCSV
 
                 if (handleCollections && property.Value is IEnumerable enumerable)
                 {
-                    string itemName = options.CollectionHandling!.ItemName;
+                    string itemName = options.CollectionHandling!.Tag;
                     int itemIndex = 0;
 
                     foreach (object? item in enumerable)
@@ -544,7 +544,7 @@ namespace FastCSV
                 }
                 else if (handleCollections && property.Value is ITuple tuple)
                 {
-                    string itemName = options.CollectionHandling!.ItemName;
+                    string itemName = options.CollectionHandling!.Tag;
                     int itemIndex = 0;
 
                     while (itemIndex < tuple.Length)
@@ -708,7 +708,7 @@ namespace FastCSV
                 throw ThrowHelper.CollectionHandlingRequired();
             }
 
-            string itemName = collectionHandling.ItemName;
+            string itemName = collectionHandling.Tag;
             int count = 0;
             int index = startIndex;
 
