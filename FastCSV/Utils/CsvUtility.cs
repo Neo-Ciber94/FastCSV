@@ -17,15 +17,15 @@ namespace FastCSV.Utils
     public static class CsvUtility
     {
         /// <summary>
-        /// Reads the next csv record using the specified <see cref="StreamReader"/>.
+        /// Parses and reads the next csv record using the specified <see cref="TextReader"/>.
         /// </summary>
         /// <param name="reader">The reader.</param>
         /// <param name="format">The format.</param>
         /// <returns>A list with the fields of the record</returns>
         /// <exception cref="FastCSV.CsvFormatException">If a quote is not closed.</exception>
-        public static string[]? ReadRecord(StreamReader reader, CsvFormat format)
+        public static string[]? ParseNextRecord(TextReader reader, CsvFormat format)
         {
-            if (reader.EndOfStream)
+            if ((reader is StreamReader sr && sr.EndOfStream) || reader.Peek() == -1)
             {
                 return default;
             }
@@ -184,9 +184,9 @@ namespace FastCSV.Utils
         /// <param name="format">The format.</param>
         /// <returns>A list with the fields of the record</returns>
         /// <exception cref="FastCSV.CsvFormatException">If a quote is not closed.</exception>
-        public static async Task<string[]?> ReadRecordAsync(StreamReader reader, CsvFormat format, CancellationToken cancellationToken = default)
+        public static async Task<string[]?> ParseNextRecordAsync(StreamReader reader, CsvFormat format, CancellationToken cancellationToken = default)
         {
-            if (reader.EndOfStream)
+            if ((reader is StreamReader sr && sr.EndOfStream) || reader.Peek() == -1)
             {
                 return default;
             }

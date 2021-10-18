@@ -58,7 +58,7 @@ namespace FastCSV
 
             if (hasHeader)
             {
-                string[]? values = CsvUtility.ReadRecord(_reader!, Format);
+                string[]? values = CsvUtility.ParseNextRecord(_reader!, Format);
                 if (values != null && values.Length > 0)
                 {
                     Header = new CsvHeader(values, Format);
@@ -131,7 +131,7 @@ namespace FastCSV
         {
             ThrowIfDisposed();
 
-            string[]? values = CsvUtility.ReadRecord(_reader!, Format);
+            string[]? values = CsvUtility.ParseNextRecord(_reader!, Format);
 
             if (Format.IgnoreWhitespace && (values == null || values.Length == 0))
             {
@@ -156,7 +156,7 @@ namespace FastCSV
         public async ValueTask<CsvRecord?> ReadAsync(CsvFormat? overrideFormat = null, CancellationToken cancellationToken = default)
         {
             ThrowIfDisposed();
-            string[]? values = await CsvUtility.ReadRecordAsync(_reader!, Format, cancellationToken);
+            string[]? values = await CsvUtility.ParseNextRecordAsync(_reader!, Format, cancellationToken);
 
             if (Format.IgnoreWhitespace && (values == null || values.Length == 0))
             {
