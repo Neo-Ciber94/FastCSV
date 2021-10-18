@@ -393,6 +393,40 @@ namespace FastCSV.Tests
         }
 
         [Test]
+        public void SortTest()
+        {
+            var document = new CsvDocument<int>(new[]
+            {
+                1, 5, 3, 2, 4
+            });
+
+            document.Sort();
+
+            var array = document.Values.ToArray();
+            CollectionAssert.AreEqual(new int[] { 1, 2, 3, 4, 5 }, array);
+        }
+
+        [Test]
+        public void SortByTest()
+        {
+            var document = new CsvDocument<Person>(new[]
+            {
+                new Person { Name = "Marie", Age = 18 },
+                new Person { Name = "Carol", Age = 15 },
+                new Person { Name = "Karen", Age = 24 }
+            });
+
+            document.SortBy(e => e.Age);
+
+            CollectionAssert.AreEqual(new Person[]
+            {
+                new Person { Name = "Carol", Age = 15 },
+                new Person { Name = "Marie", Age = 18 },
+                new Person { Name = "Karen", Age = 24 },
+            }, document.Values.ToArray());
+        }
+
+        [Test]
         public void ToStringTest()
         {
             var document = new CsvDocument<Person>(new Person[]
