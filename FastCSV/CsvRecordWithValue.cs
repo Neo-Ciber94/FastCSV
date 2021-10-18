@@ -5,35 +5,19 @@ namespace FastCSV
     internal struct CsvRecordWithValue<T>
     {
         internal readonly T _value;
-        private readonly CsvFormat _format;
-        private CsvRecord? _record;
+        private readonly CsvRecord _record;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public CsvRecordWithValue(T value, CsvFormat format)
         {
-            _record = null;
-            _format = format;
+            _record = CsvRecord.From(value, format);
             _value = value;
-        }
-
-        public CsvFormat Format
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _format;
         }
         
         public CsvRecord Record 
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                if (_record == null)
-                {
-                    _record = CsvRecord.From(_value, _format);
-                }
-
-                return _record;
-            }
+            get => _record;
         }
 
         public T Value 
