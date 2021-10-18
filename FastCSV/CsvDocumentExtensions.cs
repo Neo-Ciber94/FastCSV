@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace FastCSV
 {
@@ -14,7 +13,6 @@ namespace FastCSV
         /// <param name="document">The source document.</param>
         /// <param name="path">The path of the file.</param>
         /// <param name="append">Whether if write the data at the end of the file.</param>
-        [Obsolete("Use CsvDocument.CopyTo instead")]
         public static void CopyToFile(this ICsvDocument document, string path, bool append = false)
         {
             CsvWriter.WriteToFile(document, document.Header, path, false, append);
@@ -26,7 +24,6 @@ namespace FastCSV
         /// <param name="document">The source document.</param>
         /// <param name="path">The path of the file.</param>
         /// <param name="append">Whether if write the data at the end of the file.</param>
-        [Obsolete("Use CsvDocument.CopyToAsync instead")]
         public static Task CopyToFileAsync(this ICsvDocument document, string path, bool append = false)
         {
             CsvWriter.WriteToFile(document, document.Header, path, false, append);
