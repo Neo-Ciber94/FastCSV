@@ -1,6 +1,6 @@
 ﻿using NUnit.Framework;
 
-namespace FastCSV
+namespace FastCSV.Tests
 {
     [TestFixture]
     public class CsvConverterFloatingPointsTests

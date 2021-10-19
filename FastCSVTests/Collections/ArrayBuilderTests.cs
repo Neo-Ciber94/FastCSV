@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FastCSV.Collections
+namespace FastCSV.Collections.Tests
 {
     [TestFixture]
     public class ArrayBuilderTests
