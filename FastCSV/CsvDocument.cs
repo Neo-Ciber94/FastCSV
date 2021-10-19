@@ -112,7 +112,7 @@ namespace FastCSV
         /// <param name="values">The values.</param>
         public void Write(params object?[] values)
         {
-            var array = values.Select(e => e?.ToString() ?? string.Empty);
+            IEnumerable<string> array = values.Select(e => e?.ToString() ?? string.Empty);
             WriteAll(array);
         }
 
@@ -148,7 +148,30 @@ namespace FastCSV
         /// </summary>
         /// <param name="index">The index.</param>
         /// <param name="values">The values.</param>
-        public void WriteAt(int index, IEnumerable<string> values)
+        public void WriteAt(int index, params object[] values)
+        {
+            if (index < 0 || index >= Count)
+            {
+                throw new ArgumentOutOfRangeException($"{index} > {Count}");
+            }
+
+            int length = values.Length;
+
+            if (!IsFlexible && length != Header.Length)
+            {
+                throw new ArgumentException($"Invalid number of fields, expected {Header.Length} but {length} was get");
+            }
+
+            IEnumerable<string> array = values.Select(e => e?.ToString() ?? string.Empty);
+            _records.Insert(index, new CsvRecord(Header, array, Format));
+        }
+
+        /// <summary>
+        /// Writes a record with the specified value in the given index.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <param name="values">The values.</param>
+        public void WriteAllAt(int index, IEnumerable<string> values)
         {
             if (index < 0 || index >= Count)
             {
@@ -175,17 +198,6 @@ namespace FastCSV
         {
             var values = CsvConverter.GetValues(value);
             WriteAt(index, values);
-        }
-
-        /// <summary>
-        /// Writes a record using a <see cref="Builder"/>
-        /// </summary>
-        /// <param name="action">The action that provides the builder.</param>
-        public void WriteFields(Action<Builder> action) // AddWith
-        {
-            Builder builder = new Builder(this);
-            action(builder);
-            builder.WriteToDocument();
         }
 
         /// <summary>

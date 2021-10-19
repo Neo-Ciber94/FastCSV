@@ -80,6 +80,9 @@ namespace FastCSV.Tests
             document.Write("Light", 18);
             document.Write("Misa", 20);
 
+            CollectionAssert.AreEqual(new string[] { "Light", "18" }, document[0]);
+            CollectionAssert.AreEqual(new string[] { "Misa", "20" }, document[1]);
+
             Assert.IsFalse(document.IsEmpty);
             Assert.AreEqual(2, document.Count);
         }
@@ -91,6 +94,9 @@ namespace FastCSV.Tests
             document.WriteAll(new string[] { "Light", "18" });
             document.WriteAll(new string[] { "Misa", "20" });
 
+            CollectionAssert.AreEqual(new string[] { "Light", "18" }, document[0]);
+            CollectionAssert.AreEqual(new string[] { "Misa", "20" }, document[1]);
+
             Assert.IsFalse(document.IsEmpty);
             Assert.AreEqual(2, document.Count);
         }
@@ -101,6 +107,9 @@ namespace FastCSV.Tests
             var document = new CsvDocument(new string[] { "name", "age" });
             document.WriteValue(new { Name = "Light", Age = "18" });
             document.WriteValue(new { Name = "Misa", Age = "20" });
+
+            CollectionAssert.AreEqual(new string[] { "Light", "18" }, document[0]);
+            CollectionAssert.AreEqual(new string[] { "Misa", "20" }, document[1]);
 
             Assert.IsFalse(document.IsEmpty);
             Assert.AreEqual(2, document.Count);
@@ -115,6 +124,27 @@ namespace FastCSV.Tests
 
             document.WriteAt(0, new string[] { "Ryuk", "999" });
 
+            CollectionAssert.AreEqual(new string[] { "Ryuk", "999" }, document[0]);
+            CollectionAssert.AreEqual(new string[] { "Light", "18" }, document[1]);
+            CollectionAssert.AreEqual(new string[] { "Misa", "20" }, document[2]);
+
+            Assert.IsFalse(document.IsEmpty);
+            Assert.AreEqual(3, document.Count);
+        }
+
+        [Test()]
+        public void WriteAllAtTest()
+        {
+            var document = new CsvDocument(new string[] { "name", "age" });
+            document.Write("Light", 18);
+            document.Write("Misa", 20);
+
+            document.WriteAllAt(0, new string[] { "Ryuk", "999" });
+
+            CollectionAssert.AreEqual(new string[] { "Ryuk", "999" }, document[0]);
+            CollectionAssert.AreEqual(new string[] { "Light", "18" }, document[1]);
+            CollectionAssert.AreEqual(new string[] { "Misa", "20" }, document[2]);
+
             Assert.IsFalse(document.IsEmpty);
             Assert.AreEqual(3, document.Count);
         }
@@ -128,40 +158,12 @@ namespace FastCSV.Tests
 
             document.WriteValueAt(0, new { Name = "Ryuk", Age = 999 });
 
+            CollectionAssert.AreEqual(new string[] { "Ryuk", "999" }, document[0]);
+            CollectionAssert.AreEqual(new string[] { "Light", "18" }, document[1]);
+            CollectionAssert.AreEqual(new string[] { "Misa", "20" }, document[2]);
+
             Assert.IsFalse(document.IsEmpty);
             Assert.AreEqual(3, document.Count);
-        }
-
-        [Test()]
-        public void WriteFieldsTest()
-        {
-            var document = new CsvDocument(new[] { "Name", "Age" });
-
-            document.WriteFields(b =>
-            {
-                b.AddField("Carlos");
-                b.AddField(20);
-            });
-
-            document.WriteFields(b =>
-            {
-                b.AddField("Age", 30);
-                b.AddField("Name", "Maria");
-            });
-
-            Assert.AreEqual($"Name,Age{Environment.NewLine}" +
-                $"Carlos,20{Environment.NewLine}" +
-                $"Maria,30{Environment.NewLine}", document.ToString());
-
-            Assert.Throws<ArgumentException>(() =>
-            {
-                document.WriteFields(b =>
-                {
-                    b.AddField("Name", "Kara");
-                    b.AddField("Age", 17);
-                    b.AddField("LastName", "Li");
-                });
-            });
         }
 
         [Test()]
@@ -191,6 +193,10 @@ namespace FastCSV.Tests
             document.WriteValue(new { Name = "Misa", Age = "20" });
 
             document.Update(1, new string[] { "Misa", "17" });
+
+            CollectionAssert.AreEqual(new string[] { "Light", "18" }, document[0]);
+            CollectionAssert.AreEqual(new string[] { "Misa", "17" }, document[1]);
+
             Assert.AreEqual(2, document.Count);
         }
 
@@ -202,6 +208,10 @@ namespace FastCSV.Tests
             document.WriteValue(new { Name = "Misa", Age = "20" });
 
             document.UpdateValue(1, new { Name = "Misa", Age = 17 });
+
+            CollectionAssert.AreEqual(new string[] { "Light", "18" }, document[0]);
+            CollectionAssert.AreEqual(new string[] { "Misa", "17" }, document[1]);
+
             Assert.AreEqual(2, document.Count);
         }
 
@@ -213,6 +223,10 @@ namespace FastCSV.Tests
             document.Write("Misa", 20);
 
             document.MutateAt(0, record => record.Update("name", "Light Yagami"));
+
+            CollectionAssert.AreEqual(new string[] { "Light Yagami", "18" }, document[0]);
+            CollectionAssert.AreEqual(new string[] { "Misa", "20" }, document[1]);
+
             Assert.AreEqual("Light Yagami,18", document[0].ToString());
         }
 
