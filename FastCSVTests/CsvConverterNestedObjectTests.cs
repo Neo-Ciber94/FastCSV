@@ -17,13 +17,13 @@ namespace FastCSV.Tests
             var product = new Product("Keyboard", new Pricing("Dollars", 2000));
             var csv = CsvConverter.Serialize(product, DefaultOptions);
 
-            Assert.AreEqual("Name,Currency,Price\nKeyboard,Dollars,2000", csv);
+            Assert.AreEqual($"Name,Currency,Price{System.Environment.NewLine}Keyboard,Dollars,2000", csv);
         }
 
         [Test]
         public void DeserializeNestedObjectTest()
         {
-            var csv = "Name,Currency,Price\nKeyboard,Dollars,2000";
+            var csv = $"Name,Currency,Price{System.Environment.NewLine}Keyboard,Dollars,2000";
             var product = CsvConverter.Deserialize<Product>(csv, DefaultOptions);
 
             Assert.AreEqual(new Product("Keyboard", new Pricing("Dollars", 2000)), product);
@@ -35,7 +35,7 @@ namespace FastCSV.Tests
             var data = new A(new B(new C(new D(new E(new F(new G(new H(10))))))));
             var csv = CsvConverter.Serialize(data, DefaultOptions);
 
-            Assert.AreEqual("Value\n10", csv);
+            Assert.AreEqual($"Value{System.Environment.NewLine}10", csv);
 
             var result = CsvConverter.Deserialize<A>(csv, DefaultOptions);
             Assert.AreEqual(data, result);

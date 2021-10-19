@@ -111,7 +111,7 @@ namespace FastCSV
                     }
                     else
                     {
-                        return $"{PlainTypeHeaderName}\n{values}";
+                        return $"{PlainTypeHeaderName}{Environment.NewLine}{values}";
                     }
                 }
 

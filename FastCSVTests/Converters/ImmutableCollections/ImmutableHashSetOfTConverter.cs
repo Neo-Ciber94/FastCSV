@@ -14,7 +14,7 @@ namespace FastCSV.Converters.Tests
             var collection = new ImmutableHashSetContainer<string>(ImmutableHashSet.Create(new string[]{ "Spear", "Sword", "Shield" }), 3);
             var serialized = CsvConverter.Serialize(collection, Options);
 
-            Assert.True(serialized.StartsWith("item1,item2,item3,Count\n"));
+            Assert.True(serialized.StartsWith($"item1,item2,item3,Count{System.Environment.NewLine}"));
             Assert.True(serialized.Contains("Spear"));
             Assert.True(serialized.Contains("Sword"));
             Assert.True(serialized.Contains("Shield"));
@@ -24,7 +24,7 @@ namespace FastCSV.Converters.Tests
         [Test]
         public void DeserializeTest()
         {
-            var csv = "item1,item2,item3,Count\nSpear,Sword,Shield,3";
+            var csv = $"item1,item2,item3,Count{System.Environment.NewLine}Spear,Sword,Shield,3";
             var deserialized = CsvConverter.Deserialize<ImmutableHashSetContainer<string>>(csv, Options);
 
             CollectionAssert.Contains(deserialized.Items, "Spear");
@@ -39,7 +39,7 @@ namespace FastCSV.Converters.Tests
             var collection = new IImmutableSetContainer<string>(ImmutableHashSet.Create(new string[]{ "Spear", "Sword", "Shield" }), 3);
             var serialized = CsvConverter.Serialize(collection, Options);
 
-            Assert.True(serialized.StartsWith("item1,item2,item3,Count\n"));
+            Assert.True(serialized.StartsWith($"item1,item2,item3,Count{System.Environment.NewLine}"));
             Assert.True(serialized.Contains("Spear"));
             Assert.True(serialized.Contains("Sword"));
             Assert.True(serialized.Contains("Shield"));
@@ -49,7 +49,7 @@ namespace FastCSV.Converters.Tests
         [Test]
         public void  IImmutableSetDeserializeTest()
         {
-            var csv = "item1,item2,item3,Count\nSpear,Sword,Shield,3";
+            var csv = $"item1,item2,item3,Count{System.Environment.NewLine}Spear,Sword,Shield,3";
             var deserialized = CsvConverter.Deserialize<IImmutableSetContainer<string>>(csv, Options);
 
             CollectionAssert.Contains(deserialized.Items, "Spear");

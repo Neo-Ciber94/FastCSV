@@ -23,7 +23,7 @@ namespace FastCSV.Tests
             var n = new OddOrEvenNumber(34);
 
             string serialized = CsvConverter.Serialize(n, options);
-            Assert.AreEqual("value\n34:even", serialized);
+            Assert.AreEqual($"value{System.Environment.NewLine}34:even", serialized);
 
             OddOrEvenNumber deserialized = CsvConverter.Deserialize<OddOrEvenNumber>(serialized, options);
             Assert.AreEqual(n, deserialized);
@@ -64,7 +64,7 @@ namespace FastCSV.Tests
             };
 
             var serialized = CsvConverter.Serialize(array, options);
-            Assert.AreEqual("item1,item2,item3\n21:odd,50:even,82:even", serialized);
+            Assert.AreEqual($"item1,item2,item3{System.Environment.NewLine}21:odd,50:even,82:even", serialized);
 
             var deserialized = CsvConverter.Deserialize<OddOrEvenNumber[]>(serialized, options);
             CollectionAssert.AreEqual(array, deserialized);
@@ -103,7 +103,7 @@ namespace FastCSV.Tests
             var options = new CsvConverterOptions { CollectionHandling = CollectionHandling.Default };
 
             var serialized = CsvConverter.Serialize(array, options);
-            Assert.AreEqual("item1,item2,item3,item4,item5\n1,2,3,4,5", serialized);
+            Assert.AreEqual($"item1,item2,item3,item4,item5{System.Environment.NewLine}1,2,3,4,5", serialized);
 
             var deserialized = CsvConverter.Deserialize<int[]>(serialized, options);
             CollectionAssert.AreEqual(array, deserialized);

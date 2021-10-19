@@ -21,13 +21,13 @@ namespace FastCSV.Converters.Tests
             var obj = new ListWithCount(new string[] { "Apple", "Chips", "Chicken" }, 3);
             var csv = CsvConverter.Serialize(obj, Options);
 
-            Assert.AreEqual("item1,item2,item3,Count\nApple,Chips,Chicken,3", csv);
+            Assert.AreEqual($"item1,item2,item3,Count{System.Environment.NewLine}Apple,Chips,Chicken,3", csv);
         }
 
         [Test]
         public void DeserializeObjectWithArrayTest()
         {
-            var csv = "item1,item2,item3,Count\nApple,Chips,Chicken,3";
+            var csv = $"item1,item2,item3,Count{System.Environment.NewLine}Apple,Chips,Chicken,3";
             var obj = CsvConverter.Deserialize<ListWithCount>(csv, Options);
 
             var other = new ListWithCount(new string[] { "Apple", "Chips", "Chicken" }, 3);
@@ -41,13 +41,13 @@ namespace FastCSV.Converters.Tests
             var obj = new CountWithList(3, new string[] { "Apple", "Chips", "Chicken" });
             var csv = CsvConverter.Serialize(obj, Options);
 
-            Assert.AreEqual("Count,item1,item2,item3\n3,Apple,Chips,Chicken", csv);
+            Assert.AreEqual($"Count,item1,item2,item3{System.Environment.NewLine}3,Apple,Chips,Chicken", csv);
         }
 
         [Test]
         public void DeserializeObjectWithArrayTest2()
         {
-            var csv = "Count,item1,item2,item3\n3,Apple,Chips,Chicken";
+            var csv = $"Count,item1,item2,item3{System.Environment.NewLine}3,Apple,Chips,Chicken";
             var obj = CsvConverter.Deserialize<CountWithList>(csv, Options);
 
             var other = new CountWithList(3, new string[] { "Apple", "Chips", "Chicken" });
@@ -61,13 +61,13 @@ namespace FastCSV.Converters.Tests
             var obj = new IndexWithListCount(1, new string[] { "Apple", "Chips", "Chicken" }, 3);
             var csv = CsvConverter.Serialize(obj, Options);
 
-            Assert.AreEqual("Index,item1,item2,item3,Count\n1,Apple,Chips,Chicken,3", csv);
+            Assert.AreEqual($"Index,item1,item2,item3,Count{System.Environment.NewLine}1,Apple,Chips,Chicken,3", csv);
         }
 
         [Test]
         public void DeserializeObjectWithArrayTest3()
         {
-            var csv = "Index,item1,item2,item3,Count\n1,Apple,Chips,Chicken,3";
+            var csv = $"Index,item1,item2,item3,Count{System.Environment.NewLine}1,Apple,Chips,Chicken,3";
             var obj = CsvConverter.Deserialize<IndexWithListCount>(csv, Options);
 
             var other = new IndexWithListCount(1, new string[] { "Apple", "Chips", "Chicken" }, 3);

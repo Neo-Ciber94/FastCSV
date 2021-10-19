@@ -77,9 +77,9 @@ namespace FastCSV.Tests
         [Test()]
         public void FromCsvTest()
         {
-            string csv = "Name,Age\r\n" +
-                    "Red,23\r\n" +
-                    "Blue,24\r\n";
+            string csv = $"Name,Age{Environment.NewLine}" +
+                    $"Red,23{Environment.NewLine}" +
+                    $"Blue,24{Environment.NewLine}";
 
             var document = CsvDocument.FromCsv<Person>(csv);
 
@@ -91,9 +91,9 @@ namespace FastCSV.Tests
         [Test()]
         public void FromCsvTest1()
         {
-            string csv = "Name,Age,PhoneNumber\r\n" +
-                "Red,23,200-1200\r\n" +
-                "Blue,24,233-5565\r\n";
+            string csv = $"Name,Age,PhoneNumber{Environment.NewLine}" +
+                $"Red,23,200-1200{Environment.NewLine}" +
+                $"Blue,24,233-5565{Environment.NewLine}";
 
             var options = new CsvConverterOptions
             {
@@ -360,11 +360,11 @@ namespace FastCSV.Tests
             var copy = document.WithFormat(new CsvFormat(';', '"'));
 
             Assert.AreEqual(
-                "Name;Age\r\n" +
-                "Akari;20\r\n" +
-                "Kyoko;21\r\n" +
-                "Yui;22\r\n" +
-                "Chinatsu;19\r\n", copy.ToString());
+                $"Name;Age{Environment.NewLine}" +
+                $"Akari;20{Environment.NewLine}" +
+                $"Kyoko;21{Environment.NewLine}" +
+                $"Yui;22{Environment.NewLine}" +
+                $"Chinatsu;19{Environment.NewLine}", copy.ToString());
         }
 
         [Test]
@@ -384,11 +384,11 @@ namespace FastCSV.Tests
 
                 using var reader = new StreamReader(tempFile.FullName);
                 Assert.AreEqual(
-                   "Name,Age\r\n" +
-                   "Akari,20\r\n" +
-                   "Kyoko,21\r\n" +
-                   "Yui,22\r\n" +
-                   "Chinatsu,19\r\n", reader.ReadToEnd());
+                   $"Name,Age{Environment.NewLine}" +
+                   $"Akari,20{Environment.NewLine}" +
+                   $"Kyoko,21{Environment.NewLine}" +
+                   $"Yui,22{Environment.NewLine}" +
+                   $"Chinatsu,19{Environment.NewLine}", reader.ReadToEnd());
             }
         }
 
@@ -460,11 +460,11 @@ namespace FastCSV.Tests
             });
 
             Assert.AreEqual(
-                "Name,Age\r\n" +
-                "Akari,20\r\n" +
-                "Kyoko,21\r\n" +
-                "Yui,22\r\n" +
-                "Chinatsu,19\r\n", document.ToString());
+                $"Name,Age{Environment.NewLine}" +
+                $"Akari,20{Environment.NewLine}" +
+                $"Kyoko,21{Environment.NewLine}" +
+                $"Yui,22{Environment.NewLine}" +
+                $"Chinatsu,19{Environment.NewLine}", document.ToString());
         }
 
         [Test]
@@ -480,11 +480,11 @@ namespace FastCSV.Tests
             });
 
             Assert.AreEqual(
-                "Name;Age\r\n" +
-                "Akari;20\r\n" +
-                "Kyoko;21\r\n" +
-                "Yui;22\r\n" +
-                "Chinatsu;19\r\n", document.ToString(format));
+                $"Name;Age{Environment.NewLine}" +
+                $"Akari;20{Environment.NewLine}" +
+                $"Kyoko;21{Environment.NewLine}" +
+                $"Yui;22{Environment.NewLine}" +
+                $"Chinatsu;19{Environment.NewLine}", document.ToString(format));
         }
 
         [Test]

@@ -14,27 +14,27 @@ namespace FastCSV.Tests
         public void SerializeNullableTest()
         {
             var csv = CsvConverter.Serialize(new Nullable<int>(10), typeof(Nullable<int>));
-            Assert.AreEqual("value\n10", csv);
+            Assert.AreEqual($"value{System.Environment.NewLine}10", csv);
         }
 
         [Test]
         public void SerializeNullTest()
         {
             var csv = CsvConverter.Serialize(null, typeof(Nullable<int>));
-            Assert.AreEqual("value\n", csv);
+            Assert.AreEqual($"value{System.Environment.NewLine}", csv);
         }
 
         [Test]
         public void DeserializeNullableTest()
         {
-            Nullable<int> value = CsvConverter.Deserialize<Nullable<int>>("value\n22");
+            Nullable<int> value = CsvConverter.Deserialize<Nullable<int>>($"value{System.Environment.NewLine}22");
             Assert.AreEqual(new Nullable<int>(22), value);
         }
 
         [Test]
         public void DeserializeNullTest()
         {
-            Nullable<int> value = CsvConverter.Deserialize<Nullable<int>>("value\n");
+            Nullable<int> value = CsvConverter.Deserialize<Nullable<int>>($"value{System.Environment.NewLine}");
             Assert.AreEqual(new Nullable<int>(), value);
         }
 

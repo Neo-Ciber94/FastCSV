@@ -19,13 +19,13 @@ namespace FastCSV.Converters.Tests
             var bits = new BitsContainer(new BitArray(new bool[] { true, false, true, false, true, true }));
             var serialized = CsvConverter.Serialize(bits, Options);
 
-            Assert.AreEqual("item1,item2,item3,item4,item5,item6\n1,0,1,0,1,1", serialized);
+            Assert.AreEqual($"item1,item2,item3,item4,item5,item6{System.Environment.NewLine}1,0,1,0,1,1", serialized);
         }
 
         [Test]
         public void DeserializeTest()
         {
-            var csv = "item1,item2,item3,item4,item5,item6\n1,0,1,0,1,1";
+            var csv = $"item1,item2,item3,item4,item5,item6{System.Environment.NewLine}1,0,1,0,1,1";
             var deserialized = CsvConverter.Deserialize<BitsContainer>(csv, Options);
 
             CollectionAssert.AreEqual(new BitArray(new bool[] { true, false, true, false, true, true }), deserialized.Bits);

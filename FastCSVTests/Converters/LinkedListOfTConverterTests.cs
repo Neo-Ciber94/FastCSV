@@ -14,13 +14,13 @@ namespace FastCSV.Converters.Tests
             var collection = new Container<string>(new LinkedList<string>(new string[] { "Spear", "Sword", "Shield" }), 3);
             var serialized = CsvConverter.Serialize(collection, Options);
 
-            Assert.AreEqual("item1,item2,item3,Count\nSpear,Sword,Shield,3", serialized);
+            Assert.AreEqual($"item1,item2,item3,Count{System.Environment.NewLine}Spear,Sword,Shield,3", serialized);
         }
 
         [Test]
         public void DeserializeIReadOnlyCollectionTest()
         {
-            var csv = "item1,item2,item3,Count\nSpear,Sword,Shield,3";
+            var csv = $"item1,item2,item3,Count{System.Environment.NewLine}Spear,Sword,Shield,3";
             var deserialized = CsvConverter.Deserialize<Container<string>>(csv, Options);
 
             CollectionAssert.AreEqual(new string[] { "Spear", "Sword", "Shield" }, deserialized.Items);

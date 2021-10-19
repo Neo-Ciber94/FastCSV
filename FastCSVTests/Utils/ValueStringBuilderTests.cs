@@ -131,8 +131,10 @@ namespace FastCSV.Utils.Tests
             sb.AppendLine('l');
             sb.AppendLine('o');
 
-            Assert.AreEqual(10, sb.Length);
-            Assert.AreEqual("H\ne\nl\nl\no\n", sb.ToString());
+            int newLineLength = Environment.NewLine.Length * 5;
+            string newLine = Environment.NewLine;
+            Assert.AreEqual(5 + newLineLength, sb.Length);
+            Assert.AreEqual($"H{newLine}e{newLine}l{newLine}l{newLine}o{newLine}", sb.ToString());
         }
 
         [Test()]
@@ -143,8 +145,11 @@ namespace FastCSV.Utils.Tests
             sb.AppendLine("Hello");
             sb.AppendLine("World");
 
-            Assert.AreEqual(12, sb.Length);
-            Assert.AreEqual("Hello\nWorld\n", sb.ToString());
+            int newLineLength = Environment.NewLine.Length * 2;
+            string newLine = Environment.NewLine;
+
+            Assert.AreEqual(10 + newLineLength, sb.Length);
+            Assert.AreEqual($"Hello{newLine}World{newLine}", sb.ToString());
         }
 
         [Test()]
@@ -157,8 +162,9 @@ namespace FastCSV.Utils.Tests
             sb.Append("World");
             sb.AppendLine();
 
-            Assert.AreEqual(12, sb.Length);
-            Assert.AreEqual("Hello\nWorld\n", sb.ToString());
+            int newLineLength = Environment.NewLine.Length * 2;
+            Assert.AreEqual(10 + newLineLength, sb.Length);
+            Assert.AreEqual($"Hello{Environment.NewLine}World{Environment.NewLine}", sb.ToString());
         }
 
         [Test()]
@@ -169,8 +175,9 @@ namespace FastCSV.Utils.Tests
             sb.AppendLine("Hello".AsSpan());
             sb.AppendLine("World".AsSpan());
 
-            Assert.AreEqual(12, sb.Length);
-            Assert.AreEqual("Hello\nWorld\n", sb.ToString());
+            int newLineLength = Environment.NewLine.Length * 2;
+            Assert.AreEqual(10 + newLineLength, sb.Length);
+            Assert.AreEqual($"Hello{Environment.NewLine}World{Environment.NewLine}", sb.ToString());
         }
 
         [Test()]

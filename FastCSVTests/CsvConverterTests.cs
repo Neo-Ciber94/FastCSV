@@ -30,7 +30,7 @@ namespace FastCSV.Tests
         {
             string csv = CsvConverter.Serialize(new Product { Name = "Table", Price = 200m }, typeof(Product));
 
-            Assert.AreEqual("Name,Price\nTable,200", csv);
+            Assert.AreEqual($"Name,Price{System.Environment.NewLine}Table,200", csv);
         }
 
         [Test()]
@@ -38,13 +38,13 @@ namespace FastCSV.Tests
         {
             string csv = CsvConverter.Serialize(new Product { Name = "Table", Price = 200m });
 
-            Assert.AreEqual("Name,Price\nTable,200", csv);
+            Assert.AreEqual($"Name,Price{System.Environment.NewLine}Table,200", csv);
         }
 
         [Test()]
         public void DeserializeTest()
         {
-            var csv = "Name,Price\nTable,200";
+            var csv = $"Name,Price{System.Environment.NewLine}Table,200";
             Product product = CsvConverter.Deserialize(csv, typeof(Product)) as Product;
 
             Assert.AreEqual("Table", product.Name);
@@ -54,7 +54,7 @@ namespace FastCSV.Tests
         [Test()]
         public void DeserializeWithGenericsTest()
         {
-            var csv = "Name,Price\nTable,200";
+            var csv = $"Name,Price{System.Environment.NewLine}Table,200";
             Product product = CsvConverter.Deserialize<Product>(csv);
 
             Assert.AreEqual("Table", product.Name);
@@ -64,7 +64,7 @@ namespace FastCSV.Tests
         [Test()]
         public void DeserializeHeaderMissmatchTest()
         {
-            var csv = "product_name,product_price\nTable,200";
+            var csv = $"product_name,product_price{System.Environment.NewLine}Table,200";
 
             Assert.Throws<InvalidOperationException>(() =>
             {
@@ -75,7 +75,7 @@ namespace FastCSV.Tests
         [Test()]
         public void DeserializeInvalidTypeTest()
         {
-            var csv = "Id,Available\n102,true";
+            var csv = $"Id,Available{System.Environment.NewLine}102,true";
 
             Assert.Throws<InvalidOperationException>(() =>
             {
@@ -158,7 +158,7 @@ namespace FastCSV.Tests
                 var _ = CsvConverter.Serialize(new Wrapper<PositiveNumber>(new PositiveNumber(23)));
             });
 
-            Assert.AreEqual("Value\n+(32)", CsvConverter.Serialize(new Wrapper<PositiveNumber>(new PositiveNumber(32)), options));
+            Assert.AreEqual($"Value{System.Environment.NewLine}+(32)", CsvConverter.Serialize(new Wrapper<PositiveNumber>(new PositiveNumber(32)), options));
         }
 
         [Test]
@@ -169,18 +169,18 @@ namespace FastCSV.Tests
                 IncludeFields = true
             };
 
-            Assert.AreEqual("Value\nHello", CsvConverter.Serialize(new ReadOnlyField<string>("Hello"), options));
+            Assert.AreEqual($"Value{System.Environment.NewLine}Hello", CsvConverter.Serialize(new ReadOnlyField<string>("Hello"), options));
 
-            var result = CsvConverter.Deserialize<ReadOnlyField<string>>("Value\nHello", options);
+            var result = CsvConverter.Deserialize<ReadOnlyField<string>>($"Value{System.Environment.NewLine}Hello", options);
             Assert.Null(result.Value);
         }
 
         [Test]
         public void SerializeDeserializeReadOnlyPropertyTest()
         {
-            Assert.AreEqual("Value\nBye", CsvConverter.Serialize(new ReadOnlyProperty<string>("Bye")));
+            Assert.AreEqual($"Value{System.Environment.NewLine}Bye", CsvConverter.Serialize(new ReadOnlyProperty<string>("Bye")));
 
-            var result = CsvConverter.Deserialize<ReadOnlyProperty<string>>("Value\nBye");
+            var result = CsvConverter.Deserialize<ReadOnlyProperty<string>>($"Value{System.Environment.NewLine}Bye");
             Assert.Null(result.Value);
         }
 
@@ -188,7 +188,7 @@ namespace FastCSV.Tests
         public void DeserializeToDifferentTypeTest()
         {
             var serialized = CsvConverter.Serialize(new Wrapper<string>("230"));
-            Assert.AreEqual("Value\n230", serialized);
+            Assert.AreEqual($"Value{System.Environment.NewLine}230", serialized);
 
             var deserialized = CsvConverter.Deserialize<Wrapper<int>>(serialized);
             Assert.AreEqual(230, deserialized.Value);

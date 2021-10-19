@@ -25,7 +25,7 @@ namespace FastCSV.Converters
             );
 
             string deserialized = CsvConverter.Serialize(values, options);
-            Assert.AreEqual("item1,item2,item3,item1,item2\n1,2,3,red,blue", deserialized);
+            Assert.AreEqual($"item1,item2,item3,item1,item2{System.Environment.NewLine}1,2,3,red,blue", deserialized);
 
             var serialized = CsvConverter.Deserialize<TwoCollections<int, string>>(deserialized, options);
             CollectionAssert.AreEqual(new[] { 1, 2, 3 }, serialized.First);
@@ -47,7 +47,7 @@ namespace FastCSV.Converters
             );
 
             string deserialized = CsvConverter.Serialize(values, options);
-            Assert.AreEqual("item1,item2,item3,item1,item2,item1,item2,item3\n1,2,3,red,blue,a,b,c", deserialized);
+            Assert.AreEqual($"item1,item2,item3,item1,item2,item1,item2,item3{System.Environment.NewLine}1,2,3,red,blue,a,b,c", deserialized);
 
             var serialized = CsvConverter.Deserialize<ThreeCollections<int, string, char>>(deserialized, options);
             CollectionAssert.AreEqual(new[] { 1, 2, 3 }, serialized.First);
@@ -70,7 +70,7 @@ namespace FastCSV.Converters
             );
 
             string deserialized = CsvConverter.Serialize(values, options);
-            Assert.AreEqual("item1,item1,item1\n1,2,3", deserialized);
+            Assert.AreEqual($"item1,item1,item1{System.Environment.NewLine}1,2,3", deserialized);
 
             var serialized = CsvConverter.Deserialize<ThreeCollections<int, int, int>>(deserialized, options);
             CollectionAssert.AreEqual(new[] { 1 }, serialized.First);
@@ -93,7 +93,7 @@ namespace FastCSV.Converters
             );
 
             string deserialized = CsvConverter.Serialize(values, options);
-            Assert.AreEqual("item1,item1\n1,2", deserialized);
+            Assert.AreEqual($"item1,item1{System.Environment.NewLine}1,2", deserialized);
 
             var serialized = CsvConverter.Deserialize<ThreeCollections<int, int, int>>(deserialized, options);
             CollectionAssert.AreEqual(new[] { 1 }, serialized.First);
@@ -121,7 +121,7 @@ namespace FastCSV.Converters
              */
 
             string deserialized = CsvConverter.Serialize(values, options);
-            Assert.AreEqual("item1,item1\n1,3", deserialized);
+            Assert.AreEqual($"item1,item1{System.Environment.NewLine}1,3", deserialized);
 
             var serialized = CsvConverter.Deserialize<ThreeCollections<int, int, int>>(deserialized, options);
             CollectionAssert.AreEqual(new[] { 1 }, serialized.First);
@@ -137,7 +137,7 @@ namespace FastCSV.Converters
                 CollectionHandling = CollectionHandling.Default
             };
 
-            string csv = "item1,item3,item2\n1,2,3";
+            string csv = $"item1,item3,item2{System.Environment.NewLine}1,2,3";
 
             Assert.Throws<InvalidOperationException>(() =>
             {

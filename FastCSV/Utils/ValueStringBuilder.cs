@@ -13,7 +13,8 @@ namespace FastCSV.Utils
     [DebuggerDisplay("{ToString(),raw}")]
     public ref struct ValueStringBuilder
     {
-        private const char NewLine = '\n';
+        private static readonly string NewLine = Environment.NewLine;
+        private static readonly int NewLineLength = NewLine.Length;
 
         private char[]? _arrayFromPool;
         private Span<char> _span;
@@ -191,10 +192,14 @@ namespace FastCSV.Utils
         {
             if (_count == _span.Length)
             {
-                Resize(_span.Length * 2);
+                Resize((_span.Length * 2) + NewLineLength);
             }
 
-            _span[_count++] = NewLine;
+            for (int i = 0; i < NewLineLength; i++)
+            {
+                char c = NewLine[i];
+                _span[_count++] = c;
+            }
         }
 
         /// <summary>
@@ -203,9 +208,9 @@ namespace FastCSV.Utils
         /// <param name="c">The value.</param>
         public void AppendLine(char c)
         {
-            ResizeIfNeeded(2);
+            ResizeIfNeeded(1 + NewLineLength);
             _span[_count++] = c;
-            _span[_count++] = NewLine;
+            AppendLine();
         }
 
         /// <summary>
@@ -234,7 +239,7 @@ namespace FastCSV.Utils
             }
 
             int length = value.Length;
-            ResizeIfNeeded(length + 1);
+            ResizeIfNeeded(length + NewLineLength);
 
             unsafe
             {
@@ -242,7 +247,7 @@ namespace FastCSV.Utils
                 {
                     Unsafe.CopyBlock(dst + _count, src, (uint)(length * sizeof(char)));
                     _count += length;
-                    _span[_count++] = NewLine;
+                    AppendLine();
                 }
             }
         }

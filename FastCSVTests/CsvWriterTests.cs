@@ -63,7 +63,7 @@ namespace FastCSV.Tests
             memory.Position = 0;
             using var streamReader = new StreamReader(memory);
 
-            Assert.AreEqual("name,age\r\nKenny,40\r\nLevi,30\r\n", streamReader.ReadToEnd());
+            Assert.AreEqual($"name,age{Environment.NewLine}Kenny,40{Environment.NewLine}Levi,30{Environment.NewLine}", streamReader.ReadToEnd());
         }
 
         [Test]
@@ -84,9 +84,9 @@ namespace FastCSV.Tests
                 {
                     string data = reader.ReadToEnd();
                     Assert.AreEqual(
-                        "Name,Age\r\n" +
-                        "Karl,26\r\n" +
-                        "Elena,17\r\n", data);
+                        $"Name,Age{Environment.NewLine}" +
+                        $"Karl,26{Environment.NewLine}" +
+                        $"Elena,17{Environment.NewLine}", data);
                 }
             }
         }
@@ -108,9 +108,9 @@ namespace FastCSV.Tests
                 {
                     string data = reader.ReadToEnd();
                     Assert.AreEqual(
-                        "Name,Age\r\n" +
-                        "Karl,26\r\n" +
-                        "Elena,17\r\n", data);
+                        $"Name,Age{Environment.NewLine}" +
+                        $"Karl,26{Environment.NewLine}" +
+                        $"Elena,17{Environment.NewLine}", data);
                 }
             }
         }
@@ -129,7 +129,7 @@ namespace FastCSV.Tests
             memory.Position = 0;
             using var streamReader = new StreamReader(memory);
 
-            Assert.AreEqual("name,age\r\nKenny,40\r\nLevi,Ackerman,30\r\n\r\n", streamReader.ReadToEnd());
+            Assert.AreEqual($"name,age{Environment.NewLine}Kenny,40{Environment.NewLine}Levi,Ackerman,30{Environment.NewLine}{Environment.NewLine}", streamReader.ReadToEnd());
         }
 
         [Test()]
@@ -145,7 +145,7 @@ namespace FastCSV.Tests
             memory.Position = 0;
             using var streamReader = new StreamReader(memory);
 
-            Assert.AreEqual("name,age\r\nKenny,40\r\nLevi,30\r\n", streamReader.ReadToEnd());
+            Assert.AreEqual($"name,age{Environment.NewLine}Kenny,40{Environment.NewLine}Levi,30{Environment.NewLine}", streamReader.ReadToEnd());
         }
 
         [Test()]
@@ -162,7 +162,7 @@ namespace FastCSV.Tests
             memory.Position = 0;
             using var streamReader = new StreamReader(memory);
 
-            Assert.AreEqual("name , age\r\n Kenny,40\r\n Levi ,30\r\n", streamReader.ReadToEnd());
+            Assert.AreEqual($"name , age{Environment.NewLine} Kenny,40{Environment.NewLine} Levi ,30{Environment.NewLine}", streamReader.ReadToEnd());
         }
 
         [Test()]
@@ -178,7 +178,7 @@ namespace FastCSV.Tests
             memory.Position = 0;
             using var streamReader = new StreamReader(memory);
 
-            Assert.AreEqual("name,age\r\nKenny,40\r\nLevi,30\r\n", streamReader.ReadToEnd());
+            Assert.AreEqual($"name,age{Environment.NewLine}Kenny,40{Environment.NewLine}Levi,30{Environment.NewLine}", streamReader.ReadToEnd());
         }
 
         [Test()]
@@ -193,7 +193,7 @@ namespace FastCSV.Tests
             memory.Position = 0;
             using var streamReader = new StreamReader(memory);
 
-            Assert.AreEqual("Kenny,40\r\nLevi,30\r\n", streamReader.ReadToEnd());
+            Assert.AreEqual($"Kenny,40{Environment.NewLine}Levi,30{Environment.NewLine}", streamReader.ReadToEnd());
         }
 
         [Test()]
@@ -209,7 +209,7 @@ namespace FastCSV.Tests
             memory.Position = 0;
             using var streamReader = new StreamReader(memory);
 
-            Assert.AreEqual("name,age\r\nKenny,40\r\nLevi,30\r\n", streamReader.ReadToEnd());
+            Assert.AreEqual($"name,age{Environment.NewLine}Kenny,40{Environment.NewLine}Levi,30{Environment.NewLine}", streamReader.ReadToEnd());
         }
 
         [Test()]
@@ -225,7 +225,7 @@ namespace FastCSV.Tests
             memory.Position = 0;
             using var streamReader = new StreamReader(memory);
 
-            Assert.AreEqual("name,age\r\nKenny,40\r\nLevi,30\r\n", streamReader.ReadToEnd());
+            Assert.AreEqual($"name,age{Environment.NewLine}Kenny,40{Environment.NewLine}Levi,30{Environment.NewLine}", streamReader.ReadToEnd());
         }
 
         [Test()]
@@ -240,7 +240,7 @@ namespace FastCSV.Tests
             memory.Position = 0;
             using var streamReader = new StreamReader(memory);
 
-            Assert.AreEqual("Kenny,40\r\nLevi,30\r\n", streamReader.ReadToEnd());
+            Assert.AreEqual($"Kenny,40{Environment.NewLine}Levi,30{Environment.NewLine}", streamReader.ReadToEnd());
         }
 
         [Test()]

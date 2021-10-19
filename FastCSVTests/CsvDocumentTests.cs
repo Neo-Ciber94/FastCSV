@@ -46,9 +46,9 @@ namespace FastCSV.Tests
         [Test]
         public void FromCsvTest()
         {
-            var csv = "Name,Age\r\n" +
-                    "Kara,20\r\n" +
-                    "Markus,25\r\n";
+            var csv = $"Name,Age{Environment.NewLine}" +
+                    $"Kara,20{Environment.NewLine}" +
+                    $"Markus,25{Environment.NewLine}";
 
             CsvDocument document = CsvDocument.FromCsv(csv);
 
@@ -61,9 +61,9 @@ namespace FastCSV.Tests
         [Test]
         public void FromCsvTest1()
         {
-            var csv = "Name,Age\r\n" +
-                    "Kara,20\r\n" +
-                    "Markus,25,RK-200\r\n";
+            var csv = $"Name,Age{Environment.NewLine}" +
+                    $"Kara,20{Environment.NewLine}" +
+                    $"Markus,25,RK-200{Environment.NewLine}";
 
             var document = CsvDocument.FromCsv(csv, flexible: true);
 
@@ -149,9 +149,9 @@ namespace FastCSV.Tests
                 b.AddField("Name", "Maria");
             });
 
-            Assert.AreEqual("Name,Age\r\n" +
-                "Carlos,20\r\n" +
-                "Maria,30\r\n", document.ToString());
+            Assert.AreEqual($"Name,Age{Environment.NewLine}" +
+                $"Carlos,20{Environment.NewLine}" +
+                $"Maria,30{Environment.NewLine}", document.ToString());
 
             Assert.Throws<ArgumentException>(() =>
             {
@@ -258,9 +258,9 @@ namespace FastCSV.Tests
         [Test()]
         public void GetColumnTest1()
         {
-            string data = "name,age\n" +
-                "Robert,40\n" +
-                "Tom,20\n";
+            string data = $"name,age\n" +
+                $"Robert,40\n" +
+                $"Tom,20\n";
 
             var csv = CsvDocument.FromCsv(data);
 
@@ -274,9 +274,9 @@ namespace FastCSV.Tests
         [Test()]
         public void GetColumnTest2()
         {
-            string data = "name,age\n" +
-                "Robert,40\n" +
-                "Tom,20\n";
+            string data = $"name,age\n" +
+                $"Robert,40\n" +
+                $"Tom,20\n";
 
             var csv = CsvDocument.FromCsv(data);
 
@@ -290,9 +290,9 @@ namespace FastCSV.Tests
         [Test()]
         public void GetColumnsTest1()
         {
-            string data = "name,age\n" +
-                "Robert,40\n" +
-                "Tom,20\n";
+            string data = $"name,age\n" +
+                $"Robert,40\n" +
+                $"Tom,20\n";
 
             var csv = CsvDocument.FromCsv(data);
 
@@ -304,9 +304,9 @@ namespace FastCSV.Tests
         [Test()]
         public void GetColumnsTest2()
         {
-            string data = "name,age\n" +
-                "Robert,40\n" +
-                "Tom,20\n";
+            string data = $"name,age\n" +
+                $"Robert,40\n" +
+                $"Tom,20\n";
 
             var csv = CsvDocument.FromCsv(data);
 
@@ -323,7 +323,7 @@ namespace FastCSV.Tests
             document.Write("Misa", 20);
 
             var copy = document.WithFormat(new CsvFormat(';', '"'));
-            Assert.AreEqual("name;age\r\nLight;18\r\nMisa;20\r\n", copy.ToString());
+            Assert.AreEqual($"name;age{Environment.NewLine}Light;18{Environment.NewLine}Misa;20{Environment.NewLine}", copy.ToString());
         }
 
         [Test]
@@ -338,7 +338,7 @@ namespace FastCSV.Tests
                 document.CopyToFile(tempFile.FullName);
 
                 using var reader = new StreamReader(tempFile.FullName);
-                Assert.AreEqual("name,age\r\nLight,18\r\nMisa,20\r\n", reader.ReadToEnd());
+                Assert.AreEqual($"name,age{Environment.NewLine}Light,18{Environment.NewLine}Misa,20{Environment.NewLine}", reader.ReadToEnd());
             }
         }
 
@@ -349,7 +349,7 @@ namespace FastCSV.Tests
             document.Write("Light", 18);
             document.Write("Misa", 20);
 
-            Assert.AreEqual("name,age\r\nLight,18\r\nMisa,20\r\n", document.ToString());
+            Assert.AreEqual($"name,age{Environment.NewLine}Light,18{Environment.NewLine}Misa,20{Environment.NewLine}", document.ToString());
         }
 
         [Test()]
@@ -360,7 +360,7 @@ namespace FastCSV.Tests
             document.Write("Light", 18);
             document.Write("Misa", 20);
 
-            Assert.AreEqual("name;age\r\nLight;18\r\nMisa;20\r\n", document.ToString(format));
+            Assert.AreEqual($"name;age{Environment.NewLine}Light;18{Environment.NewLine}Misa;20{Environment.NewLine}", document.ToString(format));
         }
 
         [Test()]

@@ -19,9 +19,9 @@ namespace FastCSV.Tests
         public unsafe void CsvReaderTest()
         {
             using var csv = StreamHelper.CreateStreamFromString(
-                "name,age\n" +
-                "Homer,35\n" +
-                "Marge,28\n");
+                $"name,age{System.Environment.NewLine}" +
+                $"Homer,35{System.Environment.NewLine}" +
+                $"Marge,28{System.Environment.NewLine}");
 
             using var reader = new CsvReader(new StreamReader(csv));
 
@@ -34,9 +34,9 @@ namespace FastCSV.Tests
         public void CsvReaderTest1()
         {
             using var csv = StreamHelper.CreateStreamFromString(
-                    "name,age\n" +
-                    "Homer,35\n" +
-                    "Marge,28\n");
+                    $"name,age{System.Environment.NewLine}" +
+                    $"Homer,35{System.Environment.NewLine}" +
+                    $"Marge,28{System.Environment.NewLine}");
 
             var format = new CsvFormat('\t', '\"');
             using var reader = new CsvReader(new StreamReader(csv), format);
@@ -50,9 +50,9 @@ namespace FastCSV.Tests
         public void CsvReaderTest2()
         {
             using var csv = StreamHelper.CreateStreamFromString(
-                    "name,age\n" +
-                    "Homer,35\n" +
-                    "Marge,28\n");
+                    $"name,age{System.Environment.NewLine}" +
+                    $"Homer,35{System.Environment.NewLine}" +
+                    $"Marge,28{System.Environment.NewLine}");
 
             using var reader = new CsvReader(new StreamReader(csv), hasHeader: false);
 
@@ -65,9 +65,9 @@ namespace FastCSV.Tests
         public void FromStreamTest()
         {
             using var csv = StreamHelper.CreateStreamFromString(
-                    "name,age\n" +
-                    "Homer,35\n" +
-                    "Marge,28\n");
+                    $"name,age{System.Environment.NewLine}" +
+                    $"Homer,35{System.Environment.NewLine}" +
+                    $"Marge,28{System.Environment.NewLine}");
 
             using var reader = CsvReader.FromStream(csv);
 
@@ -80,9 +80,9 @@ namespace FastCSV.Tests
         public void ReadTest()
         {
             using var csv = StreamHelper.CreateStreamFromString(
-                "name,age\n" +
-                "Homer,35\n" +
-                "Marge,28\n");
+                $"name,age{System.Environment.NewLine}" +
+                $"Homer,35{System.Environment.NewLine}" +
+                $"Marge,28{System.Environment.NewLine}");
 
             using var reader = new CsvReader(new StreamReader(csv));
             Assert.IsFalse(reader.IsDone);
@@ -138,9 +138,9 @@ namespace FastCSV.Tests
         public void ReadRecordWithWhiteSpaceTest()
         {
             using var csv = StreamHelper.CreateStreamFromString(
-                "Name,Age\n" +
-                "Homer , 35\n" +
-                " Marge,28\n");
+                $"Name,Age{System.Environment.NewLine}" +
+                $"Homer , 35{System.Environment.NewLine}" +
+                $" Marge,28{System.Environment.NewLine}");
 
             using var reader = CsvReader.FromStream(csv, CsvFormat.Default.WithIgnoreWhitespace(false));
 
@@ -152,9 +152,9 @@ namespace FastCSV.Tests
         public void ReadWithUnclosedQuoteTest()
         {
             using var csv = StreamHelper.CreateStreamFromString(
-                "Name,Age\n" +
-                "Mario \"The plumber, 20\n" +
-                "Luigi, 19\n");
+                $"Name,Age{System.Environment.NewLine}" +
+                $"Mario \"The plumber, 20{System.Environment.NewLine}" +
+                $"Luigi, 19{System.Environment.NewLine}");
 
             using var reader = CsvReader.FromStream(csv);
 
@@ -168,9 +168,9 @@ namespace FastCSV.Tests
         public void ReadWithQuoteAlwaysTest()
         {
             using var csv = StreamHelper.CreateStreamFromString(
-                "Name,Age\n" +
-                "Homer,35\n" +
-                "Marge,28\n");
+                $"Name,Age{System.Environment.NewLine}" +
+                $"Homer,35{System.Environment.NewLine}" +
+                $"Marge,28{System.Environment.NewLine}");
 
             var reader = CsvReader.FromStream(csv, CsvFormat.Default.WithStyle(QuoteStyle.Always));
 
@@ -182,9 +182,9 @@ namespace FastCSV.Tests
         public void ReadWithQuoteNeverTest()
         {
             using var csv = StreamHelper.CreateStreamFromString(
-                "Name,Age\n" +
-                "Frida \"The Painter\", 35\n" +
-                "Pagannini \"The violinist\",28\n");
+                $"Name,Age{System.Environment.NewLine}" +
+                $"Frida \"The Painter\", 35{System.Environment.NewLine}" +
+                $"Pagannini \"The violinist\",28{System.Environment.NewLine}");
 
             var reader = CsvReader.FromStream(csv, CsvFormat.Default.WithStyle(QuoteStyle.Never));
             Assert.AreEqual("Frida The Painter,35", reader.Read()!.ToString());
@@ -195,9 +195,9 @@ namespace FastCSV.Tests
         public async Task ReadAsyncTest()
         {
             using var csv = StreamHelper.CreateStreamFromString(
-                "name,age\n" +
-                "Homer,35\n" +
-                "Marge,28\n");
+                $"name,age{System.Environment.NewLine}" +
+                $"Homer,35{System.Environment.NewLine}" +
+                $"Marge,28{System.Environment.NewLine}");
 
             using var reader = new CsvReader(new StreamReader(csv));
             Assert.IsFalse(reader.IsDone);
@@ -215,9 +215,9 @@ namespace FastCSV.Tests
         public void ReadAllTest()
         {
             using var csv = StreamHelper.CreateStreamFromString(
-                "name,age\n" +
-                "Homer,35\n" +
-                "Marge,28\n");
+                $"name,age{System.Environment.NewLine}" +
+                $"Homer,35{System.Environment.NewLine}" +
+                $"Marge,28{System.Environment.NewLine}");
 
             using var reader = new CsvReader(new StreamReader(csv));
             var enumerator = reader.ReadAll().GetEnumerator();
@@ -236,9 +236,9 @@ namespace FastCSV.Tests
         public async Task ReadAllAsyncTest()
         {
             using var csv = StreamHelper.CreateStreamFromString(
-                "name,age\n" +
-                "Homer,35\n" +
-                "Marge,28\n");
+                $"name,age{System.Environment.NewLine}" +
+                $"Homer,35{System.Environment.NewLine}" +
+                $"Marge,28{System.Environment.NewLine}");
 
             using var reader = new CsvReader(new StreamReader(csv));
             var enumerator = reader.ReadAllAsync().GetAsyncEnumerator();
@@ -257,9 +257,9 @@ namespace FastCSV.Tests
         public void ReadAsTest()
         {
             using var csv = StreamHelper.CreateStreamFromString(
-                "Name,Age\n" +
-                "Homer,35\n" +
-                "Marge,28\n");
+                $"Name,Age{System.Environment.NewLine}" +
+                $"Homer,35{System.Environment.NewLine}" +
+                $"Marge,28{System.Environment.NewLine}");
 
             using var reader = CsvReader.FromStream(csv);
 
@@ -278,9 +278,9 @@ namespace FastCSV.Tests
         public void ReadAllAsTest()
         {
             using var csv = StreamHelper.CreateStreamFromString(
-                "Name,Age\n" +
-                "Homer,35\n" +
-                "Marge,28\n");
+                $"Name,Age{System.Environment.NewLine}" +
+                $"Homer,35{System.Environment.NewLine}" +
+                $"Marge,28{System.Environment.NewLine}");
 
             using var reader = CsvReader.FromStream(csv);
 
@@ -297,9 +297,9 @@ namespace FastCSV.Tests
         public async Task ReadAsAsyncTest()
         {
             using var csv = StreamHelper.CreateStreamFromString(
-                "Name,Age\n" +
-                "Homer,35\n" +
-                "Marge,28\n");
+                $"Name,Age{System.Environment.NewLine}" +
+                $"Homer,35{System.Environment.NewLine}" +
+                $"Marge,28{System.Environment.NewLine}");
 
             using var reader = CsvReader.FromStream(csv);
 
@@ -318,9 +318,9 @@ namespace FastCSV.Tests
         public async Task ReadAllAsAsyncTest()
         {
             using var csv = StreamHelper.CreateStreamFromString(
-                "Name,Age\n" +
-                "Homer,35\n" +
-                "Marge,28\n");
+                $"Name,Age{System.Environment.NewLine}" +
+                $"Homer,35{System.Environment.NewLine}" +
+                $"Marge,28{System.Environment.NewLine}");
 
             using var reader = CsvReader.FromStream(csv);
             var persons = reader.ReadAllAsAsync<Person>();
@@ -339,9 +339,9 @@ namespace FastCSV.Tests
         public void ResetTest()
         {
             using var csv = StreamHelper.CreateStreamFromString(
-                "name,age\n" +
-                "Homer,35\n" +
-                "Marge,28\n");
+                $"name,age{System.Environment.NewLine}" +
+                $"Homer,35{System.Environment.NewLine}" +
+                $"Marge,28{System.Environment.NewLine}");
 
             using var reader = new CsvReader(new StreamReader(csv));
 
@@ -368,9 +368,9 @@ namespace FastCSV.Tests
         public void TryResetTest()
         {
             using var csv = StreamHelper.CreateStreamFromString(
-                "name,age\n" +
-                "Homer,35\n" +
-                "Marge,28\n");
+                $"name,age{System.Environment.NewLine}" +
+                $"Homer,35{System.Environment.NewLine}" +
+                $"Marge,28{System.Environment.NewLine}");
 
             using var reader = new CsvReader(new StreamReader(csv));
 
@@ -397,9 +397,9 @@ namespace FastCSV.Tests
         public void ReadAllChangeFormatTest()
         {
             using var csvStream = StreamHelper.CreateStreamFromString(
-                "name,age\n" +
-                "Homer,35\n" +
-                "Marge,28\n");
+                $"name,age{System.Environment.NewLine}" +
+                $"Homer,35{System.Environment.NewLine}" +
+                $"Marge,28{System.Environment.NewLine}");
 
             using var reader = CsvReader.FromStream(csvStream);
             var readRecords = reader.ReadAll(new CsvFormat(delimiter: '|')).ToArray();

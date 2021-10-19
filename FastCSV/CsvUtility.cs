@@ -543,7 +543,7 @@ namespace FastCSV
         /// <returns>A csv with the records separated by a newline.</returns>
         public static string JoinLines(IEnumerable<string> values)
         {
-            return string.Join('\n', values);
+            return string.Join(Environment.NewLine, values);
         }
 
         private static string FormatCsvString(string s, CsvFormat format)

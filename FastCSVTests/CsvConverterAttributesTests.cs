@@ -29,7 +29,7 @@ namespace FastCSV.Tests
             var product = new Product { Name = "PC", Price = 2000m, Amount = 3 };
             var csv = CsvConverter.Serialize(product, typeof(Product));
 
-            Assert.AreEqual("name,price\nPC,2000", csv);
+            Assert.AreEqual($"name,price{System.Environment.NewLine}PC,2000", csv);
         }
 
         [Test]
@@ -38,13 +38,13 @@ namespace FastCSV.Tests
             var product = new Product { Name = "PC", Price = 2000m, Amount = 3 };
             var csv = CsvConverter.Serialize<Product>(product);
 
-            Assert.AreEqual("name,price\nPC,2000", csv);
+            Assert.AreEqual($"name,price{System.Environment.NewLine}PC,2000", csv);
         }
 
         [Test]
         public void DeserializeTest()
         {
-            var csv = "name,price\nPC,2000";
+            var csv = $"name,price{System.Environment.NewLine}PC,2000";
             var product = CsvConverter.Deserialize(csv, typeof(Product));
 
             Assert.AreEqual(new Product { Name = "PC", Price = 2000m, Amount = default }, product);
@@ -53,7 +53,7 @@ namespace FastCSV.Tests
         [Test]
         public void DeserializeWithGenericsTest()
         {
-            var csv = "name,price\nPC,2000";
+            var csv = $"name,price{System.Environment.NewLine}PC,2000";
             var product = CsvConverter.Deserialize<Product>(csv);
 
             Assert.AreEqual(new Product { Name = "PC", Price = 2000m, Amount = default }, product);
@@ -62,7 +62,7 @@ namespace FastCSV.Tests
         [Test]
         public void DeserializeWithIgnoredFieldTest()
         {
-            var csv = "name,price,amount\nPC,2000,34";
+            var csv = $"name,price,amount{System.Environment.NewLine}PC,2000,34";
             var product = CsvConverter.Deserialize(csv, typeof(Product));
 
             Assert.AreEqual(new Product { Name = "PC", Price = 2000m, Amount = default }, product);

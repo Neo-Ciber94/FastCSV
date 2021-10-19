@@ -38,97 +38,97 @@ namespace FastCSV.Tests
         [Test]
         public void SerializeTest()
         {
-            Assert.AreEqual($"value\n{byteValue}", CsvConverter.Serialize(byteValue));
-            Assert.AreEqual($"value\n{shortValue}", CsvConverter.Serialize(shortValue));
-            Assert.AreEqual($"value\n{intValue}", CsvConverter.Serialize(intValue));
-            Assert.AreEqual($"value\n{longValue}", CsvConverter.Serialize(longValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}{byteValue}", CsvConverter.Serialize(byteValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}{shortValue}", CsvConverter.Serialize(shortValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}{intValue}", CsvConverter.Serialize(intValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}{longValue}", CsvConverter.Serialize(longValue));
 
-            Assert.AreEqual($"value\n{sbyteValue}", CsvConverter.Serialize(sbyteValue));
-            Assert.AreEqual($"value\n{ushortValue}", CsvConverter.Serialize(ushortValue));
-            Assert.AreEqual($"value\n{uintValue}", CsvConverter.Serialize(uintValue));
-            Assert.AreEqual($"value\n{ulongValue}", CsvConverter.Serialize(ulongValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}{sbyteValue}", CsvConverter.Serialize(sbyteValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}{ushortValue}", CsvConverter.Serialize(ushortValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}{uintValue}", CsvConverter.Serialize(uintValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}{ulongValue}", CsvConverter.Serialize(ulongValue));
 
-            Assert.AreEqual($"value\n{halfValue}", CsvConverter.Serialize(halfValue));
-            Assert.AreEqual($"value\n{floatValue}", CsvConverter.Serialize(floatValue));
-            Assert.AreEqual($"value\n{doubleValue}", CsvConverter.Serialize(doubleValue));
-            Assert.AreEqual($"value\n{decimalValue}", CsvConverter.Serialize(decimalValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}{halfValue}", CsvConverter.Serialize(halfValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}{floatValue}", CsvConverter.Serialize(floatValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}{doubleValue}", CsvConverter.Serialize(doubleValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}{decimalValue}", CsvConverter.Serialize(decimalValue));
 
-            Assert.AreEqual($"value\ntrue", CsvConverter.Serialize(trueValue));
-            Assert.AreEqual($"value\nfalse", CsvConverter.Serialize(falseValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}true", CsvConverter.Serialize(trueValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}false", CsvConverter.Serialize(falseValue));
 
-            Assert.AreEqual($"value\n{dateTimeValue}", CsvConverter.Serialize(dateTimeValue));
-            Assert.AreEqual($"value\n{dateTimeOffsetValue}", CsvConverter.Serialize(dateTimeOffsetValue));
-            Assert.AreEqual($"value\n{timeSpanValue}", CsvConverter.Serialize(timeSpanValue));
-            Assert.AreEqual($"value\n{versionValue}", CsvConverter.Serialize(versionValue));
-            Assert.AreEqual($"value\n{ipAddressValue}", CsvConverter.Serialize(ipAddressValue));
-            Assert.AreEqual($"value\n{ipEndpointValue}", CsvConverter.Serialize(ipEndpointValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}{dateTimeValue}", CsvConverter.Serialize(dateTimeValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}{dateTimeOffsetValue}", CsvConverter.Serialize(dateTimeOffsetValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}{timeSpanValue}", CsvConverter.Serialize(timeSpanValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}{versionValue}", CsvConverter.Serialize(versionValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}{ipAddressValue}", CsvConverter.Serialize(ipAddressValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}{ipEndpointValue}", CsvConverter.Serialize(ipEndpointValue));
 
-            Assert.AreEqual($"value\n{stringValue}", CsvConverter.Serialize(stringValue));
+            Assert.AreEqual($"value{System.Environment.NewLine}{stringValue}", CsvConverter.Serialize(stringValue));
         }
 
         [Test]
         public void SerializeTypeObjectTest()
         {
-            Assert.AreEqual($"value\n{byteValue}", CsvConverter.Serialize(byteValue, typeof(object)));
-            Assert.AreEqual($"value\n{shortValue}", CsvConverter.Serialize(shortValue, typeof(object)));
-            Assert.AreEqual($"value\n{intValue}", CsvConverter.Serialize(intValue, typeof(object)));
-            Assert.AreEqual($"value\n{longValue}", CsvConverter.Serialize(longValue, typeof(object)));
+            Assert.AreEqual($"value{System.Environment.NewLine}{byteValue}", CsvConverter.Serialize(byteValue, typeof(object)));
+            Assert.AreEqual($"value{System.Environment.NewLine}{shortValue}", CsvConverter.Serialize(shortValue, typeof(object)));
+            Assert.AreEqual($"value{System.Environment.NewLine}{intValue}", CsvConverter.Serialize(intValue, typeof(object)));
+            Assert.AreEqual($"value{System.Environment.NewLine}{longValue}", CsvConverter.Serialize(longValue, typeof(object)));
 
-            Assert.AreEqual($"value\n{sbyteValue}", CsvConverter.Serialize(sbyteValue, typeof(object)));
-            Assert.AreEqual($"value\n{ushortValue}", CsvConverter.Serialize(ushortValue, typeof(object)));
-            Assert.AreEqual($"value\n{uintValue}", CsvConverter.Serialize(uintValue, typeof(object)));
-            Assert.AreEqual($"value\n{ulongValue}", CsvConverter.Serialize(ulongValue, typeof(object)));
+            Assert.AreEqual($"value{System.Environment.NewLine}{sbyteValue}", CsvConverter.Serialize(sbyteValue, typeof(object)));
+            Assert.AreEqual($"value{System.Environment.NewLine}{ushortValue}", CsvConverter.Serialize(ushortValue, typeof(object)));
+            Assert.AreEqual($"value{System.Environment.NewLine}{uintValue}", CsvConverter.Serialize(uintValue, typeof(object)));
+            Assert.AreEqual($"value{System.Environment.NewLine}{ulongValue}", CsvConverter.Serialize(ulongValue, typeof(object)));
 
-            Assert.AreEqual($"value\n{halfValue}", CsvConverter.Serialize(halfValue, typeof(object)));
-            Assert.AreEqual($"value\n{floatValue}", CsvConverter.Serialize(floatValue, typeof(object)));
-            Assert.AreEqual($"value\n{doubleValue}", CsvConverter.Serialize(doubleValue, typeof(object)));
-            Assert.AreEqual($"value\n{decimalValue}", CsvConverter.Serialize(decimalValue, typeof(object)));
+            Assert.AreEqual($"value{System.Environment.NewLine}{halfValue}", CsvConverter.Serialize(halfValue, typeof(object)));
+            Assert.AreEqual($"value{System.Environment.NewLine}{floatValue}", CsvConverter.Serialize(floatValue, typeof(object)));
+            Assert.AreEqual($"value{System.Environment.NewLine}{doubleValue}", CsvConverter.Serialize(doubleValue, typeof(object)));
+            Assert.AreEqual($"value{System.Environment.NewLine}{decimalValue}", CsvConverter.Serialize(decimalValue, typeof(object)));
 
-            Assert.AreEqual($"value\ntrue", CsvConverter.Serialize(trueValue, typeof(object)));
-            Assert.AreEqual($"value\nfalse", CsvConverter.Serialize(falseValue, typeof(object)));
+            Assert.AreEqual($"value{System.Environment.NewLine}true", CsvConverter.Serialize(trueValue, typeof(object)));
+            Assert.AreEqual($"value{System.Environment.NewLine}false", CsvConverter.Serialize(falseValue, typeof(object)));
 
-            Assert.AreEqual($"value\n{dateTimeValue}", CsvConverter.Serialize(dateTimeValue, typeof(object)));
-            Assert.AreEqual($"value\n{dateTimeOffsetValue}", CsvConverter.Serialize(dateTimeOffsetValue, typeof(object)));
-            Assert.AreEqual($"value\n{timeSpanValue}", CsvConverter.Serialize(timeSpanValue, typeof(object)));
-            Assert.AreEqual($"value\n{versionValue}", CsvConverter.Serialize(versionValue, typeof(object)));
-            Assert.AreEqual($"value\n{ipAddressValue}", CsvConverter.Serialize(ipAddressValue, typeof(object)));
-            Assert.AreEqual($"value\n{ipEndpointValue}", CsvConverter.Serialize(ipEndpointValue, typeof(object)));
+            Assert.AreEqual($"value{System.Environment.NewLine}{dateTimeValue}", CsvConverter.Serialize(dateTimeValue, typeof(object)));
+            Assert.AreEqual($"value{System.Environment.NewLine}{dateTimeOffsetValue}", CsvConverter.Serialize(dateTimeOffsetValue, typeof(object)));
+            Assert.AreEqual($"value{System.Environment.NewLine}{timeSpanValue}", CsvConverter.Serialize(timeSpanValue, typeof(object)));
+            Assert.AreEqual($"value{System.Environment.NewLine}{versionValue}", CsvConverter.Serialize(versionValue, typeof(object)));
+            Assert.AreEqual($"value{System.Environment.NewLine}{ipAddressValue}", CsvConverter.Serialize(ipAddressValue, typeof(object)));
+            Assert.AreEqual($"value{System.Environment.NewLine}{ipEndpointValue}", CsvConverter.Serialize(ipEndpointValue, typeof(object)));
         }
 
         [Test]
         public void DeserializeTest()
         {
-            Assert.AreEqual(byteValue, CsvConverter.Deserialize($"value\n{byteValue}", typeof(object)));
-            Assert.AreEqual(shortValue, CsvConverter.Deserialize($"value\n{shortValue}", typeof(object)));
-            Assert.AreEqual(intValue, CsvConverter.Deserialize($"value\n{intValue}", typeof(object)));
-            Assert.AreEqual(longValue, CsvConverter.Deserialize($"value\n{longValue}", typeof(object)));
+            Assert.AreEqual(byteValue, CsvConverter.Deserialize($"value{System.Environment.NewLine}{byteValue}", typeof(object)));
+            Assert.AreEqual(shortValue, CsvConverter.Deserialize($"value{System.Environment.NewLine}{shortValue}", typeof(object)));
+            Assert.AreEqual(intValue, CsvConverter.Deserialize($"value{System.Environment.NewLine}{intValue}", typeof(object)));
+            Assert.AreEqual(longValue, CsvConverter.Deserialize($"value{System.Environment.NewLine}{longValue}", typeof(object)));
 
-            Assert.AreEqual(sbyteValue, CsvConverter.Deserialize($"value\n{sbyteValue}", typeof(object)));
-            Assert.AreEqual(ushortValue, CsvConverter.Deserialize($"value\n{ushortValue}", typeof(object)));
-            Assert.AreEqual(uintValue, CsvConverter.Deserialize($"value\n{uintValue}", typeof(object)));
-            Assert.AreEqual(ulongValue, CsvConverter.Deserialize($"value\n{ulongValue}", typeof(object)));
+            Assert.AreEqual(sbyteValue, CsvConverter.Deserialize($"value{System.Environment.NewLine}{sbyteValue}", typeof(object)));
+            Assert.AreEqual(ushortValue, CsvConverter.Deserialize($"value{System.Environment.NewLine}{ushortValue}", typeof(object)));
+            Assert.AreEqual(uintValue, CsvConverter.Deserialize($"value{System.Environment.NewLine}{uintValue}", typeof(object)));
+            Assert.AreEqual(ulongValue, CsvConverter.Deserialize($"value{System.Environment.NewLine}{ulongValue}", typeof(object)));
 
-            Assert.AreEqual(floatValue, CsvConverter.Deserialize($"value\n{floatValue}", typeof(object)));
-            Assert.AreEqual(doubleValue, CsvConverter.Deserialize($"value\n{doubleValue}", typeof(object)));
-            Assert.AreEqual(decimalValue, CsvConverter.Deserialize($"value\n{decimalValue}", typeof(object)));
+            Assert.AreEqual(floatValue, CsvConverter.Deserialize($"value{System.Environment.NewLine}{floatValue}", typeof(object)));
+            Assert.AreEqual(doubleValue, CsvConverter.Deserialize($"value{System.Environment.NewLine}{doubleValue}", typeof(object)));
+            Assert.AreEqual(decimalValue, CsvConverter.Deserialize($"value{System.Environment.NewLine}{decimalValue}", typeof(object)));
 
-            Assert.AreEqual(true, CsvConverter.Deserialize($"value\n{trueValue}", typeof(object)));
-            Assert.AreEqual(false, CsvConverter.Deserialize($"value\n{falseValue}", typeof(object)));
+            Assert.AreEqual(true, CsvConverter.Deserialize($"value{System.Environment.NewLine}{trueValue}", typeof(object)));
+            Assert.AreEqual(false, CsvConverter.Deserialize($"value{System.Environment.NewLine}{falseValue}", typeof(object)));
 
-            Assert.AreEqual(dateTimeValue, CsvConverter.Deserialize($"value\n{dateTimeValue}", typeof(object)));
-            Assert.AreEqual(dateTimeOffsetValue, CsvConverter.Deserialize($"value\n{dateTimeOffsetValue}", typeof(object)));
-            Assert.AreEqual(timeSpanValue, CsvConverter.Deserialize($"value\n{timeSpanValue}", typeof(object)));
-            Assert.AreEqual(versionValue, CsvConverter.Deserialize($"value\n{versionValue}", typeof(object)));
-            Assert.AreEqual(ipAddressValue, CsvConverter.Deserialize($"value\n{ipAddressValue}", typeof(object)));
-            Assert.AreEqual(ipEndpointValue, CsvConverter.Deserialize($"value\n{ipEndpointValue}", typeof(object)));
+            Assert.AreEqual(dateTimeValue, CsvConverter.Deserialize($"value{System.Environment.NewLine}{dateTimeValue}", typeof(object)));
+            Assert.AreEqual(dateTimeOffsetValue, CsvConverter.Deserialize($"value{System.Environment.NewLine}{dateTimeOffsetValue}", typeof(object)));
+            Assert.AreEqual(timeSpanValue, CsvConverter.Deserialize($"value{System.Environment.NewLine}{timeSpanValue}", typeof(object)));
+            Assert.AreEqual(versionValue, CsvConverter.Deserialize($"value{System.Environment.NewLine}{versionValue}", typeof(object)));
+            Assert.AreEqual(ipAddressValue, CsvConverter.Deserialize($"value{System.Environment.NewLine}{ipAddressValue}", typeof(object)));
+            Assert.AreEqual(ipEndpointValue, CsvConverter.Deserialize($"value{System.Environment.NewLine}{ipEndpointValue}", typeof(object)));
 
-            Assert.AreEqual(stringValue, CsvConverter.Deserialize($"value\n{stringValue}", typeof(object)));
+            Assert.AreEqual(stringValue, CsvConverter.Deserialize($"value{System.Environment.NewLine}{stringValue}", typeof(object)));
         }
 
         [Test]
         public void DeserializeHalfTest()
         {
-            Half f = (Half)(float)CsvConverter.Deserialize($"value\n{halfValue}", typeof(object));       
+            Half f = (Half)(float)CsvConverter.Deserialize($"value{System.Environment.NewLine}{halfValue}", typeof(object));       
             Assert.AreEqual(halfValue, f);
         }
 
@@ -142,7 +142,7 @@ namespace FastCSV.Tests
             };
 
             decimal value = 34005.230211m;
-            object result = CsvConverter.Deserialize("value\n34005.230211", typeof(object), options);
+            object result = CsvConverter.Deserialize($"value{System.Environment.NewLine}34005.230211", typeof(object), options);
 
             Assert.AreEqual(typeof(decimal), result.GetType());
             Assert.AreEqual(value, result);
