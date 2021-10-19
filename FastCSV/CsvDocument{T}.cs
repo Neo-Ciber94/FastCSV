@@ -34,22 +34,18 @@ namespace FastCSV
         /// </summary>
         /// <param name="format">The format.</param>
         public CsvDocument(CsvFormat format)
-            : this(s_EmptyArray, new CsvHeader(CsvConverter.GetHeader<T>(), format), format) { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CsvDocument{T}"/> class.
-        /// </summary>
-        /// <param name="elements">The elements.</param>
-        public CsvDocument(IEnumerable<T> elements) : this(elements, CsvFormat.Default) { }
+            : this(s_EmptyArray, CsvHeader.FromType<T>(format), format) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CsvDocument{T}"/> class.
         /// </summary>
         /// <param name="elements">The elements.</param>
         /// <param name="format">The format.</param>
-        public CsvDocument(IEnumerable<T> elements, CsvFormat format)
+        public CsvDocument(IEnumerable<T> elements, CsvFormat? format = null)
         {
             _records = s_EmptyArray;
+            format ??= CsvFormat.Default;
+
             Header = new CsvHeader(CsvConverter.GetHeader<T>(), format);
             Format = format;
 
@@ -410,7 +406,7 @@ namespace FastCSV
 
             sb.AppendLine(Header.ToString(format));
 
-            foreach (CsvRecordWithValue<T> typedRecord in _records)
+            foreach (CsvRecordWithValue<T> typedRecord in _records.AsSpan(0, _count))
             {
                 sb.AppendLine(typedRecord.Record.ToString(format));
             }
