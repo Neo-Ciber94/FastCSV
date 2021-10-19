@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>FastCSV.Benchmarks</RootNamespace>
+	<Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -20,6 +21,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FastCSV\FastCSV.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="example.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
