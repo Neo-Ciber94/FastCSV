@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using FastCSV;
 using FastCSV.Converters;
-using FastCSV.Utils;
 using NUnit.Framework;
 
 namespace FastCSV.Tests
@@ -357,14 +352,15 @@ namespace FastCSV.Tests
                 new Person {Name = "Chinatsu", Age = 19}
             });
 
-            var copy = document.WithFormat(new CsvFormat(';', '"'));
+            CsvDocument<Person> copy = document.WithFormat(new CsvFormat(';', '"'));
+            string newLine = Environment.NewLine;
 
             Assert.AreEqual(
-                $"Name;Age{Environment.NewLine}" +
-                $"Akari;20{Environment.NewLine}" +
-                $"Kyoko;21{Environment.NewLine}" +
-                $"Yui;22{Environment.NewLine}" +
-                $"Chinatsu;19{Environment.NewLine}", copy.ToString());
+                $"Name;Age{newLine}" +
+                $"Akari;20{newLine}" +
+                $"Kyoko;21{newLine}" +
+                $"Yui;22{newLine}" +
+                $"Chinatsu;19{newLine}", copy.ToString());
         }
 
         [Test]
@@ -446,6 +442,26 @@ namespace FastCSV.Tests
                 new Person { Name = "Marie", Age = 18 },
                 new Person { Name = "Karen", Age = 24 },
             }, document.Values.ToArray());
+        }
+
+        [Test]
+        public void ToCsvDocumentTest()
+        {
+            var document = new CsvDocument<Person>(new[]
+{
+                new Person { Name = "Marie", Age = 18 },
+                new Person { Name = "Carol", Age = 15 },
+                new Person { Name = "Karen", Age = 24 },
+                new Person { Name = "Annie", Age = 30 },
+            });
+
+            CsvDocument<string> result = document.Values
+                .Where(e => e.Age > 20)
+                .Select(e => e.Name)
+                .ToCsvDocument();
+
+            string newLine = Environment.NewLine;
+            Assert.AreEqual($"value{newLine}Karen{newLine}Annie{newLine}", result.ToString());
         }
 
         [Test]

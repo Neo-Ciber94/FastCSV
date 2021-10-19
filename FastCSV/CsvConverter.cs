@@ -335,13 +335,20 @@ namespace FastCSV
             List<CsvProperty> csvProps = GetCsvProperties(type, options, Permission.Setter, instance: null);
             object result = FormatterServices.GetUninitializedObject(type);
 
-            foreach (var (key, value) in data)
+            foreach ((string key, SingleOrList<string> value) in data)
             {
                 CsvProperty? property = csvProps.FirstOrDefault(f => f.Name == key);
 
                 if (property == null)
                 {
-                    throw new InvalidOperationException($"Field '{key}' not found");
+                    if (options.MatchExact)
+                    {
+                        throw new InvalidOperationException($"Field '{key}' not found");
+                    }
+                    else
+                    {
+                        continue;
+                    }
                 }
 
                 if (property.Ignore)
@@ -584,10 +591,36 @@ namespace FastCSV
             bool handleNestedObjects = options.NestedObjectHandling != null;
             bool handleCollections = options.CollectionHandling != null;
 
-            // SAFETY: should be at least 1 record
-            CsvRecord record = reader.Read()!;
+            CsvRecord? record = reader.Read();
+
+            if (record == null)
+            {
+                return default;
+            }
 
             List<CsvProperty> csvProps = GetCsvProperties(type, options, Permission.Setter, null);
+
+            if (options.MatchExact && record.Header != null)
+            {
+                foreach(string headerElement in record.Header)
+                {
+                    bool anyMatch = false;
+
+                    foreach(var prop in csvProps)
+                    {
+                        if (prop.Name == headerElement)
+                        {
+                            anyMatch = true;
+                            break;
+                        }
+                    }
+
+                    if (!anyMatch)
+                    {
+                        //throw new InvalidOperationException($"Field '{headerElement}' not found");
+                    }
+                }
+            }
 
             Stack<object> objs = new Stack<object>();
             Stack<CsvProperty> props = new Stack<CsvProperty>();

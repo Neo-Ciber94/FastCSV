@@ -31,6 +31,11 @@ namespace FastCSV
         public bool IncludeHeader { get; init; } = true;
 
         /// <summary>
+        /// Whether if match all the properties in the source with the destination.
+        /// </summary>
+        public bool MatchExact { get; init; } = true;
+
+        /// <summary>
         /// Naming convention used.
         /// </summary>
         public CsvNamingConvention? NamingConvention { get; init; }

@@ -10,17 +10,6 @@ namespace FastCSV
     public static class CsvDocumentExtensions
     {
         /// <summary>
-        /// Returns an <see cref="IEnumerable{T}"/> over this document.
-        /// </summary>
-        /// <typeparam name="T">Type of the value.</typeparam>
-        /// <param name="document">The document.</param>
-        /// <returns>An enumerable over the elements of the document.</returns>
-        public static IEnumerable<T> AsEnumerable<T>(this CsvDocument<T> document)
-        {
-            return document.Values;
-        }
-
-        /// <summary>
         /// Creates a <see cref="CsvDocument{T}"/> from the elements of the given enumerable.
         /// </summary>
         /// <typeparam name="T">Type of the elements.</typeparam>

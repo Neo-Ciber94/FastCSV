@@ -63,6 +63,7 @@ namespace FastCSV
             }
 
             _records = records;
+            _count = records.Length;
             Header = header;
             Format = format;
         }
@@ -365,7 +366,8 @@ namespace FastCSV
         /// <returns></returns>
         public CsvDocument<T> WithFormat(CsvFormat format)
         {
-            return new CsvDocument<T>(_records.ToArray(), Header.WithFormat(format), format);
+            CsvRecordWithValue<T>[] array = _records.AsSpan(0, _count).ToArray();
+            return new CsvDocument<T>(array, Header.WithFormat(format), format);
         }
 
         private void Resize(int required)
@@ -431,7 +433,7 @@ namespace FastCSV
         /// <returns></returns>
         public string ToPrettyString()
         {
-            return CsvUtility.ToPrettyString(_records.Select(e => e.Record));
+            return CsvUtility.ToPrettyString(this.Select(record => record));
         }
 
         /// <summary>
