@@ -12,45 +12,16 @@ namespace FastCSV
     [TestFixture]
     public class CsvConverterMatchExactTests
     {
-        private static readonly CsvConverterOptions Options = new CsvConverterOptions { MatchExact = false };
+        private static readonly CsvConverterOptions Options = new CsvConverterOptions { MatchExact = true };
 
         [Test]
-        public void DeserializeCsvExactTest()
+        public void DeserializeCsvNoExactTest()
         {
             string csv = @"Id,FirstName,LastName,Age,Email,Gemder,IpAddress
 1,Romeo,Abela,34,rabela0@usatoday.com,Male,217.15.244.208";
 
-            Person product = CsvConverter.Deserialize<Person>(csv, Options);
+            Person product = CsvConverter.Deserialize<Person>(csv);
             Assert.AreEqual(new Person(1, "Romeo", "Abela"), product);
-        }
-
-        [Test]
-        public void DeserializeDictionaryExactTest()
-        {
-            var data = new Dictionary<string, SingleOrList<string>>
-            {
-                {"Id", "2" },
-                {"FirstName", "Horatius" },
-                {"LastName", "Garner" },
-                {"Age", "51" },
-                {"Email", "hgarner1@163.com," },
-                {"IpAddress",  "30.236.135.5"}
-            };
-
-            Person product = CsvConverter.DeserializeFromDictionary<Person>(data, Options);
-            Assert.AreEqual(new Person(2, "Horatius", "Garner"), product);
-        }
-
-        [Test]
-        public void DeserializeNoExactTest()
-        {
-            string csv = @"Id,FirstName,LastName,Age,Email,Gemder,IpAddress
-1,Romeo,Abela,34,rabela0@usatoday.com,Male,217.15.244.208";
-
-            Assert.Throws<InvalidOperationException>(() =>
-            {
-                Person product = CsvConverter.Deserialize<Person>(csv);
-            });
         }
 
         [Test]
@@ -66,9 +37,38 @@ namespace FastCSV
                 {"IpAddress",  "30.236.135.5"}
             };
 
+            Person product = CsvConverter.DeserializeFromDictionary<Person>(data);
+            Assert.AreEqual(new Person(2, "Horatius", "Garner"), product);
+        }
+
+        [Test]
+        public void DeserializeExactTest()
+        {
+            string csv = @"Id,FirstName,LastName,Age,Email,Gemder,IpAddress
+1,Romeo,Abela,34,rabela0@usatoday.com,Male,217.15.244.208";
+
             Assert.Throws<InvalidOperationException>(() =>
             {
-                Person product = CsvConverter.DeserializeFromDictionary<Person>(data);
+                Person product = CsvConverter.Deserialize<Person>(csv, Options);
+            });
+        }
+
+        [Test]
+        public void DeserializeDictionaryExactTest()
+        {
+            var data = new Dictionary<string, SingleOrList<string>>
+            {
+                {"Id", "2" },
+                {"FirstName", "Horatius" },
+                {"LastName", "Garner" },
+                {"Age", "51" },
+                {"Email", "hgarner1@163.com," },
+                {"IpAddress",  "30.236.135.5"}
+            };
+
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                Person product = CsvConverter.DeserializeFromDictionary<Person>(data, Options);
             });
         }
 

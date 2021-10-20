@@ -33,7 +33,7 @@ namespace FastCSV
         /// <summary>
         /// Whether if match all the properties in the source with the destination.
         /// </summary>
-        public bool MatchExact { get; init; } = true;
+        public bool MatchExact { get; init; } = false;
 
         /// <summary>
         /// Naming convention used.

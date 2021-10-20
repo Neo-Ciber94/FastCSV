@@ -602,11 +602,11 @@ namespace FastCSV
 
             if (options.MatchExact && record.Header != null)
             {
-                foreach(string headerElement in record.Header)
+                foreach (string headerElement in record.Header)
                 {
                     bool anyMatch = false;
 
-                    foreach(var prop in csvProps)
+                    foreach (var prop in csvProps)
                     {
                         if (prop.Name == headerElement)
                         {
@@ -617,7 +617,7 @@ namespace FastCSV
 
                     if (!anyMatch)
                     {
-                        //throw new InvalidOperationException($"Field '{headerElement}' not found");
+                        throw new InvalidOperationException($"Field '{headerElement}' not found");
                     }
                 }
             }
