@@ -118,7 +118,7 @@ namespace FastCSV
                 return values;
             }
 
-            using ValueList<DataToSerialize> props = SerializeInternal(value, type, options);
+            using ValueList<DataToSerialize> props = GetSerializeData(value, type, options);
             var buffer = new List<string>(props.Length);
             int index = 0;
 
@@ -220,7 +220,7 @@ namespace FastCSV
                 }
             }
 
-            using ValueList<DataToDeserialize> props = DeserializeInternal(csv, type, options);
+            using ValueList<DataToDeserialize> props = GetDeserializeData(csv, type, options);
             object obj = FormatterServices.GetUninitializedObject(type);
 
             foreach (var p in props)
@@ -274,7 +274,7 @@ namespace FastCSV
                 return new Dictionary<string, object?> { { PlainTypeHeaderName, value } };
             }
 
-            using ValueList<DataToSerialize> csvProps = SerializeInternal(value, type, options);
+            using ValueList<DataToSerialize> csvProps = GetSerializeData(value, type, options);
             Dictionary<string, object?> result = new();
 
             foreach (var p in csvProps)
@@ -477,7 +477,7 @@ namespace FastCSV
             return values.ToArray();
         }
 
-        private static ValueList<DataToSerialize> SerializeInternal(object? value, Type type, CsvConverterOptions options)
+        private static ValueList<DataToSerialize> GetSerializeData(object? value, Type type, CsvConverterOptions options)
         {
             if (value != null && !EqualTypes(value.GetType(), type))
             {
@@ -569,7 +569,7 @@ namespace FastCSV
             return items;
         }
 
-        private static ValueList<DataToDeserialize> DeserializeInternal(ReadOnlySpan<char> csv, Type type, CsvConverterOptions options)
+        private static ValueList<DataToDeserialize> GetDeserializeData(ReadOnlySpan<char> csv, Type type, CsvConverterOptions options)
         {
             if (csv.IsEmpty || csv.IsWhiteSpace())
             {
