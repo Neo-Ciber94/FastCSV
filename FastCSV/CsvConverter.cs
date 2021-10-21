@@ -220,16 +220,16 @@ namespace FastCSV
                 }
             }
 
-            using ValueList<DataToDeserialize> props = GetDeserializeData(csv, type, options);
+            using ValueList<DataToDeserialize> dataToDeserialize = GetDeserializeData(csv, type, options);
             object obj = FormatterServices.GetUninitializedObject(type);
 
-            foreach (var p in props)
+            foreach (var data in dataToDeserialize)
             {
-                CsvProperty csvProperty = p.Property;
+                CsvProperty csvProperty = data.Property;
 
                 if (!csvProperty.IsReadOnly)
                 {
-                    var value = p.Value;
+                    var value = data.Value;
                     csvProperty.SetValue(obj, value);
                 }
             }
@@ -274,12 +274,12 @@ namespace FastCSV
                 return new Dictionary<string, object?> { { PlainTypeHeaderName, value } };
             }
 
-            using ValueList<DataToSerialize> csvProps = GetSerializeData(value, type, options);
+            using ValueList<DataToSerialize> dataToSerialize = GetSerializeData(value, type, options);
             Dictionary<string, object?> result = new();
 
-            foreach (var p in csvProps)
+            foreach (var data in dataToSerialize)
             {
-                result.Add(p.ColumnName, p.Value);
+                result.Add(data.ColumnName, data.Value);
             }
 
             return result;
