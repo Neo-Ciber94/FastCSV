@@ -179,9 +179,9 @@ namespace FastCSV
         /// <param name="type">Type of the resulting value.</param>
         /// <param name="options">Options used, if null will use the default options.</param>
         /// <returns>The resulting value using the csv.</returns>
-        public static object? Deserialize(string csv, Type type, CsvConverterOptions? options = null)
+        public static object? Deserialize(ReadOnlySpan<char> csv, Type type, CsvConverterOptions? options = null)
         {
-            if (string.IsNullOrWhiteSpace(csv))
+            if (csv.IsEmpty || csv.IsWhiteSpace())
             {
                 throw new ArgumentException("csv cannot be empty", nameof(csv));
             }
@@ -209,7 +209,7 @@ namespace FastCSV
                         throw new InvalidOperationException($"Expected 1 single field");
                     }
 
-                    ReadOnlyMemory<string> recordValues = record.AsMemory();
+                    ReadOnlySpan<string> recordValues = record.AsSpan();
                     state = new CsvDeserializeState(options, type, recordValues);
                     return ParseString(type, ref state);
                 }
@@ -327,7 +327,7 @@ namespace FastCSV
                 }
                 else
                 {
-                    CsvDeserializeState state = new CsvDeserializeState(options, type, v.AsMemory());
+                    CsvDeserializeState state = new CsvDeserializeState(options, type, v.AsSpan());
                     return ParseString(type, ref state)!;
                 }
             }
@@ -369,7 +369,7 @@ namespace FastCSV
                     }
                     else
                     {
-                        CsvDeserializeState state = new(options, propertyType, value.AsMemory());
+                        CsvDeserializeState state = new(options, propertyType, value.AsSpan());
                         obj = ParseString(propertyType, ref state);
                     }
                 }
@@ -569,9 +569,9 @@ namespace FastCSV
             return items;
         }
 
-        private static ValueList<DataToDeserialize> DeserializeInternal(string csv, Type type, CsvConverterOptions options)
+        private static ValueList<DataToDeserialize> DeserializeInternal(ReadOnlySpan<char> csv, Type type, CsvConverterOptions options)
         {
-            if (string.IsNullOrWhiteSpace(csv))
+            if (csv.IsEmpty || csv.IsWhiteSpace())
             {
                 throw new ArgumentException("csv cannot be empty", nameof(csv));
             }
@@ -669,7 +669,7 @@ namespace FastCSV
                     {
                         if (property.Type.IsEnumerableType() && handleCollections)
                         {
-                            ReadOnlyMemory<string> recordValues = ReadCollectionFromRecord(record, index, options.CollectionHandling!);
+                            ReadOnlySpan<string> recordValues = ReadCollectionFromRecord(record, index, options.CollectionHandling!);
                             ICsvValueConverter? collectionConverter = GetConverter(property.Type, options, property.Converter);
 
                             if (collectionConverter == null)
@@ -727,7 +727,7 @@ namespace FastCSV
             }
         }
 
-        private static ReadOnlyMemory<string> ReadCollectionFromRecord(CsvRecord record, int startIndex, CollectionHandling collectionHandling)
+        private static ReadOnlySpan<string> ReadCollectionFromRecord(CsvRecord record, int startIndex, CollectionHandling collectionHandling)
         {
             var header = record.Header;
 
@@ -776,7 +776,7 @@ namespace FastCSV
                 index += 1;
             }
 
-            return record.AsMemory().Slice(startIndex, count);
+            return record.AsSpan().Slice(startIndex, count);
         }
 
         private static List<CsvProperty> GetCsvProperties(Type type, CsvConverterOptions options, Permission permission, object? instance)
@@ -881,9 +881,9 @@ namespace FastCSV
             {
                 if (state.Count == 1) 
                 {
-                    string s = state.Read();
+                    ReadOnlySpan<char> s = state.Read();
 
-                    if (string.IsNullOrEmpty(s))
+                    if (s.IsEmpty || s.IsWhiteSpace())
                     {
                         return null;
                     }

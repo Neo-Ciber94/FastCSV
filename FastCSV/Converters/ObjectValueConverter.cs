@@ -17,7 +17,7 @@ namespace FastCSV.Converters
         public bool TryDeserialize(out object? result, Type elementType, ref CsvDeserializeState state)
         {
             result = default!;
-            string stringValue = state.Read();
+            var stringValue = state.Read();
             CsvConverterOptions options = state.Options;
 
             Type? actualType = GuessTypeOrNull(stringValue, options.TypeGuessers);
@@ -68,7 +68,7 @@ namespace FastCSV.Converters
             return false;
         }
 
-        private static Type? GuessTypeOrNull(string s, IReadOnlyList<ITypeGuesser> typeGuessers)
+        private static Type? GuessTypeOrNull(ReadOnlySpan<char> s, IReadOnlyList<ITypeGuesser> typeGuessers)
         {
             if (typeGuessers.Count > 0)
             {

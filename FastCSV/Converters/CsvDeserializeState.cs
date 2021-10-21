@@ -6,10 +6,11 @@ namespace FastCSV.Converters
     /// <summary>
     /// State of a deserialization operation.
     /// </summary>
-    public readonly struct CsvDeserializeState
+    public readonly ref struct CsvDeserializeState
     {
-        private readonly ReadOnlyMemory<string> _values;
-        private readonly string? _singleValue;
+        private readonly ReadOnlySpan<string> _values;
+        private readonly ReadOnlySpan<char> _singleValue;
+        private readonly bool _isSingleValue;
         private readonly Type _elementType;
 
         /// <summary>
@@ -25,12 +26,12 @@ namespace FastCSV.Converters
         /// <summary>
         /// Number of values being deserialized.
         /// </summary>
-        public int Count => _singleValue == null ? _values.Length : 1;
+        public int Count => _isSingleValue == false? _values.Length : 1;
 
         /// <summary>
         /// The values to deserialize.
         /// </summary>
-        public ReadOnlyMemory<string> Values => _values;
+        public ReadOnlySpan<string> Values => _values;
 
         /// <summary>
         /// Type of the elements being deserialized.
@@ -60,11 +61,12 @@ namespace FastCSV.Converters
         /// <param name="options">Options to be used.</param>
         /// <param name="property">Source property being deserialized.</param>
         /// <param name="values">Values to deserialize.</param>
-        public CsvDeserializeState(CsvConverterOptions options, CsvProperty property, ReadOnlyMemory<string> values)
+        public CsvDeserializeState(CsvConverterOptions options, CsvProperty property, ReadOnlySpan<string> values)
         {
             _values = values;
             _elementType = property.Type;
-            _singleValue = null;
+            _singleValue = default;
+            _isSingleValue = false;
             Options = options;
             Property = property;
         }
@@ -75,11 +77,12 @@ namespace FastCSV.Converters
         /// <param name="options">Options to be used.</param>
         /// <param name="property">Source property being deserialized.</param>
         /// <param name="value">Value to deserialize.</param>
-        public CsvDeserializeState(CsvConverterOptions options, CsvProperty property, string value)
+        public CsvDeserializeState(CsvConverterOptions options, CsvProperty property, ReadOnlySpan<char> value)
         {
             _values = default;
             _elementType = property.Type;
             _singleValue = value;
+            _isSingleValue = true;
             Options = options;
             Property = property;
         }
@@ -90,11 +93,12 @@ namespace FastCSV.Converters
         /// <param name="options">Options to be used.</param>
         /// <param name="type">Type to deserialize to.</param>
         /// <param name="value">Value to deserialize.</param>
-        public CsvDeserializeState(CsvConverterOptions options, Type type, string value)
+        public CsvDeserializeState(CsvConverterOptions options, Type type, ReadOnlySpan<char> value)
         {
             _values = default;
             _elementType = type;
             _singleValue = value;
+            _isSingleValue = true;
             Options = options;
             Property = null;
         }
@@ -105,11 +109,12 @@ namespace FastCSV.Converters
         /// <param name="options">Options to be used.</param>
         /// <param name="type">Type to deserialize to.</param>
         /// <param name="values">Values to deserialize.</param>
-        public CsvDeserializeState(CsvConverterOptions options, Type type, ReadOnlyMemory<string> values)
+        public CsvDeserializeState(CsvConverterOptions options, Type type, ReadOnlySpan<string> values)
         {
             _values = values;
             _elementType = type;
-            _singleValue = null;
+            _singleValue = default;
+            _isSingleValue = false;
             Options = options;
             Property = null;
         }
@@ -119,20 +124,20 @@ namespace FastCSV.Converters
         /// </summary>
         /// <param name="index">Index of the value to read.</param>
         /// <returns>A string value to be deserialized.</returns>
-        public string Read(int index = 0)
+        public ReadOnlySpan<char> Read(int index = 0)
         {
             if (index < 0 || index > Count)
             {
                 throw new IndexOutOfRangeException($"Index cannot be negative or greather than {Count} but was {index}");
             }
 
-            if (_singleValue != null)
+            if (_isSingleValue)
             {
                 return _singleValue;
             }
             else
             {
-                return _values.Span[index];
+                return _values[index];
             }
         }
     }

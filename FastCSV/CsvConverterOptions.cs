@@ -31,7 +31,7 @@ namespace FastCSV
         public bool IncludeHeader { get; init; } = true;
 
         /// <summary>
-        /// Whether if match all the properties in the source with the destination.
+        /// Whether if match all the columns in the csv with the properties of the target.
         /// </summary>
         public bool MatchExact { get; init; } = false;
 

@@ -52,7 +52,7 @@ namespace FastCSV.Collections
         public int Count => _count;
 
         /// <summary>
-        /// Creates a <see cref="Memory{T}"/> from this instance.
+        /// Creates a <see cref="ReadOnlyMemory{T}"/> from this instance.
         /// </summary>
         /// <returns></returns>
         public ReadOnlyMemory<T> AsMemory()
@@ -65,6 +65,19 @@ namespace FastCSV.Collections
             return array.AsMemory(0, _count);
         }
 
+        /// <summary>
+        /// Creates a <see cref="ReadOnlySpan{T}"/> from this instance.
+        /// </summary>
+        /// <returns></returns>
+        public ReadOnlySpan<T> AsSpan()
+        {
+            if (_value is not T[] array)
+            {
+                array = new T[1] { (T)_value };
+            }
+
+            return array.AsSpan(0, _count);
+        }
         #region IList implementation
 
         public T this[int index]

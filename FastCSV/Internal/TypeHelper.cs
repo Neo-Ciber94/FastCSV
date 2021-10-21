@@ -9,11 +9,11 @@ namespace FastCSV.Internal
     internal static class TypeHelper
     {
         /// <summary>
-        /// Attemps to determine the expected type from the given <see cref="string"/> value.
+        /// Attemps to determine the expected type from the given string value.
         /// </summary>
         /// <param name="value">Value to get the type.</param>
         /// <returns>The expected type for the given string or null if cannot be determined.</returns>
-        public static Type? GetTypeFromString(string value)
+        public static Type? GetTypeFromString(ReadOnlySpan<char> value)
         {
             value = value.Trim();
 
@@ -185,38 +185,38 @@ namespace FastCSV.Internal
             return true;
         }
 
-        private static bool IsDateTime(string value)
+        private static bool IsDateTime(ReadOnlySpan<char> value)
         {
             return DateTime.TryParse(value, out _);
         }
 
-        private static bool IsTimeSpan(string value)
+        private static bool IsTimeSpan(ReadOnlySpan<char> value)
         {
             return TimeSpan.TryParse(value, out _);
         }
 
-        private static bool IsDateTimeOffset(string value)
+        private static bool IsDateTimeOffset(ReadOnlySpan<char> value)
         {
             return DateTimeOffset.TryParse(value, out _);
         }
 
-        private static bool IsGuid(string value)
+        private static bool IsGuid(ReadOnlySpan<char> value)
         {
             return Guid.TryParse(value, out _);
         }
 
-        private static bool IsVersion(string value)
+        private static bool IsVersion(ReadOnlySpan<char> value)
         {
             // We use 9.X.X.X as the max version to allow IPAddress to be parsed
             return Version.TryParse(value, out Version? v) && v.Major <= 9;
         }
 
-        private static bool IsIPAddress(string value)
+        private static bool IsIPAddress(ReadOnlySpan<char> value)
         {
             return IPAddress.TryParse(value, out _);
         }
 
-        private static bool IsIPEndpint(string value)
+        private static bool IsIPEndpint(ReadOnlySpan<char> value)
         {
             return IPEndPoint.TryParse(value, out _);
         }

@@ -24,6 +24,7 @@ A CSharp library for read and write csv documents.
 - [CsvDocument](#csv-document)
 - [CsvDocument\<T\>](#csv-document-typed)
   - [Write into CsvDocument\<T\>](#csv-document-typed-write)
+  - [Read csv from file](#csv-document-read-file)
 
 ## Read CSV
 
@@ -343,4 +344,27 @@ Console.WriteLine(document);
 await document.CopyToFileAsync("mydata.csv");
 
 record Product(int Id, string? Name, decimal Price);
+```
+
+#### Read csv from file
+You can also read csv documents from files into a typed ``CsvDocument\<T>```
+
+```csharp
+using FastCSV;
+using System;
+
+var options = new CsvConverterOptions
+{
+    NamingConvention = CsvNamingConvention.SnakeCase
+};
+
+CsvDocument<Person> document = CsvDocument.FromPath<Person>("example.csv", options);
+
+foreach(Person e in document.Values)
+{
+    Console.WriteLine(e);
+}
+
+// Only map the necesary colums, use 'CsvConverterOptions.MatchExact = true' to force match all the csv columns
+record Person(int Id, string? FirstName, string? LastName, int Age);
 ```

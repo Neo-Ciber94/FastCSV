@@ -89,7 +89,7 @@ namespace FastCSV.Converters.Collections
             for (int i = 0; i < state.Count; i++)
             {
                 Type elementType = GetElementTypeAt(i, ref state);
-                string stringValue = state.Read(i);
+                var stringValue = state.Read(i);
 
                 CsvDeserializeState elementState = new CsvDeserializeState(options, elementType, stringValue);
                 ICsvValueConverter converter = GetElementConverter(options, elementType, property?.Converter);

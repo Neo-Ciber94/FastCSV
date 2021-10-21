@@ -152,7 +152,7 @@ namespace FastCSV.Tests
         {
             public static DecimalConverter Default { get; } = new DecimalConverter();
 
-            public Type GetTypeFromString(string s)
+            public Type GetTypeFromString(ReadOnlySpan<char> s)
             {
                 if (decimal.TryParse(s, out _))
                 {
