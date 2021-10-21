@@ -3,26 +3,26 @@
 - [x] Support for nullable types
 - [x] Tests for serialize invalid types with `CsvConverter`
 - [x] Tests for deserialize invalid types with `CsvConverter`
-- [x] Add IPEndpoint to builtin types
+- [x] Add ``IPEndpoint`` to builtin types
 - [x] Allow custom serialization/deserialization for array
 - [x] Add cancellation tokens for async functions
 - [x] Allow override format when reading csv
-- [x] Change Optional.Match to Optional.Fold
+- [x] Change ``Optional.Match`` to ``Optional.Fold``
 - [x] Change ToString method to show all digits in float and double value converter
 - [x] Add Object as a builtin type?
-- [x] Rename IValueConverter methods to 'string ConvertTo(T)' and 'bool ConvertFrom(string, out T)'
+- [x] Rename ``IValueConverter`` methods to ``string ConvertTo\<T>`` and ``bool ConvertFrom(string, out T)``
 - [ ] Update README
 - [x] Add tests for builtin types converters
 - [x] Add tests for floating points converters
-- [x] Move extensions to FastCSV.Extensions
+- [x] Move extensions to ``FastCSV.Extensions``
 - [x] Allow serialize/deserialize any type with a converter, not just builtin types
 - [ ] Move exceptions to ThrowHelper
-- [x] Valide if CsvRecord and CsvHeader can be change to 'readonly struct'
+- [x] Valide if ``CsvRecord`` and ``CsvHeader`` can be change to 'readonly struct'
 - [x] Add more async API
 - [ ] Add api to cache reflection results to reduce allocations
-- [x] Add more utility methods to CsvDocument<T>
+- [x] Add more utility methods to ``CsvDocument\<T>``
 - [x] Add \r\n newlines to csv writers (depending platform)
 - [x] Rename collection itemName to tag
-- [ ] Add custom null handling for CsvConverterOptions
-- [ ] Create sorting methods for CsvDocument.Sort that generate none or less allocations
-- [ ] Use ICsvValueConverter for builtin types to avoid extra interface generation
+- [ ] Add custom null handling for ``CsvConverterOptions``
+- [ ] Create sorting methods for ``CsvDocument.Sort`` that generate none or less allocations
+- [ ] Use ``ICsvValueConverter`` for builtin types to avoid extra interface generation
