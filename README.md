@@ -8,7 +8,7 @@ A CSharp library for read and write csv documents.
 - Parse objects to csv using ``CsvConverter``.
 - Changed the format of read/write using ``CsvFormat``.
 
-## Table of content
+## Table of contents
 - [Read CSV](#read-csv)
   - [Read from file](#read-file)
   - [Read from string](#read-string)
@@ -26,6 +26,8 @@ A CSharp library for read and write csv documents.
   - [Write into CsvDocument\<T\>](#csv-document-typed-write)
   - [Read csv from file](#csv-document-read-file)
 
+
+> The examples are written using C# 'top-level statements'
 ## Read CSV
 
 ###  Read from file
