@@ -324,6 +324,42 @@ namespace FastCSV.Utils.Tests
             Assert.AreEqual(0, sb.Length);
         }
 
+        [Test]
+        public void TrimTest()
+        {
+            Span<char> buffer = new char[100];
+            using var sb = new ValueStringBuilder(buffer);
+            sb.Append(" Hello World!  ");
+            sb.Trim();
+
+            Assert.AreEqual("Hello World!", sb.ToString());
+            Assert.AreEqual(12, sb.Length);
+        }
+
+        [Test]
+        public void TrimStartTest()
+        {
+            Span<char> buffer = new char[100];
+            using var sb = new ValueStringBuilder(buffer);
+            sb.Append(" Hello World!  ");
+            sb.TrimStart();
+
+            Assert.AreEqual("Hello World!  ", sb.ToString());
+            Assert.AreEqual(14, sb.Length);
+        }
+
+        [Test]
+        public void TrimEndTest()
+        {
+            Span<char> buffer = new char[100];
+            using var sb = new ValueStringBuilder(buffer);
+            sb.Append(" Hello World!  ");
+            sb.TrimEnd();
+
+            Assert.AreEqual(" Hello World!", sb.ToString());
+            Assert.AreEqual(13, sb.Length);
+        }
+
         [Test()]
         public void GetEnumeratorTest()
         {

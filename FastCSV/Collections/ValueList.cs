@@ -14,8 +14,8 @@ namespace FastCSV.Collections
     /// </para>
     /// </summary>
     /// <typeparam name="T">Type of the elements.</typeparam>
-    [DebuggerDisplay("Length = {Length}")]
     [DebuggerTypeProxy(typeof(ValueListDebugView<>))]
+    [DebuggerDisplay("Length = {Length}")]
     public ref struct ValueList<T>
     {
         private T[]? _arrayFromPool;

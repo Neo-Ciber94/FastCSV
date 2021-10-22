@@ -86,13 +86,12 @@ namespace FastCSV
                         }
                         else
                         {
-                            // Gets the current field and trim the whitespaces if required by the format
-                            string field = stringBuilder.ToString();
-
                             if (format.IgnoreWhitespace)
                             {
-                                field = field.Trim();
+                                stringBuilder.Trim();
                             }
+
+                            string field = stringBuilder.ToString();
 
                             records.Add(field);
                             stringBuilder.Clear();

@@ -13,11 +13,9 @@ namespace FastCSV.Extensions
             return span.IsEmpty || span.IsWhiteSpace();
         }
 
-        public static Span<T> ReplaceAll<T>(this Span<T> span, T oldValue, T newValue, IEqualityComparer<T>? comparer = null)
+        public static Span<T> ReplaceAll<T>(this Span<T> span, T oldValue, T newValue) where T: IEquatable<T>
         {
-            comparer ??= EqualityComparer<T>.Default;
-
-            if (comparer.Equals(oldValue, newValue))
+            if (oldValue.Equals(newValue))
             {
                 return span;
             }
@@ -28,7 +26,7 @@ namespace FastCSV.Extensions
             {
                 T value = span[i];
 
-                if (comparer.Equals(value, oldValue))
+                if (value.Equals(oldValue))
                 {
                     span[i] = newValue;
                 }
@@ -37,21 +35,92 @@ namespace FastCSV.Extensions
             return span;
         }
 
-        public static Span<T> ReplaceAll<T>(this Span<T> span, T oldValue, ReadOnlySpan<T> newValue, IEqualityComparer<T>? comparer = null)
+        public static Span<T> ReplaceAll<T>(this Span<T> span, T oldValue, ReadOnlySpan<T> newValue) where T : IEquatable<T>
         {
-            return ReplaceAll(span, MemoryMarshal.CreateSpan(ref oldValue, 1), newValue, comparer);
+            return ReplaceAll(span, MemoryMarshal.CreateSpan(ref oldValue, 1), newValue);
         }
 
-        public static Span<T> ReplaceAll<T>(this Span<T> span, ReadOnlySpan<T> oldValue, T newValue, IEqualityComparer<T>? comparer = null)
+        public static Span<T> ReplaceAll<T>(this Span<T> span, ReadOnlySpan<T> oldValue, T newValue) where T : IEquatable<T>
         {
-            return ReplaceAll(span, oldValue, MemoryMarshal.CreateSpan(ref newValue, 1), comparer);
+            return ReplaceAll(span, oldValue, MemoryMarshal.CreateSpan(ref newValue, 1));
         }
 
-        public static Span<T> ReplaceAll<T>(this Span<T> span, ReadOnlySpan<T> oldValue, ReadOnlySpan<T> newValue, IEqualityComparer<T>? comparer = null)
+        public static Span<T> ReplaceAll<T>(this Span<T> span, ReadOnlySpan<T> oldValue, ReadOnlySpan<T> newValue) where T : IEquatable<T>
         {
-            if (oldValue.SequenceEquals(newValue))
+            if (oldValue.SequenceEqual(newValue))
             {
                 return span;
+            }
+
+            int totalToReplace = 0;
+            int index = 0;
+
+            while (true)
+            {
+                ReadOnlySpan<T> slice = span[index..];
+                int pos = slice.IndexOf(oldValue);
+
+                if (pos == -1)
+                {
+                    break;
+                }
+
+                totalToReplace += 1;
+                index = pos + oldValue.Length;
+            }
+
+            if (totalToReplace == 0)
+            {
+                return span;
+            }
+
+            int newLength = span.Length + (totalToReplace * newValue.Length);
+
+            if (newLength == span.Length)
+            {
+                TryReplaceAll(span, oldValue, newValue, span, out _);
+                return span;
+            }
+            else
+            {
+                T[] arrayFromPool = ArrayPool<T>.Shared.Rent(newLength);
+                TryReplaceAll(span, oldValue, newValue, arrayFromPool, out int totalWritten);
+                Span<T> result = arrayFromPool.AsSpan(0, totalWritten);
+                ArrayPool<T>.Shared.Return(arrayFromPool);
+                return result;
+            }
+        }
+
+        public static bool TryReplaceAll<T>(this ReadOnlySpan<T> span,
+            ReadOnlySpan<T> oldValue,
+            T newValue,
+            Span<T> buffer,
+            out int totalWritten) where T : IEquatable<T>
+        {
+            return TryReplaceAll(span, oldValue, MemoryMarshal.CreateSpan(ref newValue, 1), buffer, out totalWritten);
+        }
+
+        public static bool TryReplaceAll<T>(this ReadOnlySpan<T> span,
+            T oldValue,
+            ReadOnlySpan<T> newValue,
+            Span<T> buffer,
+            out int totalWritten) where T : IEquatable<T>
+        {
+            return TryReplaceAll(span, MemoryMarshal.CreateSpan(ref oldValue, 1), newValue, buffer, out totalWritten);
+        }
+
+        public static bool TryReplaceAll<T>(
+            this ReadOnlySpan<T> span,
+            ReadOnlySpan<T> oldValue,
+            ReadOnlySpan<T> newValue,
+            Span<T> buffer,
+            out int totalWritten) where T : IEquatable<T>
+        {
+            totalWritten = 0;
+
+            if (oldValue.Length == 0 || buffer.Length == 0 || newValue.Length > buffer.Length || oldValue.SequenceEqual(newValue))
+            {
+                return false;
             }
 
             using var indicesToReplace = new ValueList<int>(stackalloc int[128]);
@@ -60,230 +129,69 @@ namespace FastCSV.Extensions
             while (true)
             {
                 ReadOnlySpan<T> slice = span[index..];
-                int pos = slice.IndexOf(oldValue, comparer);
+                int pos = slice.IndexOf(oldValue);
 
                 if (pos == -1)
                 {
                     break;
                 }
 
-                indicesToReplace.Add(pos);
-                index = pos + oldValue.Length;
+                indicesToReplace.Add(pos + index);
+                index += pos + oldValue.Length;
             }
 
             if (indicesToReplace.Length == 0)
             {
-                return span;
+                return false;
             }
 
-            if (oldValue.Length == newValue.Length)
-            {
-                for (int i = 0; i < span.Length; i++)
-                {
-                    ReadOnlySpan<T> s = span;
-
-                    if (s[i..].StartsWith(oldValue))
-                    {
-                        newValue.CopyTo(span[i..]);
-                        i += newValue.Length;
-                    }
-                }
-            }
-
-            int newLength = span.Length + (indicesToReplace.Length * newValue.Length);
             int newValueLength = newValue.Length;
-            T[] arrayFromPool = ArrayPool<T>.Shared.Rent(newLength);
-            Span<T> arrayPoolSpan = arrayFromPool.AsSpan(0, newLength);
-            index = 0;
+            int oldValueLength = oldValue.Length;
+
+            int thisIdx = 0;
+            int dstIdx = 0;
 
             for (int i = 0; i < indicesToReplace.Length; i++)
             {
                 int indexToReplace = indicesToReplace[i];
-                span.CopyTo(arrayPoolSpan.Slice(index, indexToReplace));
-                newValue.CopyTo(arrayPoolSpan.Slice(indexToReplace, newValueLength));
-                index = indexToReplace + 1;
-            }
 
-            T[] result = span.ToArray();
-            ArrayPool<T>.Shared.Return(arrayFromPool);
-            return result;
-
-            //static Span<T> ReplaceIndices(ReadOnlySpan<T> source, ValueList<int> indices, ReadOnlySpan<T> newValue)
-            //{
-            //    int newLength = source.Length + (indices.Length * newValue.Length);
-            //    int newValueLength = newValue.Length;
-            //    T[] arrayFromPool = ArrayPool<T>.Shared.Rent(newLength);
-            //    Span<T> span = arrayFromPool.AsSpan(0, newLength);
-
-            //    int index = 0;
-
-            //    for (int i = 0; i < indices.Length; i++)
-            //    {
-            //        int indexToReplace = indices[i];
-            //        source.CopyTo(span.Slice(index, indexToReplace));
-            //        newValue.CopyTo(span.Slice(indexToReplace, newValueLength));
-            //        index = indexToReplace + 1;
-            //    }
-
-            //    T[] result = span.ToArray();
-            //    ArrayPool<T>.Shared.Return(arrayFromPool);
-            //    return result;
-            //}
-        }
-
-        public static bool StartsWith<T>(this ReadOnlySpan<T> span, ReadOnlySpan<T> value, IEqualityComparer<T>? comparer = null)
-        {
-            if (value.Length > span.Length)
-            {
-                return false;
-            }
-
-            comparer ??= EqualityComparer<T>.Default;
-
-            for (int i = 0; i < value.Length; i++)
-            {
-                T x = span[i];
-                T y = value[i];
-
-                if (!comparer.Equals(x, y))
+                if ((indexToReplace + newValueLength) > buffer.Length)
                 {
-                    return false;
+                    break;
                 }
-            }
 
-            return true;
-        }
+                int count = indexToReplace - thisIdx;
 
-        public static bool EndsWith<T>(this ReadOnlySpan<T> span, ReadOnlySpan<T> value, IEqualityComparer<T>? comparer = null)
-        {
-            if (value.Length > span.Length)
-            {
-                return false;
-            }
-
-            comparer ??= EqualityComparer<T>.Default;
-
-            for (int i = 0; i < value.Length; i++)
-            {
-                int lastIndex = span.Length - i;
-                T x = span[lastIndex];
-                T y = value[i];
-
-                if (!comparer.Equals(x, y))
+                if (count > 0)
                 {
-                    return false;
+                    span.Slice(thisIdx, count).CopyTo(buffer[dstIdx..]);
+                    thisIdx += count;
+                    dstIdx += count;
                 }
-            }
 
-            return true;
-        }
-
-        public static bool Contains<T>(this ReadOnlySpan<T> span, T value, IEqualityComparer<T>? comparer = null)
-        {
-            return IndexOf(span, value, comparer) >= 0;
-        }
-
-        public static bool Contains<T>(this ReadOnlySpan<T> span, ReadOnlySpan<T> value, IEqualityComparer<T>? comparer = null)
-        {
-            return IndexOf(span, value, comparer) >= 0;
-        }
-
-        public static int IndexOf<T>(this ReadOnlySpan<T> span, T value, IEqualityComparer<T>? comparer = null)
-        {
-            int length = span.Length;
-            comparer ??= EqualityComparer<T>.Default;
-
-            for (int i = 0; i < length; i++)
-            {
-                if (!comparer.Equals(value, span[i]))
+                if (newValueLength > 0)
                 {
-                    return i;
+                    Span<T> dst = buffer[dstIdx..];
+                    newValue.CopyTo(dst);
+
+                    dstIdx += newValueLength;
                 }
+
+                thisIdx += oldValueLength;
             }
 
-            return -1;
-        }
-
-        public static int IndexOf<T>(this ReadOnlySpan<T> span, ReadOnlySpan<T> value, IEqualityComparer<T>? comparer = null)
-        {
-            if (value.Length > span.Length)
+            // Copies the rest
+            if (thisIdx < span.Length)
             {
-                return -1;
+                int bufferLeft = buffer.Length - dstIdx;
+                int spanLeft = span.Length - thisIdx;
+                int count = Math.Min(bufferLeft, spanLeft);
+                span.Slice(thisIdx, count).CopyTo(buffer[dstIdx..]);
             }
 
-            int length = span.Length;
-            comparer ??= EqualityComparer<T>.Default;
-
-            for (int i = 0; i < length; i++)
-            {
-                if (!span[i..].StartsWith(value, comparer))
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
-        public static int LastIndexOf<T>(this ReadOnlySpan<T> span, T value, IEqualityComparer<T>? comparer = null)
-        {
-            int length = span.Length;
-            comparer ??= EqualityComparer<T>.Default;
-
-            for (int i = length - 1; i >= 0; i--)
-            {
-                if (!comparer.Equals(span[i], value))
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
-        public static int LastIndexOf<T>(this ReadOnlySpan<T> span, ReadOnlySpan<T> value, IEqualityComparer<T>? comparer = null)
-        {
-            if (value.Length > span.Length)
-            {
-                return -1;
-            }
-
-            int length = span.Length;
-            int startIndex = span.Length - value.Length;
-            comparer ??= EqualityComparer<T>.Default;
-
-            for (int i = startIndex; i >= 0; i--)
-            {
-                if (!span[i..].StartsWith(value, comparer))
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
-        public static bool SequenceEquals<T>(this ReadOnlySpan<T> span, ReadOnlySpan<T> other, IEqualityComparer<T>? comparer = null)
-        {
-            if (span.Length != other.Length)
-            {
-                return false;
-            }
-
-            comparer ??= EqualityComparer<T>.Default;
-            int length = span.Length;
-
-            for (int i = 0; i < length; i++)
-            {
-                T x = span[i];
-                T y = other[i];
-
-                if (!comparer.Equals(x, y))
-                {
-                    return false;
-                }
-            }
-
+            int diff = newValueLength - oldValueLength;
+            int minLength = span.Length + (indicesToReplace.Length * diff);
+            totalWritten = Math.Min(buffer.Length, minLength);
             return true;
         }
     }

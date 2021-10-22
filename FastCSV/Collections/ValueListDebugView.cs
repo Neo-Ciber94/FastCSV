@@ -2,7 +2,7 @@
 
 namespace FastCSV.Collections
 {
-    internal class ValueListDebugView<T>
+    internal sealed class ValueListDebugView<T>
     {
         private readonly T[] _array;
 

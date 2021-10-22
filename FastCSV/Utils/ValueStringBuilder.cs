@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace FastCSV.Utils
@@ -373,6 +374,39 @@ namespace FastCSV.Utils
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Removes all the leading and trailing whitespaces.
+        /// </summary>
+        public void Trim()
+        {
+            Span<char> src = _span.Slice(0, _count).Trim();
+            Span<char> dst = _span.Slice(0, _count);
+            src.CopyTo(dst);
+            _count = src.Length;
+        }
+
+        /// <summary>
+        /// Removes all the leading whitespaces.
+        /// </summary>
+        public void TrimStart()
+        {
+            Span<char> src = _span.Slice(0, _count).TrimStart();
+            Span<char> dst = _span.Slice(0, _count);
+            src.CopyTo(dst);
+            _count = src.Length;
+        }
+
+        /// <summary>
+        /// Removes all the trailing whitespaces.
+        /// </summary>
+        public void TrimEnd()
+        {
+            Span<char> src = _span.Slice(0, _count).TrimEnd();
+            Span<char> dst = _span.Slice(0, _count);
+            src.CopyTo(dst);
+            _count = src.Length;
         }
 
         /// <summary>
