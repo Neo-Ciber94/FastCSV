@@ -7,6 +7,7 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using FastCSV.Utils;
 using FastCSV.Collections;
+using FastCSV.Extensions;
 
 namespace FastCSV
 {
@@ -19,11 +20,11 @@ namespace FastCSV
         /// <param name="format">The format.</param>
         /// <param name="flexible">if set to <c>true</c> will allow records of differents lengths.</param>
         /// <returns></returns>
-        public static CsvDocument FromCsv(string csv, CsvFormat? format = null, bool flexible = false)
+        public static CsvDocument FromCsv(ReadOnlySpan<char> csv, CsvFormat? format = null, bool flexible = false)
         {
             format ??= CsvFormat.Default;
 
-            if (string.IsNullOrWhiteSpace(csv))
+            if (csv.IsEmptyOrWhiteSpace())
             {
                 throw new ArgumentException("CSV is empty");
             }
@@ -118,7 +119,7 @@ namespace FastCSV
         /// <param name="csv">The CSV.</param>
         /// <param name="options">Options used to deserialize the values.</param>
         /// <returns>A csv document from the given data.</returns>
-        public static CsvDocument<T> FromCsv<T>(string csv, CsvConverterOptions? options = null)
+        public static CsvDocument<T> FromCsv<T>(ReadOnlySpan<char> csv, CsvConverterOptions? options = null)
         {
             List<T> list = new List<T>();
             Stream memory = StreamHelper.CreateStreamFromString(csv);
