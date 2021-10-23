@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,20 +10,43 @@ namespace FastCSV.Utils
     /// <summary>
     /// An enumerator over a text.
     /// </summary>
-    public struct TextParser
+    public struct TextParser : IEnumerator<char>, IEnumerable<char>
     {
         private readonly ReadOnlyMemory<char> text;
         private int pos;
 
         public TextParser(string text) : this(text.AsMemory()) { }
 
-        public TextParser(ReadOnlyMemory<char> text)
+        public TextParser(ReadOnlyMemory<char> text) : this(text, false) { }
+
+        internal TextParser(ReadOnlyMemory<char> text, bool start)
         {
             this.text = text;
-            pos = -1;
+            pos = start ? 0 : -1;
         }
 
         public char Current => text.Span[pos];
+
+        public TextParser this[Range range]
+        {
+            get
+            {
+                var (index, count) = range.GetOffsetAndLength(Rest.Length);
+                return Slice(index, count);
+            }
+        }
+
+        public TextParser Slice(int start)
+        {
+            var newText = Rest[start..];
+            return new TextParser(newText, start: true);
+        }
+
+        public TextParser Slice(int start, int count)
+        {
+            var newText = Rest.Slice(start, count);
+            return new TextParser(newText, start: true);
+        }
 
         public bool CanConsume(ReadOnlySpan<char> other)
         {
@@ -70,7 +94,7 @@ namespace FastCSV.Utils
             {
                 if (pos == -1)
                 {
-                    throw new InvalidOperationException("TextParser is not initialized, must call MoveNext() first");
+                    ThrowNotInitialized();
                 }
 
                 if (pos >= text.Length)
@@ -82,20 +106,17 @@ namespace FastCSV.Utils
             }
         }
 
-        public Optional<char> Peek
+        public Optional<char> Peek()
         {
-            get
+            int length = text.Length;
+            int next = pos + 1;
+
+            if (next < length)
             {
-                int length = text.Length;
-                int next = pos + 1;
-
-                if (next < length)
-                {
-                    return text.Span[next];
-                }
-
-                return default;
+                return text.Span[next];
             }
+
+            return default;
         }
 
         public Optional<char> Next()
@@ -129,5 +150,23 @@ namespace FastCSV.Utils
         }
 
         public TextParser GetEnumerator() => this;
+
+        private void ThrowNotInitialized()
+        {
+            throw new InvalidOperationException("TextParser is not initialized, must call MoveNext() first");
+        }
+
+        public void Reset()
+        {
+            pos = -1;
+        }
+
+        object IEnumerator.Current => Current;
+
+        void IDisposable.Dispose() { }
+
+        IEnumerator<char> IEnumerable<char>.GetEnumerator() => GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

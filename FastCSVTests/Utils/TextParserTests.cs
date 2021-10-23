@@ -53,22 +53,22 @@ namespace FastCSV.Utils
         {
             var parser = new TextParser("Anima");
 
-            Assert.AreEqual('A', parser.Peek.Value);
+            Assert.AreEqual('A', parser.Peek().Value);
             parser.MoveNext();
 
-            Assert.AreEqual('n', parser.Peek.Value);
+            Assert.AreEqual('n', parser.Peek().Value);
             parser.MoveNext();
 
-            Assert.AreEqual('i', parser.Peek.Value);
+            Assert.AreEqual('i', parser.Peek().Value);
             parser.MoveNext();
 
-            Assert.AreEqual('m', parser.Peek.Value);
+            Assert.AreEqual('m', parser.Peek().Value);
             parser.MoveNext();
 
-            Assert.AreEqual('a', parser.Peek.Value);
+            Assert.AreEqual('a', parser.Peek().Value);
             parser.MoveNext();
 
-            Assert.False(parser.Peek.HasValue);
+            Assert.False(parser.Peek().HasValue);
         }
 
         [Test]
@@ -168,6 +168,39 @@ namespace FastCSV.Utils
 
             Assert.AreEqual(5, parser.Consume("World"));
             Assert.AreEqual("", parser.Rest.ToString());
+        }
+
+        [Test]
+        public void SliceStartTest()
+        {
+            var parser = new TextParser("Hello World");
+            parser.MoveNext();
+
+            Assert.AreEqual("World", parser.Slice(6).Rest.ToString());
+
+            Assert.AreEqual("Hello World", parser.Rest.ToString());
+        }
+
+        [Test]
+        public void SliceStartCountTest()
+        {
+            var parser = new TextParser("Hello to my World");
+            parser.MoveNext();
+
+            Assert.AreEqual("to my", parser.Slice(6, 5).Rest.ToString());
+
+            Assert.AreEqual("Hello to my World", parser.Rest.ToString());
+        }
+
+        [Test]
+        public void RangeIndexerTest()
+        {
+            var parser = new TextParser("Hello to my World");
+            parser.MoveNext();
+
+            Assert.AreEqual("to my", parser[6..11].Rest.ToString());
+
+            Assert.AreEqual("Hello to my World", parser.Rest.ToString());
         }
     }
 }
