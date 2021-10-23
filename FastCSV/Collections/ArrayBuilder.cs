@@ -18,6 +18,19 @@ namespace FastCSV.Collections
 
         public int Capacity => _arrayFromPool?.Length ?? 0;
 
+        public Span<T> Span
+        {
+            get
+            {
+                if (_arrayFromPool == null)
+                {
+                    return Span<T>.Empty;
+                }
+
+                return _arrayFromPool.AsSpan(0, _count);
+            }
+        }
+
         public void Add(T value)
         {
             if (_arrayFromPool == null)
