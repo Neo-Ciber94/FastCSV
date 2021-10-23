@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -28,7 +29,7 @@ namespace FastCSV
         {
             if ((reader is StreamReader sr && sr.EndOfStream) || reader.Peek() == -1)
             {
-                return default;
+                return null;
             }
 
             using ValueStringBuilder stringBuilder = new ValueStringBuilder(stackalloc char[512]);
@@ -48,14 +49,14 @@ namespace FastCSV
             {
                 string? line = reader.ReadLine();
 
-                currentPosition = currentPosition
-                    .AddLine(1)
-                    .WithOffset(0);
-
                 if (line == null)
                 {
                     break;
                 }
+
+                currentPosition = currentPosition
+                    .AddLine(1)
+                    .WithOffset(0);
 
                 // Ignore empty entries if the format don't allow whitespaces
                 if (format.IgnoreWhitespace && string.IsNullOrWhiteSpace(line))
@@ -69,6 +70,7 @@ namespace FastCSV
                 while (true)
                 {
                     Optional<char> next = parser.Peek();
+
                     if (!next.HasValue)
                     {
                         break;
@@ -98,9 +100,7 @@ namespace FastCSV
                                 stringBuilder.Trim();
                             }
 
-                            string field = stringBuilder.ToString();
-
-                            records.Add(field);
+                            records.Add(stringBuilder.ToString());
                             stringBuilder.Clear();
                         }
                     }
@@ -170,14 +170,12 @@ namespace FastCSV
                 }
 
                 // Add the last record value
-                string s = stringBuilder.ToString();
-
                 if (format.IgnoreWhitespace)
                 {
-                    s = s.Trim();
+                    stringBuilder.Trim();
                 }
 
-                records.Add(s);
+                records.Add(stringBuilder.ToString());
 
                 // Exit if we aren't in a quote
                 if (!hasQuote)
@@ -205,7 +203,7 @@ namespace FastCSV
         {
             if ((reader is StreamReader sr && sr.EndOfStream) || reader.Peek() == -1)
             {
-                return default;
+                return null;
             }
 
             StringBuilder stringBuilder = StringBuilderCache.Acquire(512);
@@ -227,14 +225,14 @@ namespace FastCSV
 
                 string? line = await reader.ReadLineAsync();
 
-                currentPosition = currentPosition
-                    .AddLine(1)
-                    .WithOffset(0);
-
                 if (line == null)
                 {
                     break;
                 }
+
+                currentPosition = currentPosition
+                    .AddLine(1)
+                    .WithOffset(0);
 
                 // Ignore empty entries if the format don't allow whitespaces
                 if (format.IgnoreWhitespace && string.IsNullOrWhiteSpace(line))
@@ -248,6 +246,7 @@ namespace FastCSV
                 while (true)
                 {
                     Optional<char> next = parser.Peek();
+
                     if (!next.HasValue)
                     {
                         break;
@@ -277,9 +276,7 @@ namespace FastCSV
                                 stringBuilder.Trim();
                             }
 
-                            string field = stringBuilder.ToString();
-
-                            records.Add(field);
+                            records.Add(stringBuilder.ToString());
                             stringBuilder.Clear();
                         }
                     }
@@ -289,7 +286,7 @@ namespace FastCSV
 
                         if (hasQuote)
                         {
-                            // If the next char is a quote, the current is an escape so ignore it and append the next char
+                            // If the next char is a quote, the current is an escape so ignore it and append the next char:
                             // Example: ""red"",other => "red",other
                             if (parser[1..].CanConsume(quote) && parser.Consume(quote) > 0)
                             {
@@ -349,14 +346,12 @@ namespace FastCSV
                 }
 
                 // Add the last record value
-                string s = stringBuilder.ToString();
-
                 if (format.IgnoreWhitespace)
                 {
-                    s = s.Trim();
+                    stringBuilder.Trim();
                 }
 
-                records.Add(s);
+                records.Add(stringBuilder.ToString());
 
                 // Exit if we aren't in a quote
                 if (!hasQuote)
@@ -615,6 +610,174 @@ namespace FastCSV
             }
 
             return StringBuilderCache.ToStringAndRelease(ref stringBuilder!);
+        }
+
+        public static void ParseNextRecordCore<TState>(TextReader reader, CsvFormat format, TState state, SpanAction<string, TState> action)
+        {
+            if ((reader is StreamReader sr && sr.EndOfStream) || reader.Peek() == -1)
+            {
+                return;
+            }
+
+            using ValueStringBuilder stringBuilder = new ValueStringBuilder(stackalloc char[512]);
+            using ArrayBuilder<string> records = new ArrayBuilder<string>(16);
+
+            string delimiter = format.Delimiter;
+            string quote = format.Quote;
+            QuoteStyle style = format.Style;
+            bool hasQuote = false;
+
+            // Position used for track current line and offset to provide information in case of errors.
+            Position currentPosition = Position.Zero;
+            Position quotePosition = Position.Zero;
+
+            // If the record don't contains multi-line values, this outer loop will only run once
+            while (true)
+            {
+                string? line = reader.ReadLine();
+
+                if (line == null)
+                {
+                    break;
+                }
+
+                currentPosition = currentPosition
+                    .AddLine(1)
+                    .WithOffset(0);
+
+                // Ignore empty entries if the format don't allow whitespaces
+                if (format.IgnoreWhitespace && string.IsNullOrWhiteSpace(line))
+                {
+                    continue;
+                }
+
+                // An iterator over the chars of the line
+                TextParser parser = new(line);
+
+                while (true)
+                {
+                    Optional<char> next = parser.Peek();
+
+                    if (!next.HasValue)
+                    {
+                        break;
+                    }
+
+                    char nextChar = next.Value;
+                    currentPosition = currentPosition.AddOffset(1);
+
+                    // We ignore any CR (carrier return) or LF (line-break)
+                    if (!hasQuote && (nextChar == '\r' || nextChar == '\n'))
+                    {
+                        continue;
+                    }
+
+                    if (parser.CanConsume(delimiter))
+                    {
+                        parser.Consume(delimiter);
+
+                        if (hasQuote)
+                        {
+                            stringBuilder.Append(nextChar);
+                        }
+                        else
+                        {
+                            if (format.IgnoreWhitespace)
+                            {
+                                stringBuilder.Trim();
+                            }
+
+                            records.Add(stringBuilder.ToString());
+                            stringBuilder.Clear();
+                        }
+                    }
+                    else if (parser.CanConsume(quote))
+                    {
+                        parser.Consume(quote);
+
+                        if (hasQuote)
+                        {
+                            // If the next char is a quote, the current is an escape so ignore it and append the next char
+                            // Example: ""red"",other => "red",other
+                            if (parser[1..].CanConsume(quote) && parser.Consume(quote) > 0)
+                            {
+                                currentPosition = currentPosition.AddOffset(1);
+
+                                if (style != QuoteStyle.Never)
+                                {
+                                    stringBuilder.Append(parser.Peek().Value);
+                                }
+                            }
+                            else
+                            {
+                                switch (style)
+                                {
+                                    case QuoteStyle.Always:
+                                        stringBuilder.Append(quote);
+                                        break;
+                                    case QuoteStyle.Never:
+                                        break;
+                                    case QuoteStyle.WhenNeeded:
+                                        if (!parser.HasNext() || !parser.CanConsume(delimiter))
+                                        {
+                                            stringBuilder.Append(quote);
+                                        }
+                                        break;
+                                }
+
+                                hasQuote = false;
+                            }
+                        }
+                        else
+                        {
+                            switch (style)
+                            {
+                                case QuoteStyle.Always:
+                                    stringBuilder.Append(quote);
+                                    break;
+                                case QuoteStyle.Never:
+                                    break;
+                                case QuoteStyle.WhenNeeded:
+                                    if (stringBuilder.Length > 0)
+                                    {
+                                        stringBuilder.Append(quote);
+                                    }
+                                    break;
+                            }
+
+                            quotePosition = currentPosition;
+                            hasQuote = true;
+                        }
+                    }
+                    else
+                    {
+                        stringBuilder.Append(nextChar);
+                        parser.Next();
+                    }
+                }
+
+                // Add the last record value
+                if (format.IgnoreWhitespace)
+                {
+                    stringBuilder.Trim();
+                }
+
+                records.Add(stringBuilder.ToString());
+
+                // Exit if we aren't in a quote
+                if (!hasQuote)
+                {
+                    break;
+                }
+            }
+
+            if (hasQuote)
+            {
+                throw new CsvFormatException($"Quote wasn't closed. Position: {quotePosition}");
+            }
+
+            // Pass records to the action
+            action(records.Span, state);
         }
     }
 }

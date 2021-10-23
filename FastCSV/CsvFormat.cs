@@ -42,7 +42,7 @@ namespace FastCSV
 
             if (delimiter.Length == 0)
             {
-                throw new ArgumentException("Deliminter cannot be empty");
+                throw new ArgumentException("Delimiter cannot be empty");
             }
 
             if (quote.Length == 0)
