@@ -24,9 +24,12 @@ namespace FastCSV
         /// <param name="format">The format.</param>
         /// <returns>A list with the fields of the record</returns>
         /// <exception cref="FastCSV.CsvFormatException">If a quote is not closed.</exception>
-        public static string[]? ParseNextRecord(TextReader reader, CsvFormat format)
+        public static string[]? ParseNextRecord2(TextReader reader, CsvFormat format)
         {
             if ((reader is StreamReader sr && sr.EndOfStream) || reader.Peek() == -1)
+#pragma warning restore CS0162 // Se detectó código inaccesible
+#pragma warning restore CS0162 // Se detectó código inaccesible
+#pragma warning restore CS0162 // Se detectó código inaccesible
             {
                 return default;
             }
@@ -184,7 +187,7 @@ namespace FastCSV
         /// <param name="format">The format.</param>
         /// <returns>A list with the fields of the record</returns>
         /// <exception cref="FastCSV.CsvFormatException">If a quote is not closed.</exception>
-        public static async Task<string[]?> ParseNextRecordAsync(StreamReader reader, CsvFormat format, CancellationToken cancellationToken = default)
+        public static async Task<string[]?> ParseNextRecordAsync2(StreamReader reader, CsvFormat format, CancellationToken cancellationToken = default)
         {
             if ((reader is StreamReader sr && sr.EndOfStream) || reader.Peek() == -1)
             {
@@ -339,6 +342,16 @@ namespace FastCSV
             }
 
             return records.ToArray();
+        }
+
+        public static string[]? ParseNextRecord(TextReader reader, CsvFormat format)
+        {
+            return ParseNextRecordCore(reader, format);
+        }
+
+        public static Task<string[]?> ParseNextRecordAsync(StreamReader reader, CsvFormat format, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(ParseNextRecordCore(reader, format));
         }
 
         /// <summary>
@@ -581,5 +594,158 @@ namespace FastCSV
 
             return StringBuilderCache.ToStringAndRelease(ref stringBuilder!);
         }
+
+        public static string[]? ParseNextRecordCore(TextReader textReader, CsvFormat format)
+        {
+            if ((textReader is StreamReader sr && sr.EndOfStream) || textReader.Peek() == -1)
+            {
+                return default;
+            }
+
+            using ValueStringBuilder stringBuilder = new ValueStringBuilder(stackalloc char[512]);
+            using ArrayBuilder<string> records = new ArrayBuilder<string>(16);
+
+            string delimiter = format.Delimiter.ToString();
+            string quote = format.Quote.ToString();
+            QuoteStyle style = format.Style;
+            bool hasQuote = false;
+
+            // Position used for track current line and offset to provide information in case of errors.
+            Position currentPosition = Position.Zero;
+            Position quotePosition = Position.Zero;
+
+            // If the record don't contains multi-line values, this outer loop will only run once
+            while (true)
+            {
+                string? line = textReader.ReadLine();
+
+                currentPosition = currentPosition
+                    .AddLine(1)
+                    .WithOffset(0);
+
+                if (line == null)
+                {
+                    break;
+                }
+
+                // Ignore empty entries if the format don't allow whitespaces
+                if (format.IgnoreWhitespace && string.IsNullOrWhiteSpace(line))
+                {
+                    continue;
+                }
+
+                // An iterator over the chars of the line
+                TextParser reader = new(line);
+
+                while (reader.MoveNext())
+                {
+                    char nextChar = reader.Current;
+                    currentPosition = currentPosition.AddOffset(1);
+
+                    // We ignore any CR (carrier return) or LF (line-break)
+                    if (!hasQuote && (nextChar == '\r' || nextChar == '\n'))
+                    {
+                        continue;
+                    }
+
+                    if (reader.CanConsume(delimiter))
+                    {
+                        if (hasQuote)
+                        {
+                            stringBuilder.Append(nextChar);
+                        }
+                        else
+                        {
+                            if (format.IgnoreWhitespace)
+                            {
+                                stringBuilder.Trim();
+                            }
+
+                            string field = stringBuilder.ToString();
+
+                            records.Add(field);
+                            stringBuilder.Clear();
+                        }
+                    }
+                    else if (reader.CanConsume(quote))
+                    {
+                        if (hasQuote)
+                        {
+                            // If the next char is a quote, the current is an escape so ignore it
+                            // and append the next char
+                            if (reader[1..].CanConsume(quote) && reader.Consume(quote) > 0)
+                            {
+                                currentPosition = currentPosition.AddOffset(1);
+
+                                if (style != QuoteStyle.Never)
+                                {
+                                    stringBuilder.Append(reader.Current);
+                                }
+                            }
+                            else
+                            {
+                                switch (style)
+                                {
+                                    case QuoteStyle.Always:
+                                        stringBuilder.Append(quote);
+                                        break;
+                                    case QuoteStyle.Never:
+                                        break;
+                                    case QuoteStyle.WhenNeeded:
+                                        if (!reader.HasNext() || !reader.CanConsume(delimiter))
+                                        {
+                                            stringBuilder.Append(quote);
+                                        }
+                                        break;
+                                }
+
+                                hasQuote = false;
+                            }
+                        }
+                        else
+                        {
+                            switch (style)
+                            {
+                                case QuoteStyle.Always:
+                                    stringBuilder.Append(quote);
+                                    break;
+                                case QuoteStyle.Never:
+                                    break;
+                                case QuoteStyle.WhenNeeded:
+                                    if (stringBuilder.Length > 0)
+                                    {
+                                        stringBuilder.Append(quote);
+                                    }
+                                    break;
+                            }
+
+                            quotePosition = currentPosition;
+                            hasQuote = true;
+                        }
+                    }
+                    else
+                    {
+                        stringBuilder.Append(nextChar);
+                    }
+                }
+
+                // Add the last record value
+                records.Add(stringBuilder.ToString());
+
+                // Exit if we aren't in a quote
+                if (!hasQuote)
+                {
+                    break;
+                }
+            }
+
+            if (hasQuote)
+            {
+                throw new CsvFormatException($"Quote wasn't closed. Position: {quotePosition}");
+            }
+
+            return records.ToArray();
+        }
+
     }
 }
