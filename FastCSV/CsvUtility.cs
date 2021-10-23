@@ -13,6 +13,8 @@ using FastCSV.Utils;
 
 namespace FastCSV
 {
+    public delegate void ReadRecordCallback<TState>(Span<string?> records, ref TState state);
+
     /// <summary>
     /// Utility class for work with CSV and provides low level operations.
     /// </summary>
@@ -612,10 +614,11 @@ namespace FastCSV
             return StringBuilderCache.ToStringAndRelease(ref stringBuilder!);
         }
 
-        public static void ParseNextRecordCore<TState>(TextReader reader, CsvFormat format, TState state, SpanAction<string, TState> action)
+        public static void ParseNextRecordCore<TState>(TextReader reader, CsvFormat format, ref TState state, ReadRecordCallback<TState> action)
         {
             if ((reader is StreamReader sr && sr.EndOfStream) || reader.Peek() == -1)
             {
+                action(Span<string?>.Empty, ref state);
                 return;
             }
 
@@ -777,7 +780,7 @@ namespace FastCSV
             }
 
             // Pass records to the action
-            action(records.Span, state);
+            action(records.Span!, ref state);
         }
     }
 }
