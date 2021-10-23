@@ -124,8 +124,8 @@ namespace FastCSV.Utils
                 }
             }
 
-            using ValueStringBuilder stringBuilder = new(stackalloc char[512]);
-            using ArrayBuilder<string> records = new(10);
+            using ValueStringBuilder stringBuilder = new ValueStringBuilder(stackalloc char[512]);
+            using ArrayBuilder<string> records = new ArrayBuilder<string>(16);
 
             string delimiter = format.Delimiter;
             string quote = format.Quote;
@@ -159,9 +159,15 @@ namespace FastCSV.Utils
                 // An iterator over the chars of the line
                 TextParser parser = new(line);
 
-                while (parser.MoveNext())
+                while (true)
                 {
-                    char nextChar = parser.Current;
+                    Optional<char> next = parser.Peek();
+                    if (!next.HasValue)
+                    {
+                        break;
+                    }
+
+                    char nextChar = next.Value;
                     currentPosition = currentPosition.AddOffset(1);
 
                     // We ignore any CR (carrier return) or LF (line-break)
@@ -172,6 +178,8 @@ namespace FastCSV.Utils
 
                     if (parser.CanConsume(delimiter))
                     {
+                        parser.Consume(delimiter);
+
                         if (hasQuote)
                         {
                             stringBuilder.Append(nextChar);
@@ -191,17 +199,19 @@ namespace FastCSV.Utils
                     }
                     else if (parser.CanConsume(quote))
                     {
+                        parser.Consume(quote);
+
                         if (hasQuote)
                         {
-                            // If the next char is a quote, the current is an escape so ignore it
-                            // and append the next char
+                            // If the next char is a quote, the current is an escape so ignore it and append the next char
+                            // Example: ""red"",other => "red",other
                             if (parser[1..].CanConsume(quote) && parser.Consume(quote) > 0)
                             {
                                 currentPosition = currentPosition.AddOffset(1);
 
                                 if (style != QuoteStyle.Never)
                                 {
-                                    stringBuilder.Append(parser.Current);
+                                    stringBuilder.Append(parser.Peek().Value);
                                 }
                             }
                             else
@@ -248,11 +258,19 @@ namespace FastCSV.Utils
                     else
                     {
                         stringBuilder.Append(nextChar);
+                        parser.Next();
                     }
                 }
 
                 // Add the last record value
-                records.Add(stringBuilder.ToString());
+                string s = stringBuilder.ToString();
+
+                if (format.IgnoreWhitespace)
+                {
+                    s = s.Trim();
+                }
+
+                records.Add(s);
 
                 // Exit if we aren't in a quote
                 if (!hasQuote)
