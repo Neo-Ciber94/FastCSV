@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 
 namespace FastCSV
 {
@@ -12,9 +11,9 @@ namespace FastCSV
     [Serializable]
     public class CsvFormat : ICloneable<CsvFormat>, IEquatable<CsvFormat?>
     {
-        public const char DefaultDelimiter = ',';
+        public const string DefaultDelimiter = ",";
 
-        public const char DefautlQuote = '"';
+        public const string DefautlQuote = "\"";
 
         public const QuoteStyle DefaultStyle = QuoteStyle.WhenNeeded;
 
@@ -34,11 +33,21 @@ namespace FastCSV
         /// <param name="style">The style.</param>
         /// <param name="ignoreWhitespaces">if set to <c>true</c> leading and trailing whitespaces will be ignored.</param>
         /// <exception cref="ArgumentException">If the delimiter is equals to the quote</exception>
-        public CsvFormat(char delimiter = DefaultDelimiter, char quote = DefautlQuote, QuoteStyle style = QuoteStyle.WhenNeeded, bool ignoreWhitespaces = true)
+        public CsvFormat(string delimiter = DefaultDelimiter, string quote = DefautlQuote, QuoteStyle style = QuoteStyle.WhenNeeded, bool ignoreWhitespaces = true)
         {
             if (delimiter == quote)
             {
-                throw new ArgumentException("delimiter cannot be equals to the quote");
+                throw new ArgumentException("Deliminter cannot be equals to the quote");
+            }
+
+            if (delimiter.Length == 0)
+            {
+                throw new ArgumentException("Deliminter cannot be empty");
+            }
+
+            if (quote.Length == 0)
+            {
+                throw new ArgumentException("Quote cannot be a empty");
             }
 
             Delimiter = delimiter;
@@ -53,7 +62,7 @@ namespace FastCSV
         /// <value>
         /// The delimiter.
         /// </value>
-        public char Delimiter { get; }
+        public string Delimiter { get; }
 
         /// <summary>
         /// Gets the quote.
@@ -61,7 +70,7 @@ namespace FastCSV
         /// <value>
         /// The quote.
         /// </value>
-        public char Quote { get; }
+        public string Quote { get; }
 
         /// <summary>
         /// Gets the style.
@@ -84,7 +93,7 @@ namespace FastCSV
         /// </summary>
         /// <param name="delimiter">The delimiter.</param>
         /// <returns>A copy of this format with the delimiter</returns>
-        public CsvFormat WithDelimiter(char delimiter)
+        public CsvFormat WithDelimiter(string delimiter)
         {
             return new CsvFormat(delimiter, this.Quote, this.Style, this.IgnoreWhitespace);
         }
@@ -94,7 +103,7 @@ namespace FastCSV
         /// </summary>
         /// <param name="quote">The quote.</param>
         /// <returns>A copy of this format with the quote</returns>
-        public CsvFormat WithQuote(char quote)
+        public CsvFormat WithQuote(string quote)
         {
             return new CsvFormat(this.Delimiter, quote, this.Style, this.IgnoreWhitespace);
         }

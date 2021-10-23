@@ -72,12 +72,12 @@ namespace FastCSV
         /// <summary>
         /// The delimiter of the format.
         /// </summary>
-        public char Delimiter => Format.Delimiter;
+        public string Delimiter => Format.Delimiter;
 
         /// <summary>
         /// The quote of the format.
         /// </summary>
-        public char Quote => Format.Quote;
+        public string Quote => Format.Quote;
 
         /// <summary>
         /// The quote style of the format.

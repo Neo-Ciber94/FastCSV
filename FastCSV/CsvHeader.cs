@@ -159,7 +159,7 @@ namespace FastCSV
         /// <param name="delimiter">The delimiter.</param>
         /// <returns>A copy of this header with the specified delimiter.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public CsvHeader WithDelimiter(char delimiter)
+        public CsvHeader WithDelimiter(string delimiter)
         {
             return WithFormat(Format.WithDelimiter(delimiter));
         }
@@ -170,7 +170,7 @@ namespace FastCSV
         /// <param name="quote">The quote.</param>
         /// <returns>A copy of this header with the specified quote.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public CsvHeader WithQuote(char quote)
+        public CsvHeader WithQuote(string quote)
         {
             return WithFormat(Format.WithQuote(quote));
         }

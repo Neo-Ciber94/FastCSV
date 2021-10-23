@@ -24,12 +24,9 @@ namespace FastCSV
         /// <param name="format">The format.</param>
         /// <returns>A list with the fields of the record</returns>
         /// <exception cref="FastCSV.CsvFormatException">If a quote is not closed.</exception>
-        public static string[]? ParseNextRecord2(TextReader reader, CsvFormat format)
+        public static string[]? ParseNextRecord(TextReader reader, CsvFormat format)
         {
             if ((reader is StreamReader sr && sr.EndOfStream) || reader.Peek() == -1)
-#pragma warning restore CS0162 // Se detectó código inaccesible
-#pragma warning restore CS0162 // Se detectó código inaccesible
-#pragma warning restore CS0162 // Se detectó código inaccesible
             {
                 return default;
             }
@@ -37,8 +34,8 @@ namespace FastCSV
             using ValueStringBuilder stringBuilder = new ValueStringBuilder(stackalloc char[512]);
             using ArrayBuilder<string> records = new ArrayBuilder<string>(16);
 
-            char delimiter = format.Delimiter;
-            char quote = format.Quote;
+            string delimiter = format.Delimiter;
+            string quote = format.Quote;
             QuoteStyle style = format.Style;
             bool hasQuote = false;
 
@@ -67,12 +64,11 @@ namespace FastCSV
                 }
 
                 // An iterator over the chars of the line
-                SpanIterator<char> enumerator = new SpanIterator<char>(line);
+                TextParser parser = new(line);
 
-                while (enumerator.MoveNext())
+                while (parser.MoveNext())
                 {
-                    char nextChar = enumerator.Current;
-
+                    char nextChar = parser.Current;
                     currentPosition = currentPosition.AddOffset(1);
 
                     // We ignore any CR (carrier return) or LF (line-break)
@@ -81,7 +77,7 @@ namespace FastCSV
                         continue;
                     }
 
-                    if (nextChar == delimiter)
+                    if (parser.CanConsume(delimiter))
                     {
                         if (hasQuote)
                         {
@@ -100,19 +96,19 @@ namespace FastCSV
                             stringBuilder.Clear();
                         }
                     }
-                    else if (nextChar == quote)
+                    else if (parser.CanConsume(quote))
                     {
                         if (hasQuote)
                         {
                             // If the next char is a quote, the current is an escape so ignore it
                             // and append the next char
-                            if (enumerator.Peek.Contains(quote) && enumerator.MoveNext())
+                            if (parser[1..].CanConsume(quote) && parser.Consume(quote) > 0)
                             {
                                 currentPosition = currentPosition.AddOffset(1);
 
                                 if (style != QuoteStyle.Never)
                                 {
-                                    stringBuilder.Append(enumerator.Current);
+                                    stringBuilder.Append(parser.Current);
                                 }
                             }
                             else
@@ -125,7 +121,7 @@ namespace FastCSV
                                     case QuoteStyle.Never:
                                         break;
                                     case QuoteStyle.WhenNeeded:
-                                        if (!enumerator.HasNext() || !enumerator.Peek.Contains(delimiter))
+                                        if (!parser.HasNext() || !parser.CanConsume(delimiter))
                                         {
                                             stringBuilder.Append(quote);
                                         }
@@ -187,18 +183,18 @@ namespace FastCSV
         /// <param name="format">The format.</param>
         /// <returns>A list with the fields of the record</returns>
         /// <exception cref="FastCSV.CsvFormatException">If a quote is not closed.</exception>
-        public static async Task<string[]?> ParseNextRecordAsync2(StreamReader reader, CsvFormat format, CancellationToken cancellationToken = default)
+        public static async Task<string[]?> ParseNextRecordAsync(StreamReader reader, CsvFormat format, CancellationToken cancellationToken = default)
         {
             if ((reader is StreamReader sr && sr.EndOfStream) || reader.Peek() == -1)
             {
                 return default;
             }
 
-            StringBuilder stringBuilder = StringBuilderCache.Acquire(128);
+            StringBuilder stringBuilder = StringBuilderCache.Acquire(512);
             using ArrayBuilder<string> records = new ArrayBuilder<string>(16);
 
-            char delimiter = format.Delimiter;
-            char quote = format.Quote;
+            string delimiter = format.Delimiter;
+            string quote = format.Quote;
             QuoteStyle style = format.Style;
             bool hasQuote = false;
 
@@ -209,9 +205,6 @@ namespace FastCSV
             // If the record don't contains multi-line values, this outer loop will only run once
             while (true)
             {
-                // To cancel the operation
-                cancellationToken.ThrowIfCancellationRequested();
-
                 string? line = await reader.ReadLineAsync();
 
                 currentPosition = currentPosition
@@ -230,12 +223,11 @@ namespace FastCSV
                 }
 
                 // An iterator over the chars of the line
-                MemoryIterator<char> enumerator = new(line.AsMemory());
+                TextParser parser = new(line);
 
-                while (enumerator.MoveNext())
+                while (parser.MoveNext())
                 {
-                    char nextChar = enumerator.Current;
-
+                    char nextChar = parser.Current;
                     currentPosition = currentPosition.AddOffset(1);
 
                     // We ignore any CR (carrier return) or LF (line-break)
@@ -244,7 +236,7 @@ namespace FastCSV
                         continue;
                     }
 
-                    if (nextChar == delimiter)
+                    if (parser.CanConsume(delimiter))
                     {
                         if (hasQuote)
                         {
@@ -252,7 +244,6 @@ namespace FastCSV
                         }
                         else
                         {
-                            // Gets the current field and trim the whitespaces if required by the format
                             string field = stringBuilder.ToString();
 
                             if (format.IgnoreWhitespace)
@@ -264,19 +255,19 @@ namespace FastCSV
                             stringBuilder.Clear();
                         }
                     }
-                    else if (nextChar == quote)
+                    else if (parser.CanConsume(quote))
                     {
                         if (hasQuote)
                         {
                             // If the next char is a quote, the current is an escape so ignore it
                             // and append the next char
-                            if (enumerator.Peek.Contains(quote) && enumerator.MoveNext())
+                            if (parser[1..].CanConsume(quote) && parser.Consume(quote) > 0)
                             {
                                 currentPosition = currentPosition.AddOffset(1);
 
                                 if (style != QuoteStyle.Never)
                                 {
-                                    stringBuilder.Append(enumerator.Current);
+                                    stringBuilder.Append(parser.Current);
                                 }
                             }
                             else
@@ -289,7 +280,7 @@ namespace FastCSV
                                     case QuoteStyle.Never:
                                         break;
                                     case QuoteStyle.WhenNeeded:
-                                        if (!enumerator.HasNext() || !enumerator.Peek.Contains(delimiter))
+                                        if (!parser.HasNext() || !parser.CanConsume(delimiter))
                                         {
                                             stringBuilder.Append(quote);
                                         }
@@ -341,17 +332,8 @@ namespace FastCSV
                 throw new CsvFormatException($"Quote wasn't closed. Position: {quotePosition}");
             }
 
+            StringBuilderCache.Release(ref stringBuilder!);
             return records.ToArray();
-        }
-
-        public static string[]? ParseNextRecord(TextReader reader, CsvFormat format)
-        {
-            return ParseNextRecordCore(reader, format);
-        }
-
-        public static Task<string[]?> ParseNextRecordAsync(StreamReader reader, CsvFormat format, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(ParseNextRecordCore(reader, format));
         }
 
         /// <summary>
@@ -396,16 +378,18 @@ namespace FastCSV
             // Helper local function to add quotes
             static string AddQuote(CsvFormat format, string s)
             {
-                int length = s.Length + 2;
+                int length = s.Length + (format.Quote.Length * 2);
 
-                return string.Create(length, (format.Quote, s), (span, state) =>
+                return string.Create(length, (format.Quote, s), static (span, state) =>
                 {
-                    char quote = state.Quote;
-                    string s = state.s;
+                    int quoteLength = state.Quote.Length;
+                    int lastQuoteIndex = span.Length - quoteLength;
+                    ReadOnlySpan<char> quote = state.Quote;
+                    string stringValue = state.s;
 
-                    span[0] = quote;
-                    span[^1] = quote;
-                    s.AsSpan().CopyTo(span[1..^1]);
+                    quote.CopyTo(span);
+                    quote.CopyTo(span[lastQuoteIndex..]);
+                    stringValue.AsSpan().CopyTo(span[quoteLength..lastQuoteIndex]);
                 });
             }
 
@@ -581,8 +565,8 @@ namespace FastCSV
             {
                 encloseWithQuotes = true;
 
-                string doubleQuote = new string(format.Quote, 2);
-                stringBuilder.Replace(format.Quote.ToString(), doubleQuote);
+                string doubleQuote = string.Concat(format.Quote, format.Quote);
+                stringBuilder.Replace(format.Quote, doubleQuote);
             }
 
             if (encloseWithQuotes)

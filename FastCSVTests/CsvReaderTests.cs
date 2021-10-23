@@ -38,10 +38,10 @@ namespace FastCSV.Tests
                     $"Homer,35{System.Environment.NewLine}" +
                     $"Marge,28{System.Environment.NewLine}");
 
-            var format = new CsvFormat('\t', '\"');
+            var format = new CsvFormat("\t", "\"");
             using var reader = new CsvReader(new StreamReader(csv), format);
 
-            Assert.AreEqual(new CsvFormat('\t', '\"'), reader.Format);
+            Assert.AreEqual(new CsvFormat("\t", "\""), reader.Format);
             Assert.IsTrue(reader.HasHeader);
             Assert.IsFalse(reader.IsDone);
         }
@@ -402,7 +402,7 @@ namespace FastCSV.Tests
                 $"Marge,28{System.Environment.NewLine}");
 
             using var reader = CsvReader.FromStream(csvStream);
-            var readRecords = reader.ReadAll(new CsvFormat(delimiter: '|')).ToArray();
+            var readRecords = reader.ReadAll(new CsvFormat(delimiter: "|")).ToArray();
 
             Assert.AreEqual("Homer|35", readRecords[0].ToString());
             Assert.AreEqual("Marge|28", readRecords[1].ToString());

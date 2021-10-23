@@ -127,14 +127,23 @@ namespace FastCSV.Utils
             using ValueStringBuilder stringBuilder = new(stackalloc char[512]);
             using ArrayBuilder<string> records = new(10);
 
-            char delimiter = format.Delimiter;
-            char quote = format.Quote;
+            string delimiter = format.Delimiter;
+            string quote = format.Quote;
             QuoteStyle style = format.Style;
             bool hasQuote = false;
 
+            // Position used for track current line and offset to provide information in case of errors.
+            Position currentPosition = Position.Zero;
+            Position quotePosition = Position.Zero;
+
+            // If the record don't contains multi-line values, this outer loop will only run once
             while (true)
             {
                 string? line = ReadLine();
+
+                currentPosition = currentPosition
+                    .AddLine(1)
+                    .WithOffset(0);
 
                 if (line == null)
                 {
@@ -147,13 +156,13 @@ namespace FastCSV.Utils
                     continue;
                 }
 
-                // Convert the CharEnumerator into an IIterator
-                // which allow to inspect the next elements
-                SpanIterator<char> enumerator = new(line);
+                // An iterator over the chars of the line
+                TextParser parser = new(line);
 
-                while (enumerator.MoveNext())
+                while (parser.MoveNext())
                 {
-                    char nextChar = enumerator.Current;
+                    char nextChar = parser.Current;
+                    currentPosition = currentPosition.AddOffset(1);
 
                     // We ignore any CR (carrier return) or LF (line-break)
                     if (!hasQuote && (nextChar == '\r' || nextChar == '\n'))
@@ -161,7 +170,7 @@ namespace FastCSV.Utils
                         continue;
                     }
 
-                    if (nextChar == delimiter)
+                    if (parser.CanConsume(delimiter))
                     {
                         if (hasQuote)
                         {
@@ -169,29 +178,30 @@ namespace FastCSV.Utils
                         }
                         else
                         {
-                            // Gets the current field and trim the whitespaces if required by the format
-                            string field = stringBuilder.ToString();
-
                             if (format.IgnoreWhitespace)
                             {
-                                field = field.Trim();
+                                stringBuilder.Trim();
                             }
+
+                            string field = stringBuilder.ToString();
 
                             records.Add(field);
                             stringBuilder.Clear();
                         }
                     }
-                    else if (nextChar == quote)
+                    else if (parser.CanConsume(quote))
                     {
                         if (hasQuote)
                         {
                             // If the next char is a quote, the current is an escape so ignore it
                             // and append the next char
-                            if (enumerator.Peek.Contains(quote) && enumerator.MoveNext())
+                            if (parser[1..].CanConsume(quote) && parser.Consume(quote) > 0)
                             {
+                                currentPosition = currentPosition.AddOffset(1);
+
                                 if (style != QuoteStyle.Never)
                                 {
-                                    stringBuilder.Append(enumerator.Current);
+                                    stringBuilder.Append(parser.Current);
                                 }
                             }
                             else
@@ -204,7 +214,7 @@ namespace FastCSV.Utils
                                     case QuoteStyle.Never:
                                         break;
                                     case QuoteStyle.WhenNeeded:
-                                        if (!enumerator.HasNext() || !enumerator.Peek.Contains(delimiter))
+                                        if (!parser.HasNext() || !parser.CanConsume(delimiter))
                                         {
                                             stringBuilder.Append(quote);
                                         }
@@ -231,6 +241,7 @@ namespace FastCSV.Utils
                                     break;
                             }
 
+                            quotePosition = currentPosition;
                             hasQuote = true;
                         }
                     }
@@ -252,7 +263,7 @@ namespace FastCSV.Utils
 
             if (hasQuote)
             {
-                throw new CsvFormatException($"Quote wasn't closed. line '{Line}', offset '{Offset}'");
+                throw new CsvFormatException($"Quote wasn't closed. Position: {quotePosition}");
             }
 
             return records.ToArray();
