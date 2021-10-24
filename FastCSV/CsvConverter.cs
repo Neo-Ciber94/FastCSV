@@ -17,7 +17,7 @@ namespace FastCSV
 {
     // Determine if a field/property will be a getter, setter of both.
     [Flags]
-    internal enum Permission // FIXME: PropertyAccesor
+    internal enum AccesorKind
     { 
         /// <summary>
         /// Defines the getter.
@@ -27,10 +27,6 @@ namespace FastCSV
         /// Defines the setter.
         /// </summary>
         Setter = 2,
-        /// <summary>
-        /// Defines the getter and setter.
-        /// </summary>
-        GetterAndGetter = Permission.Getter | Permission.Setter
     }
 
     /// <summary>
@@ -332,7 +328,7 @@ namespace FastCSV
                 }
             }
 
-            List<CsvProperty> csvProps = GetCsvProperties(type, options, Permission.Setter, instance: null);
+            List<CsvProperty> csvProps = GetCsvProperties(type, options, AccesorKind.Setter, instance: null);
             object result = FormatterServices.GetUninitializedObject(type);
 
             foreach ((string key, SingleOrList<string> value) in data)
@@ -408,7 +404,7 @@ namespace FastCSV
             }
             else
             {
-                return GetCsvProperties(type, options ?? CsvConverterOptions.Default, Permission.Getter, instance: value)
+                return GetCsvProperties(type, options ?? CsvConverterOptions.Default, AccesorKind.Getter, instance: value)
                     .Where(e => !e.Ignore)
                     .Select(e => e.Value?.ToString() ?? string.Empty)
                     .ToArray();
@@ -444,13 +440,13 @@ namespace FastCSV
 
             if (options.NestedObjectHandling == null)
             {
-                return GetCsvProperties(type, options ?? CsvConverterOptions.Default, Permission.Getter, instance: null)
+                return GetCsvProperties(type, options ?? CsvConverterOptions.Default, AccesorKind.Getter, instance: null)
                     .Where(f => !f.Ignore)
                     .Select(f => f.Name)
                     .ToArray();
             }
 
-            List<CsvProperty> csvProps = GetCsvProperties(type, options ?? CsvConverterOptions.Default, Permission.Getter, instance: null);
+            List<CsvProperty> csvProps = GetCsvProperties(type, options ?? CsvConverterOptions.Default, AccesorKind.Getter, instance: null);
             List<string> values = new List<string>(csvProps.Count);
             Stack<CsvProperty> stack = new Stack<CsvProperty>(csvProps.Count);
             stack.PushRangeReverse(csvProps);
@@ -489,7 +485,7 @@ namespace FastCSV
                 throw new ArgumentException($"Cannot serialize the builtin type {type}");
             }
 
-            List<CsvProperty> csvProps = GetCsvProperties(type, options, Permission.Getter, value);
+            List<CsvProperty> csvProps = GetCsvProperties(type, options, AccesorKind.Getter, value);
             bool handleNestedObjects = options.NestedObjectHandling != null;
             bool handleCollections = options.CollectionHandling != null;
 
@@ -598,7 +594,7 @@ namespace FastCSV
                 return default;
             }
 
-            List<CsvProperty> csvProps = GetCsvProperties(type, options, Permission.Setter, null);
+            List<CsvProperty> csvProps = GetCsvProperties(type, options, AccesorKind.Setter, null);
 
             if (options.MatchExact && record.Header != null)
             {
@@ -779,13 +775,13 @@ namespace FastCSV
             return record.AsSpan().Slice(startIndex, count);
         }
 
-        private static List<CsvProperty> GetCsvProperties(Type type, CsvConverterOptions options, Permission permission, object? instance)
+        private static List<CsvProperty> GetCsvProperties(Type type, CsvConverterOptions options, AccesorKind accesor, object? instance)
         {
             int maxDepth = options.NestedObjectHandling?.MaxDepth ?? 0;
-            return GetCsvPropertiesInternal(type, options, permission, instance, 0, maxDepth);
+            return GetCsvPropertiesInternal(type, options, accesor, instance, 0, maxDepth);
         }
 
-        private static List<CsvProperty> GetCsvPropertiesInternal(Type type, CsvConverterOptions options, Permission permission, object? instance, int depth, int maxDepth)
+        private static List<CsvProperty> GetCsvPropertiesInternal(Type type, CsvConverterOptions options, AccesorKind accesor, object? instance, int depth, int maxDepth)
         {
             // Determines if will handle nested objects
             bool handleNestedObjects = options.NestedObjectHandling != null;
@@ -797,12 +793,12 @@ namespace FastCSV
 
             List<CsvProperty> csvProps;
 
-            var propertyFlags = GetFlagsFromPermission(permission);
+            var propertyFlags = GetFlagsFromAccesor(accesor);
             var properties = type.GetProperties(propertyFlags);
 
             if (options.IncludeFields)
             {
-                var fieldFlags = GetFlagsFromPermission(permission);
+                var fieldFlags = GetFlagsFromAccesor(accesor);
                 var fields = type.GetFields(fieldFlags);
 
                 // Exact size to avoid reallocations
@@ -820,7 +816,7 @@ namespace FastCSV
 
                     if (handleNestedObjects && !IsBuiltInType(field.FieldType) && csvProp.Converter == null)
                     {
-                        csvProp.Children = GetCsvPropertiesInternal(field.FieldType, options, permission, csvProp.Value, depth + 1, maxDepth);
+                        csvProp.Children = GetCsvPropertiesInternal(field.FieldType, options, accesor, csvProp.Value, depth + 1, maxDepth);
                     }
                 }
             }
@@ -842,7 +838,7 @@ namespace FastCSV
 
                 if (handleNestedObjects && !IsBuiltInType(prop.PropertyType) && csvProp.Converter == null)
                 {
-                    csvProp.Children = GetCsvPropertiesInternal(prop.PropertyType, options, permission, csvProp.Value, depth + 1, maxDepth);
+                    csvProp.Children = GetCsvPropertiesInternal(prop.PropertyType, options, accesor, csvProp.Value, depth + 1, maxDepth);
                 }
             }
 
@@ -850,19 +846,16 @@ namespace FastCSV
 
             /// Helpers
 
-            static BindingFlags GetFlagsFromPermission(Permission permission)
+            static BindingFlags GetFlagsFromAccesor(AccesorKind permission)
             {
                 var flags = BindingFlags.Public | BindingFlags.Instance;
                 switch (permission)
                 {
-                    case Permission.Getter:
+                    case AccesorKind.Getter:
                         flags |= BindingFlags.GetField;
                         break;
-                    case Permission.Setter:
+                    case AccesorKind.Setter:
                         flags |= BindingFlags.SetField;
-                        break;
-                    case Permission.GetterAndGetter:
-                        flags |= BindingFlags.GetField | BindingFlags.SetField;
                         break;
                 }
 
