@@ -191,7 +191,7 @@ namespace FastCSV
                 if (options.IncludeHeader)
                 {
                     using Stream stream = StreamHelper.CreateStreamFromString(csv);
-                    using CsvReader reader = CsvReader.FromStream(stream, options.Format, options.IncludeHeader);
+                    using CsvReader reader = new CsvReader(stream, options.Format, options.IncludeHeader);
                     CsvRecord? record = reader.Read();
 
                     if (record == null)
@@ -583,7 +583,7 @@ namespace FastCSV
             }
 
             using Stream stream = StreamHelper.CreateStreamFromString(csv);
-            using CsvReader reader = CsvReader.FromStream(stream, options.Format, options.IncludeHeader);
+            using CsvReader reader = new CsvReader(stream, options.Format, options.IncludeHeader);
             bool handleNestedObjects = options.NestedObjectHandling != null;
             bool handleCollections = options.CollectionHandling != null;
 
