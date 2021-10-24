@@ -72,12 +72,13 @@ namespace FastCSV
                 type = value.GetType();
             }
 
-            if (value != null && !EqualTypes(value.GetType(), type))
+            options ??= CsvConverterOptions.Default;
+
+            if (value != null && !EqualTypes(value.GetType(), type, options))
             {
                 throw new ArgumentException($"Expected {type} but value type was {value.GetType()}");
             }
 
-            options ??= CsvConverterOptions.Default;
             string values;
 
             if (HasConverter(type, options))
@@ -257,12 +258,12 @@ namespace FastCSV
         /// <returns>A dictionary with the fields of the value.</returns>
         public static IDictionary<string, object?> SerializeToDictionary(object value, Type type, CsvConverterOptions? options = null)
         {
-            if (value != null && !EqualTypes(value.GetType(), type))
+            options ??= CsvConverterOptions.Default;
+
+            if (value != null && !EqualTypes(value.GetType(), type, options))
             {
                 throw new ArgumentException($"Expected {type} but value type was {value.GetType()}");
             }
-
-            options ??= CsvConverterOptions.Default;
 
             if (!options.IncludeHeader)
             {
@@ -479,7 +480,7 @@ namespace FastCSV
 
         private static ValueList<DataToSerialize> GetSerializeData(object? value, Type type, CsvConverterOptions options)
         {
-            if (value != null && !EqualTypes(value.GetType(), type))
+            if (value != null && !EqualTypes(value.GetType(), type, options))
             {
                 throw new ArgumentException($"Expected {type} but value type was {value.GetType()}");
             }
@@ -797,16 +798,17 @@ namespace FastCSV
 
             List<CsvProperty> csvProps;
 
+            var reflector = options.ReflectionProvider;
             var propertyFlags = GetFlagsFromPermission(permission);
-            var properties = type.GetProperties(propertyFlags);
+            var properties = reflector.GetProperties(type, propertyFlags);
 
             if (options.IncludeFields)
             {
                 var fieldFlags = GetFlagsFromPermission(permission);
-                var fields = type.GetFields(fieldFlags);
+                var fields = reflector.GetFields(type, fieldFlags);
 
                 // Exact size to avoid reallocations
-                csvProps = new List<CsvProperty>(fields.Length + properties.Length);
+                csvProps = new List<CsvProperty>(fields.Count + properties.Count);
 
                 if (!fields.Any() && !properties.Any())
                 {
@@ -827,7 +829,7 @@ namespace FastCSV
             else
             {
                 // Exact size to avoid reallocations
-                csvProps = new List<CsvProperty>(properties.Length);
+                csvProps = new List<CsvProperty>(properties.Count);
 
                 if (!properties.Any())
                 {
@@ -877,7 +879,9 @@ namespace FastCSV
                 return null;
             }
 
-            if (type.IsNullable())
+            var reflector = state.Options.ReflectionProvider;
+
+            if (reflector.IsNullableType(type))
             {
                 if (state.Count == 1) 
                 {
@@ -889,7 +893,7 @@ namespace FastCSV
                     }
                 }
 
-                type = Nullable.GetUnderlyingType(type)!;
+                type = reflector.GetNullableType(type)!;
             }
 
             converter = GetConverter(type, state.Options, converter);
@@ -906,12 +910,13 @@ namespace FastCSV
         {
             object? value = state.Value;
 
-            if (value != null && !EqualTypes(value.GetType(), type))
+            if (value != null && !EqualTypes(value.GetType(), type, state.Options))
             {
                 throw new ArgumentException($"Type missmatch, expected {type} but was {value.GetType()}");
             }
 
-            if (type.IsNullable())
+            var reflector = state.Options.ReflectionProvider;
+            if (reflector.IsNullableType(type))
             {
                 if (value == null)
                 {
@@ -919,7 +924,7 @@ namespace FastCSV
                     return;
                 }
 
-                type = Nullable.GetUnderlyingType(type)!;
+                type = reflector.GetNullableType(type)!;
             }
 
             converter = GetConverter(type, state.Options, converter);
@@ -960,7 +965,7 @@ namespace FastCSV
             return options.ConverterProvider.GetConverter(elementType);
         }
 
-        private static ICsvCustomConverter? GetValueConverterFromAttribute(CsvValueConverterAttribute? attribute)
+        private static ICsvCustomConverter? GetValueConverterFromAttribute(CsvValueConverterAttribute? attribute, CsvConverterOptions options)
         {
             if (attribute == null || attribute.ConverterType == null)
             {
@@ -974,7 +979,7 @@ namespace FastCSV
                 throw new ArgumentException($"Type {converterType} does not implements {typeof(ICsvCustomConverter)}");
             }
 
-            ConstructorInfo? constructor = converterType.GetConstructor(Type.EmptyTypes);
+            ConstructorInfo? constructor = options.ReflectionProvider.GetConstructor(converterType, Type.EmptyTypes);
 
             if (constructor == null)
             {
@@ -996,16 +1001,18 @@ namespace FastCSV
             Type type = member.GetMemberType();
             object? value = instance != null ? member.GetValue(instance) : null;
             bool ignore = member.GetCustomAttribute<CsvIgnoreAttribute>() != null || member.GetCustomAttribute<NonSerializedAttribute>() != null;
-            ICsvCustomConverter? converter = GetValueConverterFromAttribute(converterAttribute);
+            ICsvCustomConverter? converter = GetValueConverterFromAttribute(converterAttribute, options);
 
             return new(originalName, name, value, type, member, ignore, converter);
         }
 
         private static bool HasConverter(Type type, CsvConverterOptions options)
         {
-            if (type.IsGenericType && type.IsNullable())
+            var reflector = options.ReflectionProvider;
+
+            if (type.IsGenericType && reflector.IsNullableType(type))
             {
-                type = Nullable.GetUnderlyingType(type)!;
+                type = reflector.GetNullableType(type)!;
             }
 
             return GetConverter(type, options) != null;
@@ -1016,16 +1023,17 @@ namespace FastCSV
          * 
          * EqualTypes(typeof(Nullable<int>), typeof(int)) == true
          */
-        private static bool EqualTypes(Type leftType, Type rightType)
+        private static bool EqualTypes(Type leftType, Type rightType, CsvConverterOptions options)
         {
-            if (leftType.IsGenericType && leftType.IsNullable())
+            var reflector = options.ReflectionProvider;
+            if (leftType.IsGenericType && reflector.IsNullableType(leftType))
             {
-                leftType = Nullable.GetUnderlyingType(leftType)!;
+                leftType = reflector.GetNullableType(leftType)!;
             }
 
-            if (rightType.IsGenericType && rightType.IsNullable())
+            if (rightType.IsGenericType && reflector.IsNullableType(rightType))
             {
-                rightType = Nullable.GetUnderlyingType(rightType)!;
+                rightType = reflector.GetNullableType(rightType)!;
             }
 
             return leftType == rightType;
