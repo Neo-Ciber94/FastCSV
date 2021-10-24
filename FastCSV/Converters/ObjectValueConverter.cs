@@ -27,7 +27,7 @@ namespace FastCSV.Converters
                 if (elementType == typeof(object))
                 {
                     // Fallback to string if not type was found
-                    actualType = TypeHelper.GetTypeFromString(stringValue) ?? typeof(string);
+                    actualType = TypeGuesser.GetTypeFromString(stringValue) ?? typeof(string);
                 }
                 else
                 {

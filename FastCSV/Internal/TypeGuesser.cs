@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace FastCSV.Internal
 {
-    internal static class TypeHelper
+    internal static class TypeGuesser
     {
         /// <summary>
         /// Attemps to determine the expected type from the given string value.
