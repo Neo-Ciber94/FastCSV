@@ -25,13 +25,13 @@ namespace FastCSV.Tests
         [Test()]
         public void CsvDocumentTest1()
         {
-            var format = new CsvFormat(';', '\"');
+            var format = new CsvFormat(";", "\"");
             var document = new CsvDocument<Person>(format);
 
             Assert.AreEqual(0, document.Count);
             Assert.IsTrue(document.IsEmpty);
             Assert.AreEqual(CsvHeader.FromValues(format, "Name", "Age"), document.Header);
-            Assert.AreEqual(new CsvFormat(';', '\"'), document.Format);
+            Assert.AreEqual(new CsvFormat(";", "\""), document.Format);
         }
 
         [Test()]
@@ -60,13 +60,13 @@ namespace FastCSV.Tests
                 new Person{ Name = "Kyoko", Age = 21 }
             };
 
-            var format = new CsvFormat(';', '\"');
+            var format = new CsvFormat(";", "\"");
             var document = new CsvDocument<Person>(persons, format);
 
             Assert.AreEqual(2, document.Count);
             Assert.IsFalse(document.IsEmpty);
             Assert.AreEqual(CsvHeader.FromValues(format, "Name", "Age"), document.Header);
-            Assert.AreEqual(new CsvFormat(';', '\"'), document.Format);
+            Assert.AreEqual(new CsvFormat(";", "\""), document.Format);
         }
 
         [Test()]
@@ -352,7 +352,7 @@ namespace FastCSV.Tests
                 new Person {Name = "Chinatsu", Age = 19}
             });
 
-            CsvDocument<Person> copy = document.WithFormat(new CsvFormat(';', '"'));
+            CsvDocument<Person> copy = document.WithFormat(new CsvFormat(";", "\""));
             string newLine = Environment.NewLine;
 
             Assert.AreEqual(
@@ -486,7 +486,7 @@ namespace FastCSV.Tests
         [Test]
         public void ToStringTest1()
         {
-            var format = new CsvFormat(';', '"');
+            var format = new CsvFormat(";", "\"");
             var document = new CsvDocument<Person>(new Person[]
             {
                 new Person {Name = "Akari", Age = 20},
@@ -594,7 +594,7 @@ namespace FastCSV.Tests
                 sb.Append(_number[0]);
                 sb.Append(_number[1]);
                 sb.Append(_number[2]);
-                sb.Append('-');
+                sb.Append("-");
                 sb.Append(_number[3]);
                 sb.Append(_number[4]);
                 sb.Append(_number[5]);

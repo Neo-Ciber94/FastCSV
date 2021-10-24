@@ -38,10 +38,10 @@ namespace FastCSV.Tests
                     $"Homer,35{System.Environment.NewLine}" +
                     $"Marge,28{System.Environment.NewLine}");
 
-            var format = new CsvFormat('\t', '\"');
+            var format = new CsvFormat("\t", "\"");
             using var reader = new CsvReader(new StreamReader(csv), format);
 
-            Assert.AreEqual(new CsvFormat('\t', '\"'), reader.Format);
+            Assert.AreEqual(new CsvFormat("\t", "\""), reader.Format);
             Assert.IsTrue(reader.HasHeader);
             Assert.IsFalse(reader.IsDone);
         }
@@ -116,7 +116,7 @@ namespace FastCSV.Tests
         }
 
         [Test()]
-        public void ReadBlackTest1()
+        public void ReadBlankTest1()
         {
             using var csv = StreamHelper.CreateStreamFromString(" ");
 
@@ -125,7 +125,7 @@ namespace FastCSV.Tests
         }
 
         [Test()]
-        public void ReadBlackTest2()
+        public void ReadBlankTest2()
         {
             using var csv = StreamHelper.CreateStreamFromString(" ");
 
@@ -402,7 +402,7 @@ namespace FastCSV.Tests
                 $"Marge,28{System.Environment.NewLine}");
 
             using var reader = CsvReader.FromStream(csvStream);
-            var readRecords = reader.ReadAll(new CsvFormat(delimiter: '|')).ToArray();
+            var readRecords = reader.ReadAll(new CsvFormat(delimiter: "|")).ToArray();
 
             Assert.AreEqual("Homer|35", readRecords[0].ToString());
             Assert.AreEqual("Marge|28", readRecords[1].ToString());
@@ -432,6 +432,19 @@ namespace FastCSV.Tests
             {
                 var _ = reader.Read();
             });
+        }
+
+        [Test]
+        public void ReadStringCsvFormatTest()
+        {
+            string newLine = Environment.NewLine;
+            using var stream = StreamHelper.CreateStreamFromString($"Name||Age{newLine}Maria||23{newLine}Juan || 20{newLine}");
+            var format = new CsvFormat("||");
+            using var reader = CsvReader.FromStream(stream, format);
+
+            CollectionAssert.AreEqual(new string[] { "Name", "Age" }, reader.Header);
+            CollectionAssert.AreEqual(new string[] { "Maria", "23" }, reader.Read());
+            CollectionAssert.AreEqual(new string[] { "Juan", "20" }, reader.Read());
         }
 
         class Person

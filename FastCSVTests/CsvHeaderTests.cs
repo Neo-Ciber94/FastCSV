@@ -27,11 +27,11 @@ namespace FastCSV.Tests
         [Test()]
         public void CsvHeaderTest1()
         {
-            var format = new CsvFormat('\t', '\'');
+            var format = new CsvFormat("\t", "\"");
             var header = new CsvHeader(new string[] { "id", "name", "age" }, format);
 
             Assert.AreEqual(3, header.Length);
-            Assert.AreEqual(new CsvFormat('\t', '\''), header.Format);
+            Assert.AreEqual(new CsvFormat("\t", "\""), header.Format);
 
             Assert.AreEqual("id", header[0]);
             Assert.AreEqual("name", header[1]);
@@ -104,18 +104,18 @@ namespace FastCSV.Tests
         public void WithDelimiterTest()
         {
             var header = CsvHeader.FromValues("name", "age");
-            var copy = header.WithDelimiter(';');
+            var copy = header.WithDelimiter(";");
 
-            Assert.AreEqual(CsvFormat.Default.WithDelimiter(';'), copy.Format);
+            Assert.AreEqual(CsvFormat.Default.WithDelimiter(";"), copy.Format);
         }
 
         [Test]
         public void WithQuoteTest()
         {
             var header = CsvHeader.FromValues("name", "age");
-            var copy = header.WithQuote('|');
+            var copy = header.WithQuote("|");
 
-            Assert.AreEqual(CsvFormat.Default.WithQuote('|'), copy.Format);
+            Assert.AreEqual(CsvFormat.Default.WithQuote("|"), copy.Format);
         }
 
         [Test]
@@ -131,9 +131,9 @@ namespace FastCSV.Tests
         public void WithFormatTest()
         {
             var header = CsvHeader.FromValues("name", "age");
-            var copy = header.WithFormat(new CsvFormat(';', '|'));
+            var copy = header.WithFormat(new CsvFormat(";", "|"));
 
-            Assert.AreEqual(new CsvFormat(';', '|'), copy.Format);
+            Assert.AreEqual(new CsvFormat(";", "|"), copy.Format);
         }
 
         [Test()]
@@ -147,7 +147,7 @@ namespace FastCSV.Tests
         public void ToStringTest1()
         {
             var header = new CsvHeader(new string[] { "id", "name", "age" });
-            var format = CsvFormat.Default.WithDelimiter(';');
+            var format = CsvFormat.Default.WithDelimiter(";");
             Assert.AreEqual("id;name;age", header.ToString(format));
         }
 

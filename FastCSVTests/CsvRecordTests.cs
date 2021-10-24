@@ -141,18 +141,18 @@ namespace FastCSV.Tests
         public void WithDelimiterTest()
         {
             var record = new CsvRecord(null, new string[] { "Violet", "16" });
-            var record2 = record.WithDelimiter('\t');
+            var record2 = record.WithDelimiter("\t");
 
-            Assert.AreEqual(CsvFormat.Default.WithDelimiter('\t'), record2.Format);
+            Assert.AreEqual(CsvFormat.Default.WithDelimiter("\t"), record2.Format);
         }
 
         [Test()]
         public void WithQuoteTest()
         {
             var record = new CsvRecord(null, new string[] { "Violet", "16" });
-            var record2 = record.WithQuote('\'');
+            var record2 = record.WithQuote("\"");
 
-            Assert.AreEqual(CsvFormat.Default.WithQuote('\''), record2.Format);
+            Assert.AreEqual(CsvFormat.Default.WithQuote("\""), record2.Format);
         }
 
         [Test()]
@@ -168,9 +168,9 @@ namespace FastCSV.Tests
         public void WithFormatTest()
         {
             var record = new CsvRecord(null, new string[] { "Violet", "16" });
-            var record2 = record.WithFormat(new CsvFormat(';', '"'));
+            var record2 = record.WithFormat(new CsvFormat(";", "\""));
 
-            Assert.AreEqual(new CsvFormat(';', '"'), record2.Format);
+            Assert.AreEqual(new CsvFormat(";", "\""), record2.Format);
         }
 
         [Test]
@@ -220,7 +220,7 @@ namespace FastCSV.Tests
         [Test()]
         public void ToStringTest1()
         {
-            var format = CsvFormat.Default.WithDelimiter('\t');
+            var format = CsvFormat.Default.WithDelimiter("\t");
             var record = new CsvRecord(null, new string[] { "Violet", "16" });
             Assert.AreEqual("Violet\t16", record.ToString(format));
         }

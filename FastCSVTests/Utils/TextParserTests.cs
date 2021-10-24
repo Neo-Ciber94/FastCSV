@@ -12,169 +12,99 @@ namespace FastCSV.Utils
     public class TextParserTests
     {
         [Test]
-        public void EnumeratorTest()
-        {
-            var parser = new TextParser("Green");
-
-            Assert.True(parser.MoveNext());
-            Assert.AreEqual('G', parser.Current);
-
-            Assert.True(parser.MoveNext());
-            Assert.AreEqual('r', parser.Current);
-
-            Assert.True(parser.MoveNext());
-            Assert.AreEqual('e', parser.Current);
-
-            Assert.True(parser.MoveNext());
-            Assert.AreEqual('e', parser.Current);
-
-            Assert.True(parser.MoveNext());
-            Assert.AreEqual('n', parser.Current);
-
-            Assert.False(parser.MoveNext());
-        }
-
-        [Test]
         public void NextTest()
         {
-            var parser = new TextParser("Green");
+            var cursor = new TextParser("Hello");
 
-            Assert.True(parser.HasNext());
-            Assert.AreEqual('G', parser.Next().Value);
-            Assert.AreEqual('r', parser.Next().Value);
-            Assert.AreEqual('e', parser.Next().Value);
-            Assert.AreEqual('e', parser.Next().Value);
-            Assert.AreEqual('n', parser.Next().Value);
-            Assert.False(parser.MoveNext());
+            Assert.AreEqual('H', cursor.Next().Value);
+            Assert.AreEqual('e', cursor.Next().Value);
+            Assert.AreEqual('l', cursor.Next().Value);
+            Assert.AreEqual('l', cursor.Next().Value);
+            Assert.AreEqual('o', cursor.Next().Value);
         }
 
         [Test]
         public void PeekTest()
         {
-            var parser = new TextParser("Anima");
+            var cursor = new TextParser("Hello");
 
-            Assert.AreEqual('A', parser.Peek().Value);
-            parser.MoveNext();
+            Assert.AreEqual('H', cursor.Peek().Value);
+            Assert.AreEqual('H', cursor.Peek().Value);
 
-            Assert.AreEqual('n', parser.Peek().Value);
-            parser.MoveNext();
+            cursor.Next();
+            Assert.AreEqual('e', cursor.Peek().Value);
 
-            Assert.AreEqual('i', parser.Peek().Value);
-            parser.MoveNext();
+            cursor.Next();
+            Assert.AreEqual('l', cursor.Peek().Value);
 
-            Assert.AreEqual('m', parser.Peek().Value);
-            parser.MoveNext();
+            cursor.Next();
+            Assert.AreEqual('l', cursor.Peek().Value);
 
-            Assert.AreEqual('a', parser.Peek().Value);
-            parser.MoveNext();
+            cursor.Next();
+            Assert.AreEqual('o', cursor.Peek().Value);
 
-            Assert.False(parser.Peek().HasValue);
+            cursor.Next();
+            Assert.False(cursor.Peek().HasValue);
         }
 
         [Test]
         public void RestTest()
         {
-            var parser = new TextParser("Hello World");
+            var cursor = new TextParser("Hello");
 
-            Assert.Throws<InvalidOperationException>(() =>
-            {
-                var _ = parser.Rest.ToString();
-            });
+            Assert.AreEqual("Hello", cursor.Rest.ToString());
 
-            parser.MoveNext();
-            Assert.AreEqual("Hello World", parser.Rest.ToString());
+            cursor.Next();
+            Assert.AreEqual("ello", cursor.Rest.ToString());
 
-            parser.MoveNext();
-            Assert.AreEqual("ello World", parser.Rest.ToString());
+            cursor.Next();
+            Assert.AreEqual("llo", cursor.Rest.ToString());
 
-            parser.MoveNext();
-            Assert.AreEqual("llo World", parser.Rest.ToString());
+            cursor.Next();
+            Assert.AreEqual("lo", cursor.Rest.ToString());
 
-            parser.MoveNext();
-            Assert.AreEqual("lo World", parser.Rest.ToString());
+            cursor.Next();
+            Assert.AreEqual("o", cursor.Rest.ToString());
 
-            parser.MoveNext();
-            Assert.AreEqual("o World", parser.Rest.ToString());
-
-            parser.MoveNext();
-            Assert.AreEqual(" World", parser.Rest.ToString());
-
-            parser.MoveNext();
-            Assert.AreEqual("World", parser.Rest.ToString());
-
-            parser.MoveNext();
-            Assert.AreEqual("orld", parser.Rest.ToString());
-
-            parser.MoveNext();
-            Assert.AreEqual("rld", parser.Rest.ToString());
-
-            parser.MoveNext();
-            Assert.AreEqual("ld", parser.Rest.ToString());
-
-            parser.MoveNext();
-            Assert.AreEqual("d", parser.Rest.ToString());
-
-            parser.MoveNext();
-            Assert.AreEqual("", parser.Rest.ToString());
-
-            Assert.False(parser.MoveNext());
-            Assert.AreEqual(0, parser.Rest.Length);
+            cursor.Next();
+            Assert.AreEqual("", cursor.Rest.ToString());
         }
 
         [Test]
         public void CanConsumeTest()
         {
-            var parser = new TextParser("Hello World");
-            parser.MoveNext();
+            var cursor = new TextParser("Hello World");
 
-            Assert.True(parser.CanConsume("Hello"));
-            Assert.True(parser.CanConsume("Hello World"));
+            cursor.CanConsume("Hello");
+            cursor.CanConsume("Hello World");
 
-            parser.MoveNext();
-            Assert.False(parser.CanConsume("Hello"));
-            Assert.False(parser.CanConsume("Hello World"));
+            cursor.Next();
 
-            Assert.True(parser.CanConsume("ello"));
-            Assert.True(parser.CanConsume("ello World"));
+            cursor.CanConsume("ello");
+            cursor.CanConsume("ello World");
 
-            Assert.False(parser.CanConsume(""));
+            cursor.Next();
+            cursor.Next();
+            cursor.Next();
+            cursor.Next();
+            cursor.Next();
 
-            parser.MoveNext();
-            parser.MoveNext();
-            parser.MoveNext();
-            parser.MoveNext();
-            parser.MoveNext();
-            parser.MoveNext();
-            parser.MoveNext();
-            parser.MoveNext();
-            parser.MoveNext();
-            parser.MoveNext();
-
-            Assert.False(parser.CanConsume("d"));
-            Assert.False(parser.CanConsume(""));
+            cursor.CanConsume("World");
         }
 
         [Test]
         public void ConsumeTest()
         {
-            var parser = new TextParser("Hello World");
-            parser.MoveNext();
+            var cursor = new TextParser("Hello World");
 
-            Assert.AreEqual(1, parser.Consume("H"));
-            Assert.AreEqual("ello World", parser.Rest.ToString());
-
-            Assert.AreEqual(5, parser.Consume("ello "));
-            Assert.AreEqual("World", parser.Rest.ToString());
-
-            Assert.AreEqual(5, parser.Consume("World"));
-            Assert.AreEqual("", parser.Rest.ToString());
+            cursor.Consume("Hello ");
+            Assert.AreEqual("World", cursor.Rest.ToString());
         }
 
         [Test]
         public void SliceStartTest()
         {
             var parser = new TextParser("Hello World");
-            parser.MoveNext();
 
             Assert.AreEqual("World", parser.Slice(6).Rest.ToString());
 
@@ -185,7 +115,6 @@ namespace FastCSV.Utils
         public void SliceStartCountTest()
         {
             var parser = new TextParser("Hello to my World");
-            parser.MoveNext();
 
             Assert.AreEqual("to my", parser.Slice(6, 5).Rest.ToString());
 
@@ -196,7 +125,6 @@ namespace FastCSV.Utils
         public void RangeIndexerTest()
         {
             var parser = new TextParser("Hello to my World");
-            parser.MoveNext();
 
             Assert.AreEqual("to my", parser[6..11].Rest.ToString());
 

@@ -39,7 +39,7 @@ namespace FastCSV.Tests
                 new ("Monitor", 24500.99m, "gray"),
             };
 
-            CsvWriter.WriteValuesToStream(products, memoryStream, new CsvFormat(delimiter: ';'));
+            CsvWriter.WriteValuesToStream(products, memoryStream, new CsvFormat(delimiter: ";"));
             memoryStream.Position = 0;
 
             string data = ReadAllStream(memoryStream);
@@ -88,7 +88,7 @@ namespace FastCSV.Tests
 
             using (var tempFile = new TempFile())
             {
-                CsvWriter.WriteValuesToFile(products, tempFile.FullName, new CsvFormat(delimiter: ';'));
+                CsvWriter.WriteValuesToFile(products, tempFile.FullName, new CsvFormat(delimiter: ";"));
 
                 string[] lines = tempFile.GetText().Split(NewLine);
 
@@ -136,7 +136,7 @@ namespace FastCSV.Tests
                 new ("Monitor", 24500.99m, "gray"),
             };
 
-            await CsvWriter.WriteValuesToStreamAsync(products, memoryStream, new CsvFormat(delimiter: ';'));
+            await CsvWriter.WriteValuesToStreamAsync(products, memoryStream, new CsvFormat(delimiter: ";"));
             memoryStream.Position = 0;
 
             string data = ReadAllStream(memoryStream);
@@ -185,7 +185,7 @@ namespace FastCSV.Tests
 
             using (var tempFile = new TempFile())
             {
-                await CsvWriter.WriteValuesToFileAsync(products, tempFile.FullName, new CsvFormat(delimiter: ';'));
+                await CsvWriter.WriteValuesToFileAsync(products, tempFile.FullName, new CsvFormat(delimiter: ";"));
 
                 string[] lines = tempFile.GetText().Split(NewLine);
 

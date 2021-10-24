@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FastCSV.Collections;
 using FastCSV.Utils;
 
 namespace FastCSV
@@ -95,8 +96,21 @@ namespace FastCSV
         /// <param name="values">The values.</param>
         public void Write(params object?[] values)
         {
-            var array = values.Select(e => e?.ToString() ?? string.Empty);
-            WriteAll(array);
+            if (values.Length == 0)
+            {
+                WriteAll(Array.Empty<string>());
+                return;
+            }
+
+            using var builder = new ArrayBuilder<string>(values.Length);
+
+            foreach (object? obj in values)
+            {
+                string s = obj?.ToString() ?? string.Empty;
+                builder.Add(s);
+            }
+
+            WriteAll(builder.ToArray());
         }
 
         /// <summary>
@@ -143,10 +157,23 @@ namespace FastCSV
         /// Writes the specified values asyncronously.
         /// </summary>
         /// <param name="values">The values.</param>
-        public Task WriteAsync(params object[] values)
+        public async Task WriteAsync(params object[] values)
         {
-            Write(values);
-            return Task.CompletedTask;
+            if (values.Length == 0)
+            {
+                await WriteAllAsync(Array.Empty<string>());
+                return;
+            }
+
+            using var builder = new ArrayBuilder<string>(values.Length);
+
+            foreach (object? obj in values)
+            {
+                string s = obj?.ToString() ?? string.Empty;
+                builder.Add(s);
+            }
+
+            await WriteAllAsync(builder.ToArray());
         }
 
         /// <summary>
@@ -155,15 +182,10 @@ namespace FastCSV
         /// <param name="values">The values.</param>
         /// <param name="cancellationToken">A cancellation token for cancelling this operation.</param>
         /// <exception cref="ArgumentException">If the writer is flexible and attempt to write more fields than the previous one.</exception>
-        public Task WriteAllAsync(IEnumerable<string> values, CancellationToken cancellationToken = default)
+        public async Task WriteAllAsync(IEnumerable<string> values, CancellationToken cancellationToken = default)
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return Task.FromCanceled(cancellationToken);
-            }
-
-            WriteAll(values);
-            return Task.CompletedTask;
+            cancellationToken.ThrowIfCancellationRequested();
+            await CsvUtility.WriteRecordAsync(_writer!, values, Format);
         }
 
         /// <summary>

@@ -4,25 +4,20 @@ using System.Collections.Generic;
 
 namespace FastCSV.Utils
 {
-    /// <summary>
-    /// An enumerator over a text.
-    /// </summary>
-    public struct TextParser : IEnumerator<char>, IEnumerable<char>
+    public struct TextParser
     {
         private readonly ReadOnlyMemory<char> text;
+        private Optional<char> nextValue;
         private int pos;
 
-        public TextParser(string text) : this(text.AsMemory()) { }
-
-        public TextParser(ReadOnlyMemory<char> text) : this(text, false) { }
-
-        internal TextParser(ReadOnlyMemory<char> text, bool start)
+        public TextParser(ReadOnlyMemory<char> text)
         {
             this.text = text;
-            pos = start ? 0 : -1;
+            pos = 0;
+            nextValue = default;
         }
 
-        public char Current => text.Span[pos];
+        public TextParser(string text) : this(text.AsMemory()) { }
 
         public TextParser this[Range range]
         {
@@ -33,16 +28,9 @@ namespace FastCSV.Utils
             }
         }
 
-        public TextParser Slice(int start)
+        public ReadOnlyMemory<char> Rest
         {
-            var newText = Rest[start..];
-            return new TextParser(newText, start: true);
-        }
-
-        public TextParser Slice(int start, int count)
-        {
-            var newText = Rest.Slice(start, count);
-            return new TextParser(newText, start: true);
+            get => text[pos..];
         }
 
         public bool CanConsume(ReadOnlySpan<char> other)
@@ -52,14 +40,14 @@ namespace FastCSV.Utils
                 return false;
             }
 
-            ReadOnlySpan<char> rest = Rest.Span;
+            var rest = Rest;
 
             if (other.Length > rest.Length)
             {
                 return false;
             }
 
-            return rest.StartsWith(other);
+            return rest.Span.StartsWith(other);
         }
 
         public int Consume(ReadOnlySpan<char> other)
@@ -85,85 +73,45 @@ namespace FastCSV.Utils
             return 0;
         }
 
-        public ReadOnlyMemory<char> Rest
-        {
-            get
-            {
-                if (pos == -1)
-                {
-                    ThrowNotInitialized();
-                }
-
-                if (pos >= text.Length)
-                {
-                    return ReadOnlyMemory<char>.Empty;
-                }
-
-                return text[pos..];
-            }
-        }
-
         public Optional<char> Peek()
         {
-            int length = text.Length;
-            int next = pos + 1;
-
-            if (next < length)
+            if (pos >= text.Length)
             {
-                return text.Span[next];
-            }
-
-            return default;
-        }
-
-        public Optional<char> Next()
-        {
-            if (MoveNext())
-            {
-                return Current;
+                nextValue = default;
             }
             else
             {
-                return default;
-            }
-        }
-
-        public bool MoveNext()
-        {
-            int next = pos + 1;
-
-            if (next <= text.Length)
-            {
-                pos = next;
+                nextValue = text.Span[pos];
             }
 
-            return next < text.Length;
+            return nextValue;
         }
 
         public bool HasNext()
         {
-            int next = pos + 1;
-            return next < text.Length;
+            return pos < text.Length;
         }
 
-        public TextParser GetEnumerator() => this;
-
-        private void ThrowNotInitialized()
+        public Optional<char> Next()
         {
-            throw new InvalidOperationException("TextParser is not initialized, must call MoveNext() first");
+            var next = Peek();
+
+            if (next.HasValue)
+            {
+                pos += 1;
+            }
+
+            return next;
         }
 
-        public void Reset()
+        public TextParser Slice(int start)
         {
-            pos = -1;
+            return new TextParser(Rest.Slice(start));
         }
 
-        object IEnumerator.Current => Current;
-
-        void IDisposable.Dispose() { }
-
-        IEnumerator<char> IEnumerable<char>.GetEnumerator() => GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        public TextParser Slice(int start, int count)
+        {
+            return new TextParser(Rest.Slice(start, count));
+        }
     }
 }

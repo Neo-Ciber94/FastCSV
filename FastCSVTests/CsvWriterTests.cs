@@ -21,22 +21,22 @@ namespace FastCSV.Tests
         [Test()]
         public void CsvWriterTest2()
         {
-            var format = new CsvFormat('\t', '\"');
+            var format = new CsvFormat("\t", "\"");
             using var memory = new MemoryStream();
             using var writer = new CsvWriter(new StreamWriter(memory), format);
 
-            Assert.AreEqual(new CsvFormat('\t', '\"'), writer.Format);
+            Assert.AreEqual(new CsvFormat("\t", "\""), writer.Format);
             Assert.IsFalse(writer.IsFlexible);
         }
 
         [Test()]
         public void CsvWriterTest3()
         {
-            var format = new CsvFormat('\t', '\"');
+            var format = new CsvFormat("\t", "\"");
             using var memory = new MemoryStream();
             using var writer = new CsvWriter(new StreamWriter(memory), format, flexible: true);
 
-            Assert.AreEqual(new CsvFormat('\t', '\"'), writer.Format);
+            Assert.AreEqual(new CsvFormat("\t", "\""), writer.Format);
             Assert.IsTrue(writer.IsFlexible);
         }
 

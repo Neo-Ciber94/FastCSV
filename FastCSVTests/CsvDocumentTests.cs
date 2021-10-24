@@ -336,7 +336,7 @@ namespace FastCSV.Tests
             document.Write("Light", 18);
             document.Write("Misa", 20);
 
-            var copy = document.WithFormat(new CsvFormat(';', '"'));
+            var copy = document.WithFormat(new CsvFormat(";", "\""));
             Assert.AreEqual($"name;age{Environment.NewLine}Light;18{Environment.NewLine}Misa;20{Environment.NewLine}", copy.ToString());
         }
 
@@ -369,7 +369,7 @@ namespace FastCSV.Tests
         [Test()]
         public void ToStringTest1()
         {
-            var format = new CsvFormat(';', '\"');
+            var format = new CsvFormat(";", "\"");
             var document = new CsvDocument(new string[] { "name", "age" }, format);
             document.Write("Light", 18);
             document.Write("Misa", 20);

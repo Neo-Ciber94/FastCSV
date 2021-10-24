@@ -8,29 +8,13 @@ namespace FastCSV.Utils
     public static class StreamHelper
     {
         /// <summary>
-        /// Gets a <see cref="MemoryStream"/> containing the specified <see cref="string"/> data.
-        /// </summary>
-        /// <param name="s">The data.</param>
-        /// <returns>A stream containing the specified data.</returns>
-        public static Stream CreateStreamFromString(string s)
-        {
-            if (string.IsNullOrEmpty(s))
-            {
-                return Stream.Null;
-            }
-
-            byte[] byteArray = Encoding.UTF8.GetBytes(s);
-            return new MemoryStream(byteArray);
-        }
-
-        /// <summary>
         /// Gets a <see cref="MemoryStream"/> containing the specified <see cref="ReadOnlySpan{char}"/> data.
         /// </summary>
         /// <param name="s">The data.</param>
         /// <returns>A stream containing the specified data.</returns>
         public static Stream CreateStreamFromString(ReadOnlySpan<char> s)
         {
-            if (s.IsEmpty || s.IsWhiteSpace())
+            if (s.IsEmpty)
             {
                 return Stream.Null;
             }

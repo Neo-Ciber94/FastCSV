@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace FastCSV.Collections
 {
-    internal struct ArrayBuilder<T> : IDisposable
+    internal struct ArrayBuilder<T> : IEnumerable<T>, IDisposable
     {
         private T[]? _arrayFromPool;
         private int _count;
@@ -18,8 +21,23 @@ namespace FastCSV.Collections
 
         public int Capacity => _arrayFromPool?.Length ?? 0;
 
+        public Span<T> Span
+        {
+            get
+            {
+                if (_arrayFromPool == null)
+                {
+                    return Span<T>.Empty;
+                }
+
+                return _arrayFromPool.AsSpan(0, _count);
+            }
+        }
+
         public void Add(T value)
         {
+            ThrowIfDisposed();
+
             if (_arrayFromPool == null)
             {
                 return;
@@ -35,6 +53,8 @@ namespace FastCSV.Collections
 
         public T[] ToArray()
         {
+            ThrowIfDisposed();
+
             if (_arrayFromPool == null)
             {
                 return Array.Empty<T>();
@@ -69,5 +89,24 @@ namespace FastCSV.Collections
                 _count = 0;
             }
         }
+
+        [Conditional("DEBUG")]
+        private void ThrowIfDisposed()
+        {
+            if (_arrayFromPool == null)
+            {
+                throw new InvalidOperationException($"{GetType()} is uninitialized or disposed");
+            }
+        }
+
+        public ArrayEnumerator<T> GetEnumerator()
+        {
+            ThrowIfDisposed();
+            return new ArrayEnumerator<T>(_arrayFromPool!, _count);
+        }
+
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
