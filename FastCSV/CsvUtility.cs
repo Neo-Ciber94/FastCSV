@@ -105,8 +105,6 @@ namespace FastCSV
                     }
                     else if (parser.CanConsume(quote))
                     {
-                        parser.Consume(quote);
-
                         if (hasQuote)
                         {
                             // If the next char is a quote, the current is an escape so ignore it and append the next char
@@ -117,7 +115,7 @@ namespace FastCSV
 
                                 if (style != QuoteStyle.Never)
                                 {
-                                    stringBuilder.Append(parser.Peek().Value);
+                                    stringBuilder.Append(parser.Peek().Value);                                    
                                 }
                             }
                             else
@@ -150,16 +148,16 @@ namespace FastCSV
                                 case QuoteStyle.Never:
                                     break;
                                 case QuoteStyle.WhenNeeded:
-                                    if (stringBuilder.Length > 0)
-                                    {
-                                        stringBuilder.Append(quote);
-                                    }
+                                    stringBuilder.Append(quote);
                                     break;
                             }
+
 
                             quotePosition = currentPosition;
                             hasQuote = true;
                         }
+
+                        parser.Consume(quote);
                     }
                     else
                     {

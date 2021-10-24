@@ -60,19 +60,14 @@ namespace FastCSV
         }
 
         /// <summary>
-        /// Creates a <see cref="CsvWriter"/> from the specified stream.
+        /// Initializes a new instance of a <see cref="CsvWriter"/> from a <see cref="Stream"/>.
         /// </summary>
         /// <param name="stream">The stream.</param>
         /// <param name="format">The format.</param>
         /// <param name="flexible">if set to <c>true</c> the writer will allow records of diferent lenghts.</param>
-        /// <returns></returns>
-        public static CsvWriter FromStream(Stream stream, CsvFormat? format = null, bool flexible = false, bool leaveOpen = false)
-        {
-            format ??= CsvFormat.Default;
-
-            StreamWriter writer = new StreamWriter(stream, leaveOpen: leaveOpen);
-            return new CsvWriter(writer, format, flexible);
-        }
+        /// <param name="leaveOpen">Whether if close the given stream after the writer is disposed.</param>
+        public CsvWriter(Stream stream, CsvFormat? format = null, bool flexible = false, bool leaveOpen = false) 
+            : this(new StreamWriter(stream, leaveOpen: leaveOpen), format, flexible) { }
 
         /// <summary>
         /// Gets the csv format used for this writer.
@@ -121,24 +116,7 @@ namespace FastCSV
         public void WriteAll(IEnumerable<string> values)
         {
             ThrowIfDisposed();
-
-            int length = values.Count();
-
-            // Check if the number of values to write
-            // is equals to the last written
-            if (!IsFlexible)
-            {
-                if (_fieldsWritten == 0)
-                {
-                    _fieldsWritten = length;
-                }
-
-                if (_fieldsWritten > 0 && _fieldsWritten != length)
-                {
-                    throw new ArgumentException($"Expected to write {_fieldsWritten} values but {length} was get");
-                }
-            }
-
+            AssertFieldsToWriteCount(values.Count());
             CsvUtility.WriteRecord(_writer!, values, Format);
         }
 
@@ -184,7 +162,9 @@ namespace FastCSV
         /// <exception cref="ArgumentException">If the writer is flexible and attempt to write more fields than the previous one.</exception>
         public async Task WriteAllAsync(IEnumerable<string> values, CancellationToken cancellationToken = default)
         {
+            ThrowIfDisposed();
             cancellationToken.ThrowIfCancellationRequested();
+            AssertFieldsToWriteCount(values.Count());
             await CsvUtility.WriteRecordAsync(_writer!, values, Format);
         }
 
@@ -212,6 +192,23 @@ namespace FastCSV
         {
             ThrowIfDisposed();
             _writer!.Flush();
+        }
+
+        protected void AssertFieldsToWriteCount(int numberOfFieldsToWrite)
+        {
+            // Check if the number of values to write is equals to the last written
+            if (!IsFlexible)
+            {
+                if (_fieldsWritten == 0)
+                {
+                    _fieldsWritten = numberOfFieldsToWrite;
+                }
+
+                if (_fieldsWritten > 0 && _fieldsWritten != numberOfFieldsToWrite)
+                {
+                    throw new ArgumentException($"Expected to write {_fieldsWritten} values but {numberOfFieldsToWrite} were written");
+                }
+            }
         }
 
         protected void ThrowIfDisposed()
