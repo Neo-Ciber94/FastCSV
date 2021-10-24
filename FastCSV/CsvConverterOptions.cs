@@ -1,5 +1,4 @@
 ﻿using FastCSV.Converters;
-using FastCSV.Internal;
 using System.Collections.Generic;
 
 namespace FastCSV
@@ -69,11 +68,6 @@ namespace FastCSV
         /// The <see cref="CsvConverterProvider"/> used for this option.
         /// </summary>
         public CsvConverterProvider ConverterProvider { get; init; } = CsvConverterProvider.Default;
-
-        /// <summary>
-        /// Provider for reflection operations.
-        /// </summary>
-        public IReflector ReflectionProvider { get; init; } = ForwardReflector.Default;
 
         /// <summary>
         /// The delimiter of the format.
