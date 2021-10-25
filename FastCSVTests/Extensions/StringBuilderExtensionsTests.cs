@@ -116,5 +116,24 @@ namespace FastCSV.Extensions.Tests
             Assert.False(new StringBuilder("Hello World").Contains("Hello!"));
             Assert.False(new StringBuilder("Hello World").Contains("World!"));
         }
+
+        [Test]
+        public void StartsWithTest()
+        {
+            Assert.True(new StringBuilder("Hello World").StartsWith("Hello"));
+            Assert.True(new StringBuilder("Hello World").StartsWith("Hello World"));
+            Assert.False(new StringBuilder("Hello World").StartsWith("Hello!"));
+            Assert.False(new StringBuilder("Hello World").StartsWith(""));
+        }
+
+
+        [Test]
+        public void EndsWithTest()
+        {
+            Assert.True(new StringBuilder("Hello World").EndsWith("World"));
+            Assert.True(new StringBuilder("Hello World").EndsWith("Hello World"));
+            Assert.False(new StringBuilder("Hello World").EndsWith("World!"));
+            Assert.False(new StringBuilder("Hello World").EndsWith(""));
+        }
     }
 }

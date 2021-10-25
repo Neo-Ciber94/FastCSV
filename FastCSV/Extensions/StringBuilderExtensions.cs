@@ -128,6 +128,11 @@ namespace FastCSV.Utils
 
         public static int IndexOf(this StringBuilder sb, ReadOnlySpan<char> other)
         {
+            if (other.IsEmpty)
+            {
+                return -1;
+            }
+
             int length = sb.Length;
 
             for (int i = 0; i < length; i++)
@@ -161,6 +166,11 @@ namespace FastCSV.Utils
 
         public static int LastIndexOf(this StringBuilder sb, ReadOnlySpan<char> other)
         {
+            if (other.IsEmpty)
+            {
+                return -1;
+            }
+
             int length = sb.Length;
             int otherLength = other.Length;
 
@@ -191,6 +201,78 @@ namespace FastCSV.Utils
         public static bool Contains(this StringBuilder sb, ReadOnlySpan<char> other)
         {
             return sb.IndexOf(other) >= 0;
+        }
+
+        public static bool StartsWith(this StringBuilder sb, ReadOnlySpan<char> other)
+        {
+            if (other.IsEmpty)
+            {
+                return false;
+            }
+
+            int length = sb.Length;
+
+            for (int i = 0; i < length; i++)
+            {
+                bool match = true;
+
+                for (int j = 0; j < other.Length; j++)
+                {
+                    int index = i + j;
+
+                    if (index >= length)
+                    {
+                        return false;
+                    }
+
+                    if (sb[index] != other[j])
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool EndsWith(this StringBuilder sb, ReadOnlySpan<char> other)
+        {
+            if (other.IsEmpty)
+            {
+                return false;
+            }
+
+            int length = sb.Length;
+            int otherLength = other.Length;
+
+            for (int i = length - otherLength; i >= 0; i--)
+            {
+                bool match = true;
+
+                for (int j = 0; j < other.Length; j++)
+                {
+                    int index = i + j;
+
+                    if (sb[index] != other[j])
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
