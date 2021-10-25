@@ -7,14 +7,14 @@ namespace FastCSV.Utils
     public struct TextParser
     {
         private readonly ReadOnlyMemory<char> text;
-        private Optional<char> nextValue;
+        private Optional<char> next;
         private int pos;
 
         public TextParser(ReadOnlyMemory<char> text)
         {
             this.text = text;
             pos = 0;
-            nextValue = default;
+            next = default;
         }
 
         public TextParser(string text) : this(text.AsMemory()) { }
@@ -77,14 +77,14 @@ namespace FastCSV.Utils
         {
             if (pos >= text.Length)
             {
-                nextValue = default;
+                next = default;
             }
             else
             {
-                nextValue = text.Span[pos];
+                next = text.Span[pos];
             }
 
-            return nextValue;
+            return next;
         }
 
         public bool HasNext()
@@ -94,14 +94,14 @@ namespace FastCSV.Utils
 
         public Optional<char> Next()
         {
-            var next = Peek();
+            var nextValue = Peek();
 
-            if (next.HasValue)
+            if (nextValue.HasValue)
             {
                 pos += 1;
             }
 
-            return next;
+            return nextValue;
         }
 
         public TextParser Slice(int start)
