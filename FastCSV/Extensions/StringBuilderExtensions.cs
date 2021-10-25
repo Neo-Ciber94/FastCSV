@@ -84,5 +84,46 @@ namespace FastCSV.Utils
         }
 
         public static StringBuilder Trim(this StringBuilder sb) => Trim(sb, char.IsWhiteSpace);
+
+        public static StringBuilder Slice(this StringBuilder sb, int index)
+        {
+            return sb.Slice(index, sb.Length - index);
+        }
+
+        public static StringBuilder Slice(this StringBuilder sb, int index, int count)
+        {
+            if (index < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index), $"Index cannot be negative but was {index}");
+            }
+
+            if (count < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(count), $"Count cannot be negative {count}");
+            }
+
+            if ((index + count) > sb.Length)
+            {
+                throw new ArgumentOutOfRangeException($"Count is too large {count}");
+            }
+
+            int endIndex = index + count;
+            sb.Remove(endIndex, sb.Length - endIndex);
+            sb.Remove(0, index);
+            return sb;
+        }
+
+        public static StringBuilder Slice(this StringBuilder sb, Index index)
+        {
+            int startIndex = index.GetOffset(sb.Length);
+            return sb.Slice(startIndex, sb.Length - startIndex);
+        }
+
+        public static StringBuilder Slice(this StringBuilder sb, Range range)
+        {
+
+            var (index, count) = range.GetOffsetAndLength(sb.Length);
+            return sb.Slice(index, count);
+        }
     }
 }

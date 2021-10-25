@@ -35,5 +35,53 @@ namespace FastCSV.Extensions.Tests
             Assert.AreEqual("Hello World", new StringBuilder("Hello World").Trim().ToString());
             Assert.AreEqual("", new StringBuilder("     ").Trim().ToString());
         }
+
+        [Test]
+        public void SliceTest()
+        {
+            Assert.AreEqual("Hello", new StringBuilder("Hello World").Slice(0, 5).ToString());
+            Assert.AreEqual("World", new StringBuilder("Hello World").Slice(6, 5).ToString());
+
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            {
+                var _ = new StringBuilder("Hello World").Slice(5, 10);
+            });
+
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            {
+                var _ = new StringBuilder("Hello World").Slice(0, 20);
+            });
+
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            {
+                var _ = new StringBuilder("Hello World").Slice(10, -2);
+            });
+
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            {
+                var _ = new StringBuilder("Hello World").Slice(-5, 4);
+            });
+        }
+
+        [Test]
+        public void SliceStartIndexTest()
+        {
+            Assert.AreEqual("World", new StringBuilder("Hello World").Slice(6).ToString());
+            Assert.AreEqual("", new StringBuilder("Hello World").Slice(11).ToString());
+        }
+
+        [Test]
+        public void SliceRangeTest()
+        {
+            Assert.AreEqual("Hello", new StringBuilder("Hello World").Slice(0..5).ToString());
+            Assert.AreEqual("World", new StringBuilder("Hello World").Slice(6..11).ToString());
+        }
+
+        [Test]
+        public void SliceIndexTest()
+        {
+            Assert.AreEqual("World", new StringBuilder("Hello World").Slice(^5).ToString());
+            Assert.AreEqual("Hello World", new StringBuilder("Hello World").Slice(^11).ToString());
+        }
     }
 }
