@@ -125,5 +125,72 @@ namespace FastCSV.Utils
             var (index, count) = range.GetOffsetAndLength(sb.Length);
             return sb.Slice(index, count);
         }
+
+        public static int IndexOf(this StringBuilder sb, ReadOnlySpan<char> other)
+        {
+            int length = sb.Length;
+
+            for (int i = 0; i < length; i++)
+            {
+                bool match = true;
+
+                for (int j = 0; j < other.Length; j++)
+                {
+                    int index = i + j;
+
+                    if (index >= length)
+                    {
+                        return -1;
+                    }
+
+                    if (sb[index] != other[j])
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        public static int LastIndexOf(this StringBuilder sb, ReadOnlySpan<char> other)
+        {
+            int length = sb.Length;
+            int otherLength = other.Length;
+
+            for (int i = length - otherLength; i >= 0; i--)
+            {
+                bool match = true;
+
+                for (int j = 0; j < otherLength; j++)
+                {
+                    int index = i + j;
+
+                    if (sb[index] != other[j])
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        public static bool Contains(this StringBuilder sb, ReadOnlySpan<char> other)
+        {
+            return sb.IndexOf(other) >= 0;
+        }
     }
 }

@@ -83,5 +83,38 @@ namespace FastCSV.Extensions.Tests
             Assert.AreEqual("World", new StringBuilder("Hello World").Slice(^5).ToString());
             Assert.AreEqual("Hello World", new StringBuilder("Hello World").Slice(^11).ToString());
         }
+
+        [Test]
+        public void IndexOfTest()
+        {
+            Assert.AreEqual(0, new StringBuilder("Hello World").IndexOf("Hello"));
+            Assert.AreEqual(6, new StringBuilder("Hello World").IndexOf("World"));
+            Assert.AreEqual(-1, new StringBuilder("Hello World").IndexOf("Hello!"));
+            Assert.AreEqual(-1, new StringBuilder("Hello World").IndexOf("World!"));
+
+            Assert.AreEqual(10, new StringBuilder("Hello World").IndexOf("d"));
+            Assert.AreEqual(0, new StringBuilder("Hello World").IndexOf("H"));
+        }
+
+        [Test]
+        public void LastIndexOfTest()
+        {
+            Assert.AreEqual(0, new StringBuilder("Hello World").LastIndexOf("Hello"));
+            Assert.AreEqual(6, new StringBuilder("Hello World").LastIndexOf("World"));
+            Assert.AreEqual(-1, new StringBuilder("Hello World").LastIndexOf("Hello!"));
+            Assert.AreEqual(-1, new StringBuilder("Hello World").LastIndexOf("World!"));
+
+            Assert.AreEqual(10, new StringBuilder("Hello World").LastIndexOf("d"));
+            Assert.AreEqual(0, new StringBuilder("Hello World").LastIndexOf("H"));
+        }
+
+        [Test]
+        public void ContainsTest()
+        {
+            Assert.True(new StringBuilder("Hello World").Contains("Hello"));
+            Assert.True(new StringBuilder("Hello World").Contains("World"));
+            Assert.False(new StringBuilder("Hello World").Contains("Hello!"));
+            Assert.False(new StringBuilder("Hello World").Contains("World!"));
+        }
     }
 }
