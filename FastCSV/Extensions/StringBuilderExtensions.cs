@@ -290,35 +290,20 @@ namespace FastCSV.Utils
                 return false;
             }
 
-            int length = sb.Length;
-
-            for (int i = 0; i < length; i++)
+            if (other.Length > sb.Length)
             {
-                bool match = true;
+                return false;
+            }
 
-                for (int j = 0; j < other.Length; j++)
+            for (int i = 0; i < other.Length; i++)
+            {
+                if (sb[i] != other[i])
                 {
-                    int index = i + j;
-
-                    if (index >= length)
-                    {
-                        return false;
-                    }
-
-                    if (sb[index] != other[j])
-                    {
-                        match = false;
-                        break;
-                    }
-                }
-
-                if (match)
-                {
-                    return true;
+                    return false;
                 }
             }
 
-            return false;
+            return true;
         }
 
         public static bool EndsWith(this StringBuilder sb, ReadOnlySpan<char> other)
@@ -329,30 +314,23 @@ namespace FastCSV.Utils
             }
 
             int length = sb.Length;
-            int otherLength = other.Length;
 
-            for (int i = length - otherLength; i >= 0; i--)
+            if (other.Length > length)
             {
-                bool match = true;
+                return false;
+            }
 
-                for (int j = 0; j < other.Length; j++)
+            for (int i = 0; i < other.Length; i++)
+            {
+                int index = length - other.Length + i;
+
+                if (sb[index] != other[i])
                 {
-                    int index = i + j;
-
-                    if (sb[index] != other[j])
-                    {
-                        match = false;
-                        break;
-                    }
-                }
-
-                if (match)
-                {
-                    return true;
+                    return false;
                 }
             }
 
-            return false;
+            return true;
         }
     }
 }
