@@ -126,6 +126,60 @@ namespace FastCSV.Utils
             return sb.Slice(index, count);
         }
 
+        public static StringBuilder PadLeft(this StringBuilder sb, ReadOnlySpan<char> other)
+        {
+            return sb.PadLeft(1, other);
+        }
+        
+        public static StringBuilder PadLeft(this StringBuilder sb, int count, ReadOnlySpan<char> other)
+        {
+            if (count < 0)
+            {
+                throw new ArgumentOutOfRangeException($"Count cannot be negative but was {count}");
+            }
+
+            if (count == 0)
+            {
+                return sb;
+            }
+
+            sb.EnsureCapacity(other.Length * count);
+
+            for (int i = 0; i < count; i++)
+            {
+                sb.Insert(0, other);
+            }
+
+            return sb;
+        }
+
+        public static StringBuilder PadRight(this StringBuilder sb, ReadOnlySpan<char> other)
+        {
+            return sb.PadRight(1, other);
+        }
+
+        public static StringBuilder PadRight(this StringBuilder sb, int count, ReadOnlySpan<char> other)
+        {
+            if (count < 0)
+            {
+                throw new ArgumentOutOfRangeException($"Count cannot be negative but was {count}");
+            }
+
+            if (count == 0)
+            {
+                return sb;
+            }
+
+            sb.EnsureCapacity(other.Length * count);
+
+            for (int i = 0; i < count; i++)
+            {
+                sb.Append(other);
+            }
+
+            return sb;
+        }
+
         public static int IndexOf(this StringBuilder sb, ReadOnlySpan<char> other)
         {
             if (other.IsEmpty)

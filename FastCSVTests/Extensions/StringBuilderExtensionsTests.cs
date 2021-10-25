@@ -85,6 +85,18 @@ namespace FastCSV.Extensions.Tests
         }
 
         [Test]
+        public void PadLeftTest()
+        {
+            Assert.AreEqual("**Hello", new StringBuilder("Hello").PadLeft("**").ToString()); 
+        }
+
+        [Test]
+        public void PadRightTest()
+        {
+            Assert.AreEqual("Hello**", new StringBuilder("Hello").PadRight("**").ToString());
+        }
+
+        [Test]
         public void IndexOfTest()
         {
             Assert.AreEqual(0, new StringBuilder("Hello World").IndexOf("Hello"));
