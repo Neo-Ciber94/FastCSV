@@ -147,5 +147,45 @@ namespace FastCSV.Extensions.Tests
             Assert.False(new StringBuilder("Hello World").EndsWith("World!"));
             Assert.False(new StringBuilder("Hello World").EndsWith(""));
         }
+
+        [Test]
+        public void TrimStartOnceTest()
+        {
+            Assert.AreEqual("Hello World", new StringBuilder("HHello World").TrimStartOnce("H").ToString());
+            Assert.AreEqual("ello World", new StringBuilder("Hello World").TrimStartOnce("H").ToString());
+            Assert.AreEqual("llo World", new StringBuilder("ello World").TrimStartOnce("e").ToString());
+            Assert.AreEqual("lo World", new StringBuilder("llo World").TrimStartOnce("l").ToString());
+            Assert.AreEqual("o World", new StringBuilder("lo World").TrimStartOnce("l").ToString());
+            Assert.AreEqual(" World", new StringBuilder("o World").TrimStartOnce("o").ToString());
+            Assert.AreEqual("World", new StringBuilder(" World").TrimStartOnce(" ").ToString());
+            Assert.AreEqual("orld", new StringBuilder("World").TrimStartOnce("W").ToString());
+            Assert.AreEqual("rld", new StringBuilder("orld").TrimStartOnce("o").ToString());
+            Assert.AreEqual("ld", new StringBuilder("rld").TrimStartOnce("r").ToString());
+            Assert.AreEqual("d", new StringBuilder("ld").TrimStartOnce("l").ToString());
+            Assert.AreEqual("", new StringBuilder("d").TrimStartOnce("d").ToString());
+        }
+
+        [Test]
+        public void TrimEndOnceTest()
+        {
+            Assert.AreEqual("Hello World", new StringBuilder("Hello Worldd").TrimEndOnce("d").ToString());
+            Assert.AreEqual("Hello Worl", new StringBuilder("Hello World").TrimEndOnce("d").ToString());
+            Assert.AreEqual("Hello Wor", new StringBuilder("Hello Worl").TrimEndOnce("l").ToString());
+            Assert.AreEqual("Hello Wo", new StringBuilder("Hello Wor").TrimEndOnce("r").ToString());
+            Assert.AreEqual("Hello W", new StringBuilder("Hello Wo").TrimEndOnce("o").ToString());
+            Assert.AreEqual("Hello ", new StringBuilder("Hello W").TrimEndOnce("W").ToString());
+            Assert.AreEqual("Hello", new StringBuilder("Hello ").TrimEndOnce(" ").ToString());
+            Assert.AreEqual("Hell", new StringBuilder("Hello").TrimEndOnce("o").ToString());
+            Assert.AreEqual("Hel", new StringBuilder("Hell").TrimEndOnce("l").ToString());
+            Assert.AreEqual("He", new StringBuilder("Hel").TrimEndOnce("l").ToString());
+            Assert.AreEqual("H", new StringBuilder("He").TrimEndOnce("e").ToString());
+            Assert.AreEqual("", new StringBuilder("H").TrimEndOnce("H").ToString());
+        }
+
+        [Test]
+        public void TrimOnceTest()
+        {
+            Assert.AreEqual("Hello", new StringBuilder("**Hello**").TrimOnce("**").ToString());
+        }
     }
 }

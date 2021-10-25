@@ -180,6 +180,32 @@ namespace FastCSV.Utils
             return sb;
         }
 
+        public static StringBuilder TrimStartOnce(this StringBuilder sb, ReadOnlySpan<char> other)
+        {
+            if (sb.StartsWith(other))
+            {
+                return sb.Slice(other.Length);
+            }
+
+            return sb;
+        }
+
+        public static StringBuilder TrimEndOnce(this StringBuilder sb, ReadOnlySpan<char> other)
+        {
+            if (sb.EndsWith(other))
+            {
+                return sb.Slice(0..^other.Length);
+            }
+
+            return sb;
+        }
+
+        public static StringBuilder TrimOnce(this StringBuilder sb, ReadOnlySpan<char> other)
+        {
+            return sb.TrimStartOnce(other).TrimEndOnce(other);
+        }
+
+
         public static int IndexOf(this StringBuilder sb, ReadOnlySpan<char> other)
         {
             if (other.IsEmpty)
