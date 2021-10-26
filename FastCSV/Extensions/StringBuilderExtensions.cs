@@ -205,7 +205,6 @@ namespace FastCSV.Utils
             return sb.TrimStartOnce(other).TrimEndOnce(other);
         }
 
-
         public static int IndexOf(this StringBuilder sb, ReadOnlySpan<char> other)
         {
             if (other.IsEmpty)
@@ -281,6 +280,19 @@ namespace FastCSV.Utils
         public static bool Contains(this StringBuilder sb, ReadOnlySpan<char> other)
         {
             return sb.IndexOf(other) >= 0;
+        }
+
+        public static bool Contains(this StringBuilder sb, char c)
+        {
+            for (int i = 0; i < sb.Capacity; i++)
+            {
+                if (sb[i] != c)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public static bool StartsWith(this StringBuilder sb, ReadOnlySpan<char> other)
