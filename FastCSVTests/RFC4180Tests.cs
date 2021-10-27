@@ -20,8 +20,8 @@ namespace FastCSV
         public void RecordsSeparatedByNewLine_ReadTests()
         {
             string csv = @"name,price
-                           Mouse Pad,299
-                           Table,2450";
+Mouse Pad,299
+Table,2450";
 
             var stream = StreamHelper.CreateStreamFromString(csv);
             using var reader = new CsvReader(stream);
@@ -51,8 +51,8 @@ namespace FastCSV
         public void RecordsNoHeaderTest()
         {
             string csv = @"00,Small LED Lights
-                           01,Fan
-                           02,RGB Mouse";
+01,Fan
+02,RGB Mouse";
 
             using var reader = new CsvReader(StreamHelper.CreateStreamFromString(csv), hasHeader: false);
 
@@ -100,8 +100,8 @@ namespace FastCSV
         public void EncloseWithDoubleQuote_ReadTest()
         {
             string csv = @"""code"",""name""
-                          0012,""Headphones""
-                        ""0032"",RGB Keyboard";
+0012,""Headphones""
+""0032"",RGB Keyboard";
 
 
             using var reader = new CsvReader(StreamHelper.CreateStreamFromString(csv));
@@ -139,8 +139,8 @@ namespace FastCSV
         public void FieldWithComma_ReadTest()
         {
             string csv = @"""Id,Identifier"",""name,alias""
-                             01,""Mouse RGB, 256 colors""
-                             03,""Keyboard, Black""";
+01,""Mouse RGB, 256 colors""
+03,""Keyboard, Black""";
 
             using var reader = new CsvReader(StreamHelper.CreateStreamFromString(csv));
 
