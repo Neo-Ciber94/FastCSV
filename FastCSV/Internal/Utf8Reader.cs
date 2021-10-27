@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using FastCSV.Collections;
 
@@ -13,7 +14,6 @@ namespace FastCSV.Internal
     {
         internal const int DefaultBufferSize = 256;
         private const int PositionDisposed = -1;
-        private const int PositionDone = -2;
 
         private byte[]? _arrayFromPool;
         private Stream? _stream;
@@ -30,10 +30,21 @@ namespace FastCSV.Internal
             _stream = stream;
             _leaveOpen = leaveOpen;
             _pos = 0;
-            _capacity = capacity;
+            _capacity = 0;
         }
 
-        public bool IsDone => _pos == PositionDone || IsDisposed;
+        public bool IsDone
+        {
+            get
+            {
+                if (_stream != null && _stream.Position == _stream.Length && _pos >= _capacity)
+                {
+                    return true;
+                }
+
+                return IsDisposed;
+            }
+        }
 
         public bool IsDisposed => _pos == PositionDisposed;
 
@@ -50,7 +61,7 @@ namespace FastCSV.Internal
 
             while (written < buffer.Length)
             {
-                Span<byte> innerBuffer = FillBuffer();
+                ReadOnlySpan<byte> innerBuffer = FillBuffer();
                 int totalRead = innerBuffer.Length;
 
                 if (totalRead == 0)
@@ -61,24 +72,35 @@ namespace FastCSV.Internal
                 int bufferFree = buffer.Length - written;
                 int countToWrite = Math.Min(totalRead, bufferFree);
                 innerBuffer.Slice(0, countToWrite).CopyTo(buffer.Slice(written));
+                written += countToWrite;
                 Consume(countToWrite);
             }
 
             return written;
         }
 
-        public int ReadByte()
+        public int ReadNext()
         {
-            Span<byte> buffer = FillBuffer();
+            int value = Peek();
+
+            if (value != -1)
+            {
+                Consume(1);
+            }
+
+            return value;
+        }
+
+        public int Peek()
+        {
+            ReadOnlySpan<byte> buffer = FillBuffer();
 
             if (buffer.Length == 0)
             {
                 return -1;
             }
 
-            int value = buffer[0];
-            Consume(1);
-            return value;
+            return buffer[0];
         }
 
         public byte[] ReadUntil(byte value)
@@ -88,11 +110,29 @@ namespace FastCSV.Internal
                 return Array.Empty<byte>();
             }
 
-            using var builder = new ArrayBuilder<byte>(32);
+            ArrayBuilder<byte> builder = new(64);
+
+            try
+            {
+                ReadUntil(ref builder, value);
+                return builder.ToArray();
+            }
+            finally
+            {
+                builder.Dispose();
+            }
+        }
+
+        public void ReadUntil(ref ArrayBuilder<byte> builder, byte value)
+        {
+            if (IsDone)
+            {
+                return;
+            }
 
             while (true)
             {
-                Span<byte> buffer = FillBuffer();
+                ReadOnlySpan<byte> buffer = FillBuffer();
 
                 if (buffer.Length == 0)
                 {
@@ -100,61 +140,75 @@ namespace FastCSV.Internal
                 }
 
                 int index = buffer.IndexOf(value);
+                int totalToConsume = index == -1 ? buffer.Length : index;
 
                 if (index == -1)
                 {
                     builder.AddRange(buffer);
+                    Consume(totalToConsume);
                 }
                 else
                 {
                     if (index > 0)
                     {
                         // We skip the found value
-                        builder.AddRange(buffer.Slice(0, index - 1));
+                        builder.AddRange(buffer.Slice(0, index));
                     }
 
-                    break;
+                    Consume(totalToConsume);
+                    return;
                 }
-
-                int totalToConsume = index == -1 ? buffer.Length : index;
-                Consume(totalToConsume);
             }
-
-            return builder.ToArray();
         }
 
-        public Span<byte> FillBuffer()
-        {
-            ThrowIfDisposed();
-
-            if (_capacity > 0)
-            {
-                return _arrayFromPool!.AsSpan(0, _capacity);
-            }
-
-            int bytesRead = _stream!.Read(_arrayFromPool);
-            
-            if (bytesRead == 0)
-            {
-                _pos = PositionDone;
-                return Span<byte>.Empty;
-            }
-
-            _pos = 0;
-            _capacity = bytesRead;
-
-            return _arrayFromPool!.AsSpan(0, bytesRead);
-        }
-
-        public void Consume(int count)
+        public ReadOnlySpan<byte> FillBuffer()
         {
             ThrowIfDisposed();
 
             if (_pos < _capacity)
             {
-                int actualBytesToConsume = Math.Min(count, _capacity  - _pos);
-                _pos += actualBytesToConsume;
+                return _arrayFromPool!.AsSpan(_pos, _capacity - _pos);
             }
+
+            int totalRead = _stream!.Read(_arrayFromPool);
+            
+            if (totalRead == 0)
+            {
+                return ReadOnlySpan<byte>.Empty;
+            }
+
+            _pos = 0;
+            _capacity = totalRead;
+
+            return _arrayFromPool!.AsSpan(0, totalRead);
+        }
+
+        public async ValueTask<ReadOnlyMemory<byte>> FillBufferAsync(CancellationToken cancellationToken = default)
+        {
+            ThrowIfDisposed();
+
+            if (_pos < _capacity)
+            {
+                return _arrayFromPool!.AsMemory(_pos, _capacity - _pos);
+            }
+
+            int totalRead = await _stream!.ReadAsync(_arrayFromPool, cancellationToken);
+
+            if (totalRead == 0)
+            {
+                return ReadOnlyMemory<byte>.Empty;
+            }
+
+            _pos = 0;
+            _capacity = totalRead;
+
+            return _arrayFromPool!.AsMemory(0, totalRead);
+        }
+
+        public void Consume(int count)
+        {
+            ThrowIfDisposed();
+            _pos = Math.Min(count + _pos, _capacity);
         }
 
         public void DiscardBuffer()

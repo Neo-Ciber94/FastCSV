@@ -2,15 +2,16 @@
 using System.Buffers;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using FastCSV.Collections;
+using FastCSV.Utils;
 
 namespace FastCSV.Internal
 {
     internal struct Utf16Reader : IBufferedReader<char>
     {
         private const int PositionDisposed = -1;
-        private const int PositionDone = -2;
 
         private readonly Utf8Reader _utf8Reader;
         private char[]? _arrayFromPool;
@@ -35,9 +36,9 @@ namespace FastCSV.Internal
             _charCount = 0;
         }
 
-        public bool IsDone => _charPos == PositionDone || IsDisposed;
+        public bool IsDone => _utf8Reader.IsDone || IsDisposed;
 
-        public bool IsDisposed => _charPos == PositionDone;
+        public bool IsDisposed => _charPos == PositionDisposed;
 
         public int Read(Span<char> buffer)
         {
@@ -52,7 +53,7 @@ namespace FastCSV.Internal
 
             while (written < buffer.Length)
             {
-                Span<char> innerBuffer = FillBuffer();
+                ReadOnlySpan<char> innerBuffer = FillBuffer();
                 int totalRead = innerBuffer.Length;
 
                 if (totalRead == 0)
@@ -69,18 +70,28 @@ namespace FastCSV.Internal
             return written;
         }
 
-        public int ReadChar()
+        public int ReadNext()
         {
-            Span<char> buffer = FillBuffer();
+            int value = Peek();
+
+            if (value != -1)
+            {
+                Consume(1);
+            }
+
+            return value;
+        }
+
+        public int Peek()
+        {
+            ReadOnlySpan<char> buffer = FillBuffer();
 
             if (buffer.IsEmpty)
             {
                 return -1;
             }
 
-            char c = buffer[0];
-            Consume(1);
-            return c;
+            return buffer[0];
         }
 
         public char[] ReadUntil(char value)
@@ -90,11 +101,24 @@ namespace FastCSV.Internal
                 return Array.Empty<char>();
             }
 
-            using var builder = new ArrayBuilder<char>(32);
+            ArrayBuilder<char> builder = new ArrayBuilder<char>(64);
 
+            try
+            {
+                ReadUntil(ref builder, value);
+                return builder.ToArray();
+            }
+            finally
+            {
+                builder.Dispose();
+            }
+        }
+
+        public void ReadUntil(ref ArrayBuilder<char> builder, char value)
+        {
             while (true)
             {
-                Span<char> buffer = FillBuffer();
+                ReadOnlySpan<char> buffer = FillBuffer();
 
                 if (buffer.Length == 0)
                 {
@@ -112,7 +136,7 @@ namespace FastCSV.Internal
                     if (index > 0)
                     {
                         // We skip the found value
-                        builder.AddRange(buffer.Slice(0, index - 1));
+                        builder.AddRange(buffer.Slice(0, index));
                     }
 
                     break;
@@ -121,32 +145,85 @@ namespace FastCSV.Internal
                 int totalToConsume = index == -1 ? buffer.Length : index;
                 Consume(totalToConsume);
             }
-
-            return builder.ToArray();
         }
 
-        public Span<char> FillBuffer()
+        public string? ReadLine()
+        {
+            if (IsDone)
+            {
+                return null;
+            }
+
+            ArrayBuilder<char> builder = new ArrayBuilder<char>(64);
+
+            try
+            {
+                ReadUntil(ref builder, '\n');
+                Span<char> buffer = builder.Span;
+
+                if (buffer.Length > 0)
+                {
+                    char c = buffer[^1];
+
+                    if (c == '\r')
+                    {
+                        buffer = buffer[0..^1];
+                    }
+                }
+
+                return new string(buffer);
+            }
+            finally
+            {
+                builder.Dispose();
+            }
+        }
+
+        public string? ReadToEnd()
+        {
+            if (IsDone)
+            {
+                return null;
+            }
+
+            StringBuilder sb = StringBuilderCache.Acquire(512);
+
+            while (true)
+            {
+                var buffer = FillBuffer();
+
+                if (buffer.Length == 0)
+                {
+                    break;
+                }
+
+                sb.Append(buffer);
+            }
+
+            return StringBuilderCache.ToStringAndRelease(ref sb!);
+        }
+
+        public ReadOnlySpan<char> FillBuffer()
         {
             ThrowIfDisposed();
 
             if (_charCount > 0)
             {
-                return _arrayFromPool.AsSpan(0, _charCount);
+                return _arrayFromPool.AsSpan(_charPos, _charCount - _charPos);
             }
 
-            Span<byte> byteBuffer = _utf8Reader.FillBuffer();
+            ReadOnlySpan<byte> byteBuffer = _utf8Reader.FillBuffer();
 
             if (byteBuffer.IsEmpty)
             {
-                _charPos = PositionDone;
-                return Span<char>.Empty;
+                return ReadOnlySpan<char>.Empty;
             }
 
             int totalChars = _decoder!.GetChars(byteBuffer, _arrayFromPool, flush: false);
 
             if (totalChars == 0)
             {
-                return Span<char>.Empty;
+                return ReadOnlySpan<char>.Empty;
             }
 
             _charPos = 0;
@@ -154,11 +231,38 @@ namespace FastCSV.Internal
             return _arrayFromPool.AsSpan(0, totalChars);
         }
 
+        public async ValueTask<ReadOnlyMemory<char>> FillBufferAsync(CancellationToken cancellationToken = default)
+        {
+            ThrowIfDisposed();
+
+            if (_charCount > 0)
+            {
+                return _arrayFromPool.AsMemory(_charPos, _charCount - _charPos);
+            }
+
+            ReadOnlyMemory<byte> byteBuffer = await _utf8Reader.FillBufferAsync(cancellationToken);
+
+            if (byteBuffer.IsEmpty)
+            {
+                return ReadOnlyMemory<char>.Empty;
+            }
+
+            int totalChars = _decoder!.GetChars(byteBuffer.Span, _arrayFromPool, flush: false);
+
+            if (totalChars == 0)
+            {
+                return ReadOnlyMemory<char>.Empty;
+            }
+
+            _charPos = 0;
+            _charCount = totalChars;
+            return _arrayFromPool.AsMemory(0, totalChars);
+        }
+
         public void Consume(int count)
         {
             ThrowIfDisposed();
-            int countToConsume = Math.Min(count, _charCount - _charPos);
-            _charPos += countToConsume;
+            _charPos = Math.Min(count + _charPos, _charCount);
         }
 
         public void DiscardBuffer()

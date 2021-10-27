@@ -4,7 +4,7 @@ namespace FastCSV.Internal
 {
     internal interface IBufferedReader<T> : IDisposable
     {
-        Span<T> FillBuffer();
+        ReadOnlySpan<T> FillBuffer();
         void Consume(int count);
     }
 }
