@@ -128,7 +128,7 @@ namespace FastCSV
 
             string[]? values = CsvUtility.ParseNextRecord(_reader!, Format);
 
-            if (Format.IgnoreWhitespace && (values == null || values.Length == 0))
+            if (values == null || values.Length == 0)
             {
                 return null;
             }
@@ -153,7 +153,7 @@ namespace FastCSV
             ThrowIfDisposed();
             string[]? values = await CsvUtility.ParseNextRecordAsync(_reader!, Format, cancellationToken);
 
-            if (Format.IgnoreWhitespace && (values == null || values.Length == 0))
+            if (values == null || values.Length == 0)
             {
                 return null;
             }

@@ -106,16 +106,6 @@ namespace FastCSV.Tests
         }
 
         [Test()]
-        public void ReadEmptyTest2()
-        {
-            using var csv = StreamHelper.CreateStreamFromString("");
-
-            var format = CsvFormat.Default.WithIgnoreWhitespace(false);
-            using var reader = new CsvReader(new StreamReader(csv), format, hasHeader: false);
-            Assert.AreEqual("", reader.Read()!.ToString());
-        }
-
-        [Test()]
         public void ReadBlankTest1()
         {
             using var csv = StreamHelper.CreateStreamFromString(" ");
