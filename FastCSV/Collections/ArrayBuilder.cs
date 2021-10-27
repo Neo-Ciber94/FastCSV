@@ -51,7 +51,7 @@ namespace FastCSV.Collections
             _arrayFromPool[_count++] = value;
         }
 
-        public void AddRange(Span<T> values)
+        public void AddRange(ReadOnlySpan<T> values)
         {
             ResizeIfNeeded(values.Length);
 
