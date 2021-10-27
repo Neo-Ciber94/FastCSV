@@ -498,6 +498,16 @@ namespace FastCSV
                 {
                     string field = enumerator.Current;
 
+                    if (format.IgnoreNewLine)
+                    {
+                        if (field.Contains('\n'))
+                        {
+                            field = field
+                                .Replace("\r\n", string.Empty)
+                                .Replace("\n", string.Empty);
+                        }
+                    }
+
                     if (format.IgnoreWhitespace)
                     {
                         field = field.Trim();

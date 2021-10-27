@@ -115,7 +115,7 @@ namespace FastCSV
         /// <returns>A copy of this format with the quote</returns>
         public CsvFormat WithQuote(string quote)
         {
-            return new CsvFormat(this.Delimiter, quote, this.Style, this.IgnoreWhitespace);
+            return new CsvFormat(this.Delimiter, quote, this.Style, this.IgnoreWhitespace, this.IgnoreNewLine);
         }
 
         /// <summary>
@@ -125,27 +125,37 @@ namespace FastCSV
         /// <returns>A copy of this format with the style</returns>
         public CsvFormat WithStyle(QuoteStyle style)
         {
-            return new CsvFormat(this.Delimiter, this.Quote, style, this.IgnoreWhitespace);
+            return new CsvFormat(this.Delimiter, this.Quote, style, this.IgnoreWhitespace, this.IgnoreNewLine);
         }
 
         /// <summary>
         /// Gets a copy of this format with the specified ignoreWhitespaces.
         /// </summary>
-        /// <param name="ignoreWhitespaces">The ignoreWhitespaces.</param>
+        /// <param name="ignoreWhitespaces">Whether if ignore the whitespaces.</param>
         /// <returns>A copy of this format with the ignoreWhitespaces</returns>
         public CsvFormat WithIgnoreWhitespace(bool ignoreWhitespaces)
         {
-            return new CsvFormat(this.Delimiter, this.Quote, this.Style, ignoreWhitespaces);
+            return new CsvFormat(this.Delimiter, this.Quote, this.Style, ignoreWhitespaces, this.IgnoreNewLine);
+        }
+
+        /// <summary>
+        /// Gets a copy of this format with the specified ignoreNewLines.
+        /// </summary>
+        /// <param name="ignoreNewLines">Whether if ignores the newlines.</param>
+        /// <returns>A copy of this format with the ignoreNewLines</returns>
+        public CsvFormat WithIgnoreNewLine(bool ignoreNewLines)
+        {
+            return new CsvFormat(this.Delimiter, this.Quote, this.Style, this.IgnoreWhitespace, ignoreNewLines);
         }
 
         public override string ToString()
         {
-            return $"{{{nameof(Delimiter)}={Delimiter}, {nameof(Quote)}={Quote}, {nameof(Style)}={Style}, {nameof(IgnoreWhitespace)}={IgnoreWhitespace}}}";
+            return $"{{{nameof(Delimiter)}={Delimiter}, {nameof(Quote)}={Quote}, {nameof(Style)}={Style}, {nameof(IgnoreWhitespace)}={IgnoreWhitespace}, {nameof(IgnoreNewLine)}={IgnoreNewLine}}}";
         }
 
         public CsvFormat Clone()
         {
-            return new CsvFormat(Delimiter, Quote, Style, IgnoreWhitespace);
+            return new CsvFormat(Delimiter, Quote, Style, IgnoreWhitespace, IgnoreNewLine);
         }
 
         public override bool Equals(object? obj)
@@ -159,7 +169,8 @@ namespace FastCSV
                    Delimiter == other.Delimiter &&
                    Quote == other.Quote &&
                    Style == other.Style &&
-                   IgnoreWhitespace == other.IgnoreWhitespace;
+                   IgnoreWhitespace == other.IgnoreWhitespace &&
+                   IgnoreNewLine == other.IgnoreNewLine;
         }
 
         public override int GetHashCode()
