@@ -16,6 +16,8 @@ namespace FastCSV
     [TestFixture]
     public class RFC4180Tests
     {
+        private static readonly CsvFormat RFC4180Format = new CsvFormat(ignoreNewLine: false, ignoreWhitespaces: false);
+
         [Test]
         public void RecordsSeparatedByNewLine_ReadTests()
         {
@@ -24,7 +26,7 @@ Mouse Pad,299
 Table,2450";
 
             var stream = StreamHelper.CreateStreamFromString(csv);
-            using var reader = new CsvReader(stream);
+            using var reader = new CsvReader(stream, RFC4180Format);
 
             CollectionAssert.AreEqual(new string[] { "name", "price" }, reader.Header);
             CollectionAssert.AreEqual(new string[] { "Mouse Pad", "299" }, reader.Read());
@@ -36,7 +38,7 @@ Table,2450";
         public void RecordsSeparatedByNewLine_WriteTests()
         {
             using var stream = new MemoryStream();
-            using var writer = new CsvWriter(stream, leaveOpen: true);
+            using var writer = new CsvWriter(stream, RFC4180Format, leaveOpen: true);
             writer.Write("name", "price");
             writer.Write("Keyboard", "129.99");
             writer.Write("Monitor", "5000");
@@ -54,7 +56,7 @@ Table,2450";
 01,Fan
 02,RGB Mouse";
 
-            using var reader = new CsvReader(StreamHelper.CreateStreamFromString(csv), hasHeader: false);
+            using var reader = new CsvReader(StreamHelper.CreateStreamFromString(csv), RFC4180Format, hasHeader: false);
 
             Assert.Null(reader.Header);
             CollectionAssert.AreEqual(new string[] { "00", "Small LED Lights" }, reader.Read());
@@ -69,7 +71,7 @@ Table,2450";
             string newLine = Environment.NewLine;
             string csv = $" id, price  {newLine}01 , $249.00  {newLine}02,$300{newLine} 03 , $599.00";
 
-            using var reader = new CsvReader(StreamHelper.CreateStreamFromString(csv), CsvFormat.Default.WithIgnoreWhitespace(false));
+            using var reader = new CsvReader(StreamHelper.CreateStreamFromString(csv), RFC4180Format);
 
             CollectionAssert.AreEqual(new string[] { " id", " price  " }, reader.Header);
             CollectionAssert.AreEqual(new string[] { "01 ", " $249.00  " }, reader.Read());
@@ -81,7 +83,7 @@ Table,2450";
         public void NoIgnoreWhiteSpace_WriteTest()
         {
             using var stream = new MemoryStream();
-            using var writer = new CsvWriter(stream, CsvFormat.Default.WithIgnoreWhitespace(false), leaveOpen: true);
+            using var writer = new CsvWriter(stream, RFC4180Format, leaveOpen: true);
 
             writer.Write(" id", " numberName");
             writer.Write(" 1  ", " one ");
@@ -104,7 +106,7 @@ Table,2450";
 ""0032"",RGB Keyboard";
 
 
-            using var reader = new CsvReader(StreamHelper.CreateStreamFromString(csv));
+            using var reader = new CsvReader(StreamHelper.CreateStreamFromString(csv), RFC4180Format);
             CollectionAssert.AreEqual(new string[] { "\"code\"", "\"name\"" }, reader.Header);
             CollectionAssert.AreEqual(new string[] { "0012", "\"Headphones\"" }, reader.Read());
             CollectionAssert.AreEqual(new string[] { "\"0032\"", "RGB Keyboard" }, reader.Read());
@@ -114,7 +116,7 @@ Table,2450";
         public void EncloseWithDoubleQuote_WriteTest()
         {
             using var stream = new MemoryStream();
-            using var writer = new CsvWriter(stream, leaveOpen: true);
+            using var writer = new CsvWriter(stream, RFC4180Format, leaveOpen: true);
 
             writer.WriteAll(new string[] { "\"code\"", "\"name\"" });
             writer.WriteAll(new string[] { "\"0012\"", "\"Headphones\"" });
@@ -142,7 +144,7 @@ Table,2450";
 01,""Mouse RGB, 256 colors""
 03,""Keyboard, Black""";
 
-            using var reader = new CsvReader(StreamHelper.CreateStreamFromString(csv));
+            using var reader = new CsvReader(StreamHelper.CreateStreamFromString(csv), RFC4180Format);
 
             CollectionAssert.AreEqual(new string[] { "\"Id,Identifier\"", "\"name,alias\"" }, reader.Header);
             CollectionAssert.AreEqual(new string[] { "01", "\"Mouse RGB, 256 colors\"" }, reader.Read());
@@ -155,7 +157,7 @@ Table,2450";
         {
             using var stream = new MemoryStream();
 
-            using var writer = new CsvWriter(stream, leaveOpen: true);
+            using var writer = new CsvWriter(stream, RFC4180Format, leaveOpen: true);
 
             writer.WriteAll(new string[] { "Id,Identifier", "name,alias" });
             writer.WriteAll(new string[] { "03", "Face Mask, White, Grey" });
@@ -175,15 +177,15 @@ Table,2450";
         [Test]
         public void FieldWithDoubleQuote_ReadTest()
         {
-            string csv = @"""String """"name"""""", ""Number """"age""""""
-                            ""Marie """"The Red"""" Jhonson"", ""21 """"two digits""""""
-                            """"""J""""jane"", ""19 """"two digits""""""";
+            string csv = @"""String """"name"""""","" Number """"age""""""
+""Marie """"The Red"""" Jhonson"","" 21 """"two digits""""""
+""""""J""""jane"","" 19 """"two digits""""""";
 
-            using var reader = new CsvReader(StreamHelper.CreateStreamFromString(csv));
+            using var reader = new CsvReader(StreamHelper.CreateStreamFromString(csv), RFC4180Format);
 
-            CollectionAssert.AreEqual(new string[] { "\"String \"name\"\"", "\"Number \"age\"\"" }, reader.Header);
-            CollectionAssert.AreEqual(new string[] { "\"Marie \"The Red\" Jhonson\"", "\"21 \"two digits\"\"" }, reader.Read());
-            CollectionAssert.AreEqual(new string[] { "\"\"J\"jane\"", "\"19 \"two digits\"\"" }, reader.Read());
+            CollectionAssert.AreEqual(new string[] { "\"String \"name\"\"","\" Number \"age\"\"" }, reader.Header);
+            CollectionAssert.AreEqual(new string[] { "\"Marie \"The Red\" Jhonson\"", "\" 21 \"two digits\"\"" }, reader.Read());
+            CollectionAssert.AreEqual(new string[] { "\"\"J\"jane\"", "\" 19 \"two digits\"\"" }, reader.Read());
             Assert.Null(reader.Read());
         }
 
@@ -191,7 +193,7 @@ Table,2450";
         public void FieldWithDoubleQuote_WriteTest()
         {
             using var stream = new MemoryStream();
-            using var writer = new CsvWriter(stream, leaveOpen: true);
+            using var writer = new CsvWriter(stream, RFC4180Format, leaveOpen: true);
 
             writer.WriteAll(new string[] { "String \"name\"", "Number \"age\"" });
             writer.WriteAll(new string[] { "Marie \"The Red\" Jhonson", "21 \"two digits\"" });
@@ -215,10 +217,10 @@ Table,2450";
             string csv = @"author,phrase
 Nelson Mandela,""The greatest glory in living lies not in never falling, 
 but in rising every time we fall""
-Jhon Lennon, ""Life is what happens 
+Jhon Lennon,""Life is what happens 
 when you're busy making other plans""";
 
-            using var reader = new CsvReader(StreamHelper.CreateStreamFromString(csv));
+            using var reader = new CsvReader(StreamHelper.CreateStreamFromString(csv), RFC4180Format);
             CollectionAssert.AreEqual(new string[] { "author", "phrase" }, reader.Header);
 
             string newLine = Environment.NewLine;
@@ -238,7 +240,7 @@ when you're busy making other plans""";
         public void FieldWithNewLine_WriteTest()
         {
             using var stream = new MemoryStream();
-            using var writer = new CsvWriter(stream, leaveOpen: true);
+            using var writer = new CsvWriter(stream, RFC4180Format, leaveOpen: true);
 
             string newLine = Environment.NewLine;
             writer.Write("author", "phrase");

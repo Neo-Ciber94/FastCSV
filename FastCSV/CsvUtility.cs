@@ -102,7 +102,7 @@ namespace FastCSV
                         }
                         else if (parser.CanConsume(quote))
                         {
-                            if (stringBuilder.Length > 0 && !stringBuilder.StartsWith(" "))
+                            if (stringBuilder.Length > 0)
                             {
                                 if (!hasQuote && parser.HasNext() && !parser.Slice(quote.Length).TrimStart().CanConsume(delimiter))
                                 {
@@ -180,7 +180,10 @@ namespace FastCSV
 
                     if (hasQuote)
                     {
-                        stringBuilder.AppendLine();
+                        if (!format.IgnoreNewLine)
+                        {
+                            stringBuilder.AppendLine();
+                        }
                     }
                     else
                     {
@@ -241,7 +244,7 @@ namespace FastCSV
 
                 if (stringBuilder.Contains(quote) || stringBuilder.Contains(delimiter) || stringBuilder.Contains('\n'))
                 {
-                    if (!stringBuilder.StartsWith(quote) || !stringBuilder.EndsWith(quote))
+                    if (!stringBuilder.StartsWithIgnoreWhiteSpace(quote) || !stringBuilder.EndsWithIgnoreWhiteSpace(quote))
                     {
                         throw new CsvFormatException($"Fields containing a delimiter, newline or quote should be enclosed with double quote: {stringBuilder}");
                     }
