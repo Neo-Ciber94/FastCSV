@@ -33,7 +33,11 @@ namespace FastCSV
         /// <param name="style">The style.</param>
         /// <param name="ignoreWhitespaces">if set to <c>true</c> leading and trailing whitespaces will be ignored.</param>
         /// <exception cref="ArgumentException">If the delimiter is equals to the quote</exception>
-        public CsvFormat(string delimiter = DefaultDelimiter, string quote = DefautlQuote, QuoteStyle style = QuoteStyle.WhenNeeded, bool ignoreWhitespaces = true)
+        public CsvFormat(string delimiter = DefaultDelimiter,
+                         string quote = DefautlQuote,
+                         QuoteStyle style = QuoteStyle.WhenNeeded,
+                         bool ignoreWhitespaces = true,
+                         bool ignoreNewLine = true)
         {
             if (delimiter == quote)
             {
@@ -54,6 +58,7 @@ namespace FastCSV
             Quote = quote;
             Style = style;
             IgnoreWhitespace = ignoreWhitespaces;
+            IgnoreNewLine = ignoreNewLine;
         }
 
         /// <summary>
@@ -87,6 +92,11 @@ namespace FastCSV
         ///   <c>true</c> if leading or trailing whitespaces should be ignore; otherwise, <c>false</c>.
         /// </value>
         public bool IgnoreWhitespace { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether if ignore records separators, which by default is a newline.
+        /// </summary>
+        public bool IgnoreNewLine { get; }
 
         /// <summary>
         /// Gets a copy of this format with the specified delimiter.
