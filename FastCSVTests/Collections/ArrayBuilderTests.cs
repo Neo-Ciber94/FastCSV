@@ -49,5 +49,14 @@ namespace FastCSV.Collections.Tests
             int[] array = Enumerable.Range(0, Max).ToArray();
             CollectionAssert.AreEqual(array, builder.ToArray());
         }
+
+        [Test]
+        public void AddRangeTest()
+        {
+            using var builder = new ArrayBuilder<int>(2);
+            builder.AddRange(stackalloc int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
+
+            CollectionAssert.AreEqual(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, builder.ToArray());
+        }
     }
 }
