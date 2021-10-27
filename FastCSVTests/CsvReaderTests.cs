@@ -183,8 +183,8 @@ namespace FastCSV.Tests
         {
             using var csv = StreamHelper.CreateStreamFromString(
                 $"Name,Age{System.Environment.NewLine}" +
-                $"Frida \"The Painter\", 35{System.Environment.NewLine}" +
-                $"Pagannini \"The violinist\",28{System.Environment.NewLine}");
+                $"\"Frida \"\"The Painter\"\"\", 35{System.Environment.NewLine}" +
+                $"\"Pagannini \"\"The violinist\"\"\",28{System.Environment.NewLine}");
 
             var reader = new CsvReader(csv, CsvFormat.Default.WithStyle(QuoteStyle.Never));
             Assert.AreEqual("Frida The Painter,35", reader.Read()!.ToString());
