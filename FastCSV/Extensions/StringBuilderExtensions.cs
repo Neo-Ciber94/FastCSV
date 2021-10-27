@@ -297,6 +297,16 @@ namespace FastCSV.Utils
 
         public static bool StartsWith(this StringBuilder sb, ReadOnlySpan<char> other)
         {
+            return sb.StartsWith(0, other);
+        }
+
+        public static bool StartsWith(this StringBuilder sb, int startIndex, ReadOnlySpan<char> other)
+        {
+            if (startIndex < 0 || startIndex >= sb.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(startIndex), $"Start index cannot be negative, equals or greater than StringBuilder Length: {startIndex}");
+            }
+
             if (other.IsEmpty)
             {
                 return false;
@@ -307,7 +317,7 @@ namespace FastCSV.Utils
                 return false;
             }
 
-            for (int i = 0; i < other.Length; i++)
+            for (int i = startIndex; i < other.Length; i++)
             {
                 if (sb[i] != other[i])
                 {
@@ -320,12 +330,23 @@ namespace FastCSV.Utils
 
         public static bool EndsWith(this StringBuilder sb, ReadOnlySpan<char> other)
         {
+            return sb.EndsWith(sb.Length, other);
+        }
+
+
+        public static bool EndsWith(this StringBuilder sb, int startIndex, ReadOnlySpan<char> other)
+        {
+            if (startIndex < 0 || startIndex > sb.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(startIndex), $"Start index cannot be negative, equals or greater than StringBuilder Length: {startIndex}");
+            }
+
             if (other.IsEmpty)
             {
                 return false;
             }
 
-            int length = sb.Length;
+            int length = startIndex;
 
             if (other.Length > length)
             {
@@ -343,6 +364,48 @@ namespace FastCSV.Utils
             }
 
             return true;
+        }
+
+        public static bool StartsWithIgnoreWhiteSpace(this StringBuilder sb, ReadOnlySpan<char> other)
+        {
+            int startIndex = 0;
+
+            while (startIndex < sb.Length)
+            {
+                char c = sb[startIndex];
+
+                if (c == ' ')
+                {
+                    startIndex += 1;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return sb.StartsWith(startIndex, other);
+        }
+
+        public static bool EndsWithIgnoreWhiteSpace(this StringBuilder sb, ReadOnlySpan<char> other)
+        {
+            int startIndex = sb.Length;
+
+            while (startIndex > 0)
+            {
+                char c = sb[startIndex - 1];
+
+                if (c == ' ')
+                {
+                    startIndex -= 1;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return sb.EndsWith(startIndex, other);
         }
     }
 }
