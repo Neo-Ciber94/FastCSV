@@ -179,6 +179,16 @@ namespace FastCSV.Internal.Tests
             Assert.AreEqual('o', (char)data[4]);
 
             Assert.False(utf8Reader.IsDone);
+
+            data = utf8Reader.ReadUntil((byte)' ');
+            Assert.AreEqual(5, data.Length);
+            Assert.AreEqual('W', (char)data[0]);
+            Assert.AreEqual('o', (char)data[1]);
+            Assert.AreEqual('r', (char)data[2]);
+            Assert.AreEqual('l', (char)data[3]);
+            Assert.AreEqual('d', (char)data[4]);
+
+            Assert.True(utf8Reader.IsDone);
         }
 
         [Test]
@@ -205,6 +215,7 @@ namespace FastCSV.Internal.Tests
 
             Assert.True(utf8Reader.IsDone);
         }
+
 
         [Test]
         public void DiscardBufferTest()

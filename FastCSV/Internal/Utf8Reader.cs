@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using FastCSV.Collections;
 
 namespace FastCSV.Internal
@@ -32,6 +27,8 @@ namespace FastCSV.Internal
             _pos = 0;
             _capacity = 0;
         }
+
+        public Stream? Stream => _stream;
 
         public bool IsDone
         {
@@ -155,7 +152,7 @@ namespace FastCSV.Internal
                         builder.AddRange(buffer.Slice(0, index));
                     }
 
-                    Consume(totalToConsume);
+                    Consume(totalToConsume + 1);
                     return;
                 }
             }
@@ -181,28 +178,6 @@ namespace FastCSV.Internal
             _capacity = totalRead;
 
             return _arrayFromPool!.AsSpan(0, totalRead);
-        }
-
-        public async ValueTask<ReadOnlyMemory<byte>> FillBufferAsync(CancellationToken cancellationToken = default)
-        {
-            ThrowIfDisposed();
-
-            if (_pos < _capacity)
-            {
-                return _arrayFromPool!.AsMemory(_pos, _capacity - _pos);
-            }
-
-            int totalRead = await _stream!.ReadAsync(_arrayFromPool, cancellationToken);
-
-            if (totalRead == 0)
-            {
-                return ReadOnlyMemory<byte>.Empty;
-            }
-
-            _pos = 0;
-            _capacity = totalRead;
-
-            return _arrayFromPool!.AsMemory(0, totalRead);
         }
 
         public void Consume(int count)

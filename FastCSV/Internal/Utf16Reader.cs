@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using FastCSV.Collections;
 using FastCSV.Utils;
 
@@ -13,11 +13,11 @@ namespace FastCSV.Internal
     {
         private const int PositionDisposed = -1;
 
-        private readonly Utf8Reader _utf8Reader;
+        private Utf8Reader _utf8Reader;
+        private readonly Decoder? _decoder;
         private char[]? _arrayFromPool;
         private readonly int _maxCharsCount;
         private readonly Encoding _encoding;
-        private Decoder? _decoder;
         private int _charPos;
         private int _charCount;
 
@@ -36,7 +36,20 @@ namespace FastCSV.Internal
             _charCount = 0;
         }
 
-        public bool IsDone => _utf8Reader.IsDone || IsDisposed;
+        public Stream? Stream => _utf8Reader.Stream;
+
+        public bool IsDone
+        {
+            get
+            {
+                if (_utf8Reader.IsDone && _charPos >= _charCount)
+                {
+                    return true;
+                }
+
+                return IsDisposed;
+            }
+        }
 
         public bool IsDisposed => _charPos == PositionDisposed;
 
@@ -63,7 +76,8 @@ namespace FastCSV.Internal
 
                 int bufferFree = buffer.Length - written;
                 int countToWrite = Math.Min(totalRead, bufferFree);
-                innerBuffer.Slice(0, countToWrite).CopyTo(buffer.Slice(written));
+                innerBuffer.Slice(0, countToWrite).CopyTo(buffer[written..]);
+                written += countToWrite;
                 Consume(countToWrite);
             }
 
@@ -116,6 +130,11 @@ namespace FastCSV.Internal
 
         public void ReadUntil(ref ArrayBuilder<char> builder, char value)
         {
+            if (IsDone)
+            {
+                return;
+            }
+
             while (true)
             {
                 ReadOnlySpan<char> buffer = FillBuffer();
@@ -126,10 +145,12 @@ namespace FastCSV.Internal
                 }
 
                 int index = buffer.IndexOf(value);
+                int totalToConsume = index == -1 ? buffer.Length : index;
 
                 if (index == -1)
                 {
                     builder.AddRange(buffer);
+                    Consume(totalToConsume);
                 }
                 else
                 {
@@ -139,11 +160,9 @@ namespace FastCSV.Internal
                         builder.AddRange(buffer.Slice(0, index));
                     }
 
-                    break;
+                    Consume(totalToConsume + 1);
+                    return;
                 }
-
-                int totalToConsume = index == -1 ? buffer.Length : index;
-                Consume(totalToConsume);
             }
         }
 
@@ -158,24 +177,34 @@ namespace FastCSV.Internal
 
             try
             {
-                ReadUntil(ref builder, '\n');
-                Span<char> buffer = builder.Span;
+                ReadLine(ref builder);
 
-                if (buffer.Length > 0)
+                if (builder.Count == 0)
                 {
-                    char c = buffer[^1];
-
-                    if (c == '\r')
-                    {
-                        buffer = buffer[0..^1];
-                    }
+                    return null;
                 }
 
-                return new string(buffer);
+                return new string(builder.Span);
             }
             finally
             {
                 builder.Dispose();
+            }
+        }
+
+        public void ReadLine(ref ArrayBuilder<char> builder)
+        {
+            ReadUntil(ref builder, '\n');
+            Span<char> buffer = builder.Span;
+
+            if (buffer.Length > 0)
+            {
+                char c = buffer[^1];
+
+                if (c == '\r')
+                {
+                    builder.RemoveLast();
+                }
             }
         }
 
@@ -186,7 +215,25 @@ namespace FastCSV.Internal
                 return null;
             }
 
-            StringBuilder sb = StringBuilderCache.Acquire(512);
+            ArrayBuilder<char> builder = new ArrayBuilder<char>(64);
+
+            try
+            {
+                ReadToEnd(ref builder);
+                return new string(builder.Span);
+            }
+            finally
+            {
+                builder.Dispose();
+            }
+        }
+       
+        public void ReadToEnd(ref ArrayBuilder<char> builder)
+        {
+            if (IsDone)
+            {
+                return;
+            }
 
             while (true)
             {
@@ -197,10 +244,9 @@ namespace FastCSV.Internal
                     break;
                 }
 
-                sb.Append(buffer);
+                builder.AddRange(buffer);
+                Consume(buffer.Length);
             }
-
-            return StringBuilderCache.ToStringAndRelease(ref sb!);
         }
 
         public ReadOnlySpan<char> FillBuffer()
@@ -220,6 +266,7 @@ namespace FastCSV.Internal
             }
 
             int totalChars = _decoder!.GetChars(byteBuffer, _arrayFromPool, flush: false);
+            _utf8Reader.Consume(byteBuffer.Length);
 
             if (totalChars == 0)
             {
@@ -229,34 +276,6 @@ namespace FastCSV.Internal
             _charPos = 0;
             _charCount = totalChars;
             return _arrayFromPool.AsSpan(0, totalChars);
-        }
-
-        public async ValueTask<ReadOnlyMemory<char>> FillBufferAsync(CancellationToken cancellationToken = default)
-        {
-            ThrowIfDisposed();
-
-            if (_charCount > 0)
-            {
-                return _arrayFromPool.AsMemory(_charPos, _charCount - _charPos);
-            }
-
-            ReadOnlyMemory<byte> byteBuffer = await _utf8Reader.FillBufferAsync(cancellationToken);
-
-            if (byteBuffer.IsEmpty)
-            {
-                return ReadOnlyMemory<char>.Empty;
-            }
-
-            int totalChars = _decoder!.GetChars(byteBuffer.Span, _arrayFromPool, flush: false);
-
-            if (totalChars == 0)
-            {
-                return ReadOnlyMemory<char>.Empty;
-            }
-
-            _charPos = 0;
-            _charCount = totalChars;
-            return _arrayFromPool.AsMemory(0, totalChars);
         }
 
         public void Consume(int count)
@@ -292,6 +311,28 @@ namespace FastCSV.Internal
             {
                 throw new ObjectDisposedException($"{GetType()} is already disposed");
             }
+        }
+    }
+
+    internal struct LineEnumerator : IEnumerator<Memory<string>>
+    {
+        public Memory<string> Current => throw new NotImplementedException();
+
+        object IEnumerator.Current => throw new NotImplementedException();
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool MoveNext()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Reset()
+        {
+            throw new NotImplementedException();
         }
     }
 }
