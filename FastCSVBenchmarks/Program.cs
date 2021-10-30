@@ -1,19 +1,26 @@
 ﻿
 using System;
 using System.IO;
+using System.Text;
+using BenchmarkDotNet.Running;
+using FastCSV.Benchmarks;
 using FastCSV.Internal;
 
-var file = File.Open("example.csv", FileMode.Open);
-using var reader = new Utf16Reader(file);
+BenchmarkRunner.Run<Utf16ReaderVsStreamReader>();
 
-while (true)
-{
-    string? s = reader.ReadLine();
+//var file = File.Open("example.csv", FileMode.Open);
+//using var reader = new Utf16Reader(file);
+//StringBuilder sb = new StringBuilder(256);
 
-    if (s == null)
-    {
-        break;
-    }
+//while (true)
+//{
+//    string? s = reader.ReadLine(sb);
 
-    Console.WriteLine(s);
-}
+//    if (s == null)
+//    {
+//        break;
+//    }
+
+//    Console.WriteLine(s);
+//    sb.Clear();
+//}

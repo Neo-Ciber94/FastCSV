@@ -6,7 +6,7 @@ using FastCSV.Collections;
 
 namespace FastCSV.Internal
 {
-    internal struct Utf8Reader : IBufferedReader<byte>
+    internal class BoxUtf8Reader : IBufferedReader<byte>
     {
         internal const int DefaultBufferSize = 256;
         private const int PositionDisposed = -1;
@@ -16,15 +16,13 @@ namespace FastCSV.Internal
         private int _pos;
         private int _capacity;
 
-        internal readonly bool isArrayFromPool;
         private readonly bool _leaveOpen;
 
-        public Utf8Reader(Stream stream) : this(stream, DefaultBufferSize) { }
+        public BoxUtf8Reader(Stream stream) : this(stream, DefaultBufferSize) { }
 
-        public Utf8Reader(Stream stream, int capacity, bool leaveOpen = false, bool useArrayPool = true)
+        public BoxUtf8Reader(Stream stream, int capacity, bool leaveOpen = false)
         {
-            isArrayFromPool = useArrayPool;
-            _arrayFromPool = isArrayFromPool ? ArrayPool<byte>.Shared.Rent(capacity) : new byte[capacity];
+            _arrayFromPool = ArrayPool<byte>.Shared.Rent(capacity);
             _stream = stream;
             _leaveOpen = leaveOpen;
             _pos = 0;
@@ -171,7 +169,7 @@ namespace FastCSV.Internal
             }
 
             int totalRead = _stream!.Read(_arrayFromPool);
-            
+
             if (totalRead == 0)
             {
                 return ReadOnlySpan<byte>.Empty;
@@ -205,7 +203,7 @@ namespace FastCSV.Internal
                 _stream.Dispose();
             }
 
-            if (_arrayFromPool != null && isArrayFromPool)
+            if (_arrayFromPool != null)
             {
                 ArrayPool<byte>.Shared.Return(_arrayFromPool);
             }

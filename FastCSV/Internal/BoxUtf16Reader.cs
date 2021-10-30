@@ -7,7 +7,7 @@ using FastCSV.Utils;
 
 namespace FastCSV.Internal
 {
-    internal struct Utf16Reader : IBufferedReader<char>
+    internal class BoxUtf16Reader : IBufferedReader<char>
     {
         private const int PositionDisposed = -1;
 
@@ -19,19 +19,17 @@ namespace FastCSV.Internal
         private int _charPos;
         private int _charCount;
 
-        public Utf16Reader(Stream stream) : this(stream, Utf8Reader.DefaultBufferSize, false, Encoding.UTF8) { }
+        public BoxUtf16Reader(Stream stream) : this(stream, Utf8Reader.DefaultBufferSize, false, Encoding.UTF8) { }
 
-        public Utf16Reader(Stream stream, bool useArrayPool) : this(stream, Utf8Reader.DefaultBufferSize, false, Encoding.UTF8, useArrayPool) { }
+        public BoxUtf16Reader(Stream stream, int bytesCapacity) : this(stream, bytesCapacity, false, Encoding.UTF8) { }
 
-        public Utf16Reader(Stream stream, int bytesCapacity) : this(stream, bytesCapacity, false, Encoding.UTF8) { }
-
-        public Utf16Reader(Stream stream, int bytesCapacity, bool leaveOpen = false, Encoding? encoding = null, bool useArrayPool = true)
+        public BoxUtf16Reader(Stream stream, int bytesCapacity, bool leaveOpen = false, Encoding? encoding = null)
         {
-            _utf8Reader = new Utf8Reader(stream, bytesCapacity, leaveOpen, useArrayPool);
+            _utf8Reader = new Utf8Reader(stream, bytesCapacity, leaveOpen);
             _encoding = encoding ?? Encoding.UTF8;
             _decoder = _encoding.GetDecoder();
             _maxCharsCount = _encoding.GetMaxCharCount(bytesCapacity);
-            _arrayFromPool = useArrayPool ? ArrayPool<char>.Shared.Rent(_maxCharsCount) : new char[_maxCharsCount];
+            _arrayFromPool = ArrayPool<char>.Shared.Rent(_maxCharsCount);
             _charPos = 0;
             _charCount = 0;
         }
@@ -166,44 +164,6 @@ namespace FastCSV.Internal
             }
         }
 
-        public void ReadUntil(StringBuilder builder, char value)
-        {
-            if (IsDone)
-            {
-                return;
-            }
-
-            while (true)
-            {
-                ReadOnlySpan<char> buffer = FillBuffer();
-
-                if (buffer.Length == 0)
-                {
-                    break;
-                }
-
-                int index = buffer.IndexOf(value);
-                int totalToConsume = index == -1 ? buffer.Length : index;
-
-                if (index == -1)
-                {
-                    builder.Append(buffer);
-                    Consume(totalToConsume);
-                }
-                else
-                {
-                    if (index > 0)
-                    {
-                        // We skip the found value
-                        builder.Append(buffer.Slice(0, index));
-                    }
-
-                    Consume(totalToConsume + 1);
-                    return;
-                }
-            }
-        }
-
         public string? ReadLine()
         {
             if (IsDone)
@@ -228,25 +188,6 @@ namespace FastCSV.Internal
             {
                 builder.Dispose();
             }
-        }
-
-        public string? ReadLine(StringBuilder builder)
-        {
-            ReadUntil(builder, '\n');
-
-            if (builder.Length > 0)
-            {
-                char c = builder[^1];
-
-                if (c == '\r')
-                {
-                    builder.Remove(builder.Length - 1, 1);
-                }
-
-                return builder.ToString();
-            }
-
-            return null;
         }
 
         public void ReadLine(ref ArrayBuilder<char> builder)
@@ -284,7 +225,7 @@ namespace FastCSV.Internal
                 builder.Dispose();
             }
         }
-       
+
         public void ReadToEnd(ref ArrayBuilder<char> builder)
         {
             if (IsDone)
@@ -352,7 +293,7 @@ namespace FastCSV.Internal
         {
             _utf8Reader.Dispose();
 
-            if (_arrayFromPool != null && _utf8Reader.isArrayFromPool)
+            if (_arrayFromPool != null)
             {
                 ArrayPool<char>.Shared.Return(_arrayFromPool);
                 _arrayFromPool = null;
@@ -370,4 +311,5 @@ namespace FastCSV.Internal
             }
         }
     }
+
 }
