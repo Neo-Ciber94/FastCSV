@@ -116,7 +116,7 @@ namespace FastCSV.Internal
                 return Array.Empty<char>();
             }
 
-            ArrayBuilder<char> builder = new ArrayBuilder<char>(64);
+            ArrayBuilder<char> builder = new ArrayBuilder<char>(_maxCharsCount);
 
             try
             {
@@ -174,7 +174,7 @@ namespace FastCSV.Internal
                 return null;
             }
 
-            ArrayBuilder<char> builder = new ArrayBuilder<char>(64);
+            ArrayBuilder<char> builder = new ArrayBuilder<char>(_maxCharsCount);
 
             try
             {
@@ -216,7 +216,7 @@ namespace FastCSV.Internal
                 return null;
             }
 
-            ArrayBuilder<char> builder = new ArrayBuilder<char>(64);
+            ArrayBuilder<char> builder = new ArrayBuilder<char>(_maxCharsCount);
 
             try
             {
@@ -254,7 +254,7 @@ namespace FastCSV.Internal
         {
             ThrowIfDisposed();
 
-            if (_charCount > 0)
+            if (_charPos < _charCount)
             {
                 return _arrayFromPool.AsSpan(_charPos, _charCount - _charPos);
             }

@@ -1,21 +1,19 @@
-﻿using FastCSV;
+﻿
 using System;
+using System.IO;
+using FastCSV.Internal;
 
-var options = new CsvConverterOptions
+var file = File.Open("example.csv", FileMode.Open);
+using var reader = new Utf16Reader(file);
+
+while (true)
 {
-    NamingConvention = CsvNamingConvention.SnakeCase
-};
+    string? s = reader.ReadLine();
 
-CsvDocument<Person> document = CsvDocument.FromPath<Person>("example.csv", options);
+    if (s == null)
+    {
+        break;
+    }
 
-foreach(Person e in document.Values)
-{
-    Console.WriteLine(e);
+    Console.WriteLine(s);
 }
-
-// Only map the necesary colums, use 'CsvConverterOptions.MatchExact = true' to force match all the csv columns
-record Person(int Id, string? FirstName, string? LastName, int Age);
-
-//namespace FastCSV.Benchmarks
-//{
-//}
