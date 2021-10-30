@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.IO;
+using System.Threading.Tasks;
 using FastCSV.Collections;
 
 namespace FastCSV.Internal
