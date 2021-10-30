@@ -4,13 +4,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 using FastCSV.Collections;
 using FastCSV.Utils;
 
 namespace FastCSV.Internal
 {
-    internal struct Utf16Reader : IBufferedReader<char>
+    internal struct Utf16Reader : IDisposable
     {
         private const int PositionDisposed = -1;
 

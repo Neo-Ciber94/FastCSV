@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Buffers;
 using System.IO;
-using System.Threading.Tasks;
 using FastCSV.Collections;
 
 namespace FastCSV.Internal
 {
-    internal struct Utf8Reader : IBufferedReader<byte>
+    internal struct Utf8Reader : IDisposable
     {
         internal const int DefaultBufferSize = 256;
         private const int PositionDisposed = -1;
