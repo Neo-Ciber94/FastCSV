@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace FastCSV.Collections
 {
@@ -20,6 +21,8 @@ namespace FastCSV.Collections
         public int Count => _count;
 
         public int Capacity => _arrayFromPool?.Length ?? 0;
+
+        public bool IsEmpty => _count == 0;
 
         public Span<T> Span
         {
@@ -57,6 +60,73 @@ namespace FastCSV.Collections
 
             values.CopyTo(_arrayFromPool.AsSpan(_count));
             _count += values.Length;
+        }
+
+        public bool Remove(T value)
+        {
+            ThrowIfDisposed();
+
+            var comparer = EqualityComparer<T>.Default;
+
+            for (int i = 0; i < _count; i++)
+            {
+                if (comparer.Equals(_arrayFromPool![i], value))
+                {
+                    RemoveAt(i);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void RemoveAt(int index)
+        {
+            ThrowIfDisposed();
+
+            if (index < 0 || index >= _count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index), $"Index cannot be negative or greater than count but was {_count}");
+            }
+
+            _count -= 1;
+
+            if (index < _count)
+            {
+                T[] array = _arrayFromPool!;
+                Array.Copy(array, index + 1, array, index, _count - index);
+            }
+
+            if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+            {
+                _arrayFromPool![_count] = default!;
+            }
+        }
+
+        public T RemoveLast()
+        {
+            ThrowIfDisposed();
+
+            if (IsEmpty)
+            {
+                throw new InvalidOperationException("ArrayBuilder is empty");
+            }
+
+            T last = _arrayFromPool![_count - 1];
+            RemoveAt(_count - 1);
+            return last;
+        }
+
+        public void Clear()
+        {
+            ThrowIfDisposed();
+
+            if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+            {
+                Array.Clear(_arrayFromPool!, 0, _count);
+            }
+
+            _count = 0;
         }
 
         public T[] ToArray()

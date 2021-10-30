@@ -58,5 +58,58 @@ namespace FastCSV.Collections.Tests
 
             CollectionAssert.AreEqual(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, builder.ToArray());
         }
+
+        [Test]
+        public void RemoveAtTest()
+        {
+            using var builder = new ArrayBuilder<char>(16);
+            builder.AddRange(stackalloc char[] { 'a', 'b', 'c', 'd', 'e', 'f', 'g' });
+
+            builder.RemoveAt(0);
+            CollectionAssert.AreEqual(new char[] { 'b', 'c', 'd', 'e', 'f', 'g' }, builder.ToArray());
+            Assert.AreEqual(6, builder.Count);
+
+            builder.RemoveAt(5);
+            CollectionAssert.AreEqual(new char[] { 'b', 'c', 'd', 'e', 'f' }, builder.ToArray());
+            Assert.AreEqual(5, builder.Count);
+
+            builder.RemoveAt(2);
+            CollectionAssert.AreEqual(new char[] { 'b', 'c', 'e', 'f'}, builder.ToArray());
+            Assert.AreEqual(4, builder.Count);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            {
+                builder.RemoveAt(-1);
+            });
+
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            {
+                builder.RemoveAt(4);
+            });
+        }
+
+        [Test]
+        public void RemoveTest()
+        {
+            using var builder = new ArrayBuilder<char>(16);
+            builder.AddRange(stackalloc char[] { 'a', 'b', 'c', 'd', 'e', 'f', 'g' });
+
+            builder.Remove('a');
+            builder.Remove('g');
+
+            Assert.AreEqual(5, builder.Count);
+            CollectionAssert.AreEqual(new char[] { 'b', 'c', 'd', 'e', 'f' }, builder.ToArray());
+        }
+
+        [Test]
+        public void ClearTest()
+        {
+            using var builder = new ArrayBuilder<char>(16);
+            builder.AddRange(stackalloc char[] { 'a', 'b', 'c', 'd', 'e', 'f', 'g' });
+
+            Assert.AreEqual(7, builder.Count);
+            builder.Clear();
+            Assert.AreEqual(0, builder.Count);
+        }
     }
 }
