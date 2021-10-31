@@ -8,25 +8,17 @@ namespace FastCSV.Internal
     {
         public static CachedReflector Default { get; } = new CachedReflector();
 
-        private readonly Dictionary<(Type, Type[]), ConstructorInfo> constructors;
-        private readonly Dictionary<(Type, string, BindingFlags), MemberInfo> members;
-        private readonly Dictionary<(Type, BindingFlags), IReadOnlyCollection<FieldInfo>> fieldsCollection;
-        private readonly Dictionary<(Type, BindingFlags), IReadOnlyCollection<PropertyInfo>> propertiesCollection;
-        private readonly Dictionary<MemberInfo, CsvPropertyInfo> csvProperties;
-        private readonly Dictionary<Type, Type> nullableTypes;
-        private readonly Dictionary<(MemberInfo, Type), Attribute> memberAttributes;
-        private readonly Dictionary<Type, bool> readOnlyTypes;
+        private readonly Dictionary<(Type, Type[]), ConstructorInfo> constructors = new();
+        private readonly Dictionary<(Type, string, BindingFlags), MemberInfo> members = new();
+        private readonly Dictionary<(Type, BindingFlags), IReadOnlyCollection<FieldInfo>> fieldsCollection = new();
+        private readonly Dictionary<(Type, BindingFlags), IReadOnlyCollection<PropertyInfo>> propertiesCollection = new();
+        private readonly Dictionary<MemberInfo, CsvPropertyInfo> csvProperties = new();
+        private readonly Dictionary<Type, Type> nullableTypes = new();
+        private readonly Dictionary<(MemberInfo, Type), Attribute> memberAttributes = new();
+        private readonly Dictionary<Type, bool> readOnlyTypes = new();
 
         private CachedReflector()
         {
-            constructors = new Dictionary<(Type, Type[]), ConstructorInfo>();
-            members = new Dictionary<(Type, string, BindingFlags), MemberInfo>();
-            fieldsCollection = new Dictionary<(Type, BindingFlags), IReadOnlyCollection<FieldInfo>>();
-            propertiesCollection = new Dictionary<(Type, BindingFlags), IReadOnlyCollection<PropertyInfo>>();
-            memberAttributes = new Dictionary<(MemberInfo, Type), Attribute>();
-            csvProperties = new Dictionary<MemberInfo, CsvPropertyInfo>();
-            nullableTypes = new Dictionary<Type, Type>();
-            readOnlyTypes = new Dictionary<Type, bool>();
         }
 
         public ConstructorInfo? GetConstructor(Type type, params Type[] paramsTypes)
