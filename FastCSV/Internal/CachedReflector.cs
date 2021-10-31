@@ -12,6 +12,7 @@ namespace FastCSV.Internal
         private readonly Dictionary<(Type, string, BindingFlags), MemberInfo> members;
         private readonly Dictionary<(Type, BindingFlags), IReadOnlyCollection<FieldInfo>> fieldsCollection;
         private readonly Dictionary<(Type, BindingFlags), IReadOnlyCollection<PropertyInfo>> propertiesCollection;
+        private readonly Dictionary<MemberInfo, CsvPropertyInfo> csvProperties = new();
         private readonly Dictionary<Type, Type> nullableTypes;
 
         private CachedReflector()
@@ -124,6 +125,17 @@ namespace FastCSV.Internal
         public bool IsNullableType(Type nullableType)
         {
             return GetNullableType(nullableType) != null;
+        }
+
+        public CsvPropertyInfo GetCsvProperty(MemberInfo member, CsvConverterOptions options)
+        {
+            if (!csvProperties.TryGetValue(member, out CsvPropertyInfo? property))
+            {
+                property = CsvConverter.CreateCsvPropertyInfo(member, options);
+                csvProperties.Add(member, property);
+            }
+
+            return property;
         }
     }
 }

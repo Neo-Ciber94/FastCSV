@@ -44,5 +44,10 @@ namespace FastCSV.Internal
         {
             return Nullable.GetUnderlyingType(nullableType);
         }
+
+        public CsvPropertyInfo GetCsvProperty(MemberInfo member, CsvConverterOptions options)
+        {
+            return CsvConverter.CreateCsvPropertyInfo(member, options);
+        }
     }
 }

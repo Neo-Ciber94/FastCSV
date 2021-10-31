@@ -6,25 +6,20 @@ using FastCSV.Extensions;
 
 namespace FastCSV
 {
+    public record CsvPropertyData(CsvPropertyInfo Info, string Name, object? Value)
+    {
+        public IReadOnlyList<CsvPropertyData> Children { get; set; } = new List<CsvPropertyData>();
+    }
+
     /// <summary>
     /// Represents a field or property related to a object.
     /// </summary>
-    public record CsvProperty
+    public record CsvPropertyInfo
     {
         /// <summary>
         /// Original name of the field.
         /// </summary>
         public string OriginalName { get; }
-
-        /// <summary>
-        /// Name of the field.
-        /// </summary>
-        public string Name { get; }
-
-        /// <summary>
-        /// Value of the field.
-        /// </summary>
-        public object? Value { get; }
 
         /// <summary>
         /// Type of the field.
@@ -45,11 +40,6 @@ namespace FastCSV
         /// The converter for this property.
         /// </summary>
         public ICsvValueConverter? Converter { get;}
-
-        /// <summary>
-        /// Children fields of this field.
-        /// </summary>
-        public IReadOnlyList<CsvProperty> Children { get; set; } = new List<CsvProperty>();
 
         /// <summary>
         /// Whether this instance is a property.
@@ -77,19 +67,14 @@ namespace FastCSV
             }
         }
 
-        public CsvProperty(string originalName, string name, object? value, Type type, MemberInfo member, bool ignore, ICsvCustomConverter? valueConverter)
+        public CsvPropertyInfo(string originalName, Type type, MemberInfo member, bool ignore, ICsvCustomConverter? valueConverter)
         {
             OriginalName = originalName;
-            Name = name;
-            Value = value;
             Type = type;
             Member = member;
             Ignore = ignore;
             Converter = valueConverter;
         }
-
-        public CsvProperty(string name, object? value, Type type, MemberInfo member, bool ignore, ICsvCustomConverter? valueConverter) 
-            : this(name, name, value, type, member, ignore, valueConverter) { }
 
         /// <summary>
         /// Sets a value to the member of the target.

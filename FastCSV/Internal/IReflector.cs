@@ -19,5 +19,7 @@ namespace FastCSV.Internal
         public Type? GetNullableType(Type type);
 
         public bool IsNullableType(Type nullableType);
+
+        public CsvPropertyInfo GetCsvProperty(MemberInfo member, CsvConverterOptions options);
     }
 }

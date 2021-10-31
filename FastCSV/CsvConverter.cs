@@ -17,7 +17,7 @@ namespace FastCSV
 {
     // Determine if a field/property will be a getter, setter of both.
     [Flags]
-    internal enum Permission // FIXME: PropertyAccesor
+    internal enum PropertyAccesor
     { 
         /// <summary>
         /// Defines the getter.
@@ -30,7 +30,6 @@ namespace FastCSV
         /// <summary>
         /// Defines the getter and setter.
         /// </summary>
-        GetterAndGetter = Permission.Getter | Permission.Setter
     }
 
     /// <summary>
@@ -126,10 +125,10 @@ namespace FastCSV
             while(index < props.Length)
             {
                 DataToSerialize p = props[index];
-                CsvProperty prop = p.Property;
+                CsvPropertyData prop = p.Property;
                 object? obj = prop.Value;
-                Type elementType = prop.Type;
-                ICsvValueConverter? converter = GetConverter(elementType, options, prop.Converter);
+                Type elementType = prop.Info.Type;
+                ICsvValueConverter? converter = GetConverter(elementType, options, prop.Info.Converter);
                 CsvSerializeState state = new(options, value, buffer, converter);
 
                 if (converter == null || !converter.CanConvert(elementType) || !converter.TrySerialize(obj, elementType, ref state))
@@ -226,7 +225,7 @@ namespace FastCSV
 
             foreach (var data in dataToDeserialize)
             {
-                CsvProperty csvProperty = data.Property;
+                CsvPropertyInfo csvProperty = data.Property;
 
                 if (!csvProperty.IsReadOnly)
                 {
@@ -333,12 +332,12 @@ namespace FastCSV
                 }
             }
 
-            List<CsvProperty> csvProps = GetCsvProperties(type, options, Permission.Setter, instance: null);
+            var csvProps = GetCsvProperties(type, options, PropertyAccesor.Setter, instance: null);
             object result = FormatterServices.GetUninitializedObject(type);
 
             foreach ((string key, SingleOrList<string> value) in data)
             {
-                CsvProperty? property = csvProps.FirstOrDefault(f => f.Name == key);
+                CsvPropertyData? property = csvProps.FirstOrDefault(f => f.Name == key);
 
                 if (property == null)
                 {
@@ -352,13 +351,13 @@ namespace FastCSV
                     }
                 }
 
-                if (property.Ignore)
+                if (property.Info.Ignore)
                 {
                     continue;
                 }
 
-                MemberInfo member = property.Member;
-                Type propertyType = property.Type;
+                MemberInfo member = property.Info.Member;
+                Type propertyType = property.Info.Type;
                 object? obj = null;
 
                 if (value.Count > 0)
@@ -409,8 +408,8 @@ namespace FastCSV
             }
             else
             {
-                return GetCsvProperties(type, options ?? CsvConverterOptions.Default, Permission.Getter, instance: value)
-                    .Where(e => !e.Ignore)
+                return GetCsvProperties(type, options ?? CsvConverterOptions.Default, PropertyAccesor.Getter, instance: value)
+                    .Where(e => !e.Info.Ignore)
                     .Select(e => e.Value?.ToString() ?? string.Empty)
                     .ToArray();
             }
@@ -445,22 +444,22 @@ namespace FastCSV
 
             if (options.NestedObjectHandling == null)
             {
-                return GetCsvProperties(type, options ?? CsvConverterOptions.Default, Permission.Getter, instance: null)
-                    .Where(f => !f.Ignore)
+                return GetCsvProperties(type, options ?? CsvConverterOptions.Default, PropertyAccesor.Getter, instance: null)
+                    .Where(f => !f.Info.Ignore)
                     .Select(f => f.Name)
                     .ToArray();
             }
 
-            List<CsvProperty> csvProps = GetCsvProperties(type, options ?? CsvConverterOptions.Default, Permission.Getter, instance: null);
+            var csvProps = GetCsvProperties(type, options ?? CsvConverterOptions.Default, PropertyAccesor.Getter, instance: null);
             List<string> values = new List<string>(csvProps.Count);
-            Stack<CsvProperty> stack = new Stack<CsvProperty>(csvProps.Count);
+            Stack<CsvPropertyData> stack = new Stack<CsvPropertyData>(csvProps.Count);
             stack.PushRangeReverse(csvProps);
 
             while (stack.Count > 0)
             {
-                CsvProperty p = stack.Pop();
+                CsvPropertyData p = stack.Pop();
 
-                if (p.Ignore)
+                if (p.Info.Ignore)
                 {
                     continue;
                 }
@@ -490,7 +489,7 @@ namespace FastCSV
                 throw new ArgumentException($"Cannot serialize the builtin type {type}");
             }
 
-            List<CsvProperty> csvProps = GetCsvProperties(type, options, Permission.Getter, value);
+            var csvProps = GetCsvProperties(type, options, PropertyAccesor.Getter, value);
             bool handleNestedObjects = options.NestedObjectHandling != null;
             bool handleCollections = options.CollectionHandling != null;
 
@@ -498,8 +497,8 @@ namespace FastCSV
 
             if (handleNestedObjects)
             {
-                List<CsvProperty> temp = new List<CsvProperty>(csvProps.Count);
-                Stack<CsvProperty> stack = new Stack<CsvProperty>();
+                List<CsvPropertyData> temp = new List<CsvPropertyData>(csvProps.Count);
+                Stack<CsvPropertyData> stack = new Stack<CsvPropertyData>();
 
                 foreach (var p in csvProps)
                 {
@@ -514,7 +513,7 @@ namespace FastCSV
 
                     while (stack.Count > 0)
                     {
-                        CsvProperty c = stack.Pop();
+                        CsvPropertyData c = stack.Pop();
 
                         if (c.Children.Count > 0)
                         {
@@ -533,9 +532,9 @@ namespace FastCSV
 
             for (int i = 0; i < csvProps.Count; i++)
             {
-                CsvProperty property = csvProps[i];
+                CsvPropertyData property = csvProps[i];
 
-                if (property.Ignore)
+                if (property.Info.Ignore)
                 {
                     continue;
                 }
@@ -599,7 +598,7 @@ namespace FastCSV
                 return default;
             }
 
-            List<CsvProperty> csvProps = GetCsvProperties(type, options, Permission.Setter, null);
+            var csvProps = GetCsvProperties(type, options, PropertyAccesor.Setter, null);
 
             if (options.MatchExact && record.Header != null)
             {
@@ -624,8 +623,8 @@ namespace FastCSV
             }
 
             Stack<object> objs = new Stack<object>();
-            Stack<CsvProperty> props = new Stack<CsvProperty>();
-            Stack<CsvProperty> parents = new Stack<CsvProperty>();
+            Stack<CsvPropertyData> props = new Stack<CsvPropertyData>();
+            Stack<CsvPropertyData> parents = new Stack<CsvPropertyData>();
             props.PushRangeReverse(csvProps);
 
             ValueList<DataToDeserialize> items = new(csvProps.Count);
@@ -633,18 +632,18 @@ namespace FastCSV
 
             while (props.Count > 0)
             {
-                CsvProperty property = props.Pop();
+                CsvPropertyData property = props.Pop();
 
                 // Check if the current 'CsvField' is the parent of the last fields
                 bool isParent = parents.Count > 0 && object.ReferenceEquals(parents.Peek(), property);
 
-                if (property.Ignore)
+                if (property.Info.Ignore)
                 {
                     continue;
                 }
 
-                MemberInfo member = property.Member;
-                IReadOnlyList<CsvProperty> children = property.Children;
+                MemberInfo member = property.Info.Member;
+                IReadOnlyList<CsvPropertyData> children = property.Children;
 
                 if (!isParent && children.Count > 0)
                 {
@@ -654,7 +653,7 @@ namespace FastCSV
 
                     // Adds all the children
                     props.PushRangeReverse(children);
-                    objs.Push(FormatterServices.GetUninitializedObject(property.Type));
+                    objs.Push(FormatterServices.GetUninitializedObject(property.Info.Type));
                 }
                 else
                 {
@@ -668,21 +667,21 @@ namespace FastCSV
                     }
                     else
                     {
-                        if (property.Type.IsEnumerableType() && handleCollections)
+                        if (property.Info.Type.IsEnumerableType() && handleCollections)
                         {
                             ReadOnlySpan<string> recordValues = ReadCollectionFromRecord(record, index, options.CollectionHandling!);
-                            ICsvValueConverter? collectionConverter = GetConverter(property.Type, options, property.Converter);
+                            ICsvValueConverter? collectionConverter = GetConverter(property.Info.Type, options, property.Info.Converter);
 
                             if (collectionConverter == null)
                             {
-                                throw new InvalidOperationException($"No found deserializer for type {property.Type}");
+                                throw new InvalidOperationException($"No found deserializer for type {property.Info.Type}");
                             }
 
-                            var state = new CsvDeserializeState(options, property, recordValues);
+                            var state = new CsvDeserializeState(options, property.Info, recordValues);
                             if (!collectionConverter.TryDeserialize(out object? collection, state.ElementType, ref state))
                             {
                                 var s = CsvUtility.ToCsvString(record[index..].ToArray(), options.Format);
-                                throw new InvalidOperationException($"Can not convert '{s}' collection to {property.Type}");
+                                throw new InvalidOperationException($"Can not convert '{s}' collection to {property.Info.Type}");
                             }
 
                             value = collection;
@@ -691,8 +690,8 @@ namespace FastCSV
                         else
                         {
                             string csvValue = GetCsvValue(record, property, index++);
-                            var state = new CsvDeserializeState(options, property, csvValue);
-                            value = ParseString(property.Type, ref state, property.Converter);
+                            var state = new CsvDeserializeState(options, property.Info, csvValue);
+                            value = ParseString(property.Info.Type, ref state, property.Info.Converter);
                         }
                     }
 
@@ -703,7 +702,7 @@ namespace FastCSV
                     }
                     else
                     {
-                        items.Add(new DataToDeserialize(property, value));
+                        items.Add(new DataToDeserialize(property.Info, value));
                     }
                 }
             }
@@ -712,7 +711,7 @@ namespace FastCSV
 
             // Helper
 
-            static string GetCsvValue(CsvRecord record, CsvProperty property, int index)
+            static string GetCsvValue(CsvRecord record, CsvPropertyData property, int index)
             {
                 if ((uint)index > (uint)record.Length)
                 {
@@ -780,13 +779,13 @@ namespace FastCSV
             return record.AsSpan().Slice(startIndex, count);
         }
 
-        private static List<CsvProperty> GetCsvProperties(Type type, CsvConverterOptions options, Permission permission, object? instance)
+        private static IReadOnlyList<CsvPropertyData> GetCsvProperties(Type type, CsvConverterOptions options, PropertyAccesor accesor, object? instance)
         {
             int maxDepth = options.NestedObjectHandling?.MaxDepth ?? 0;
-            return GetCsvPropertiesInternal(type, options, permission, instance, 0, maxDepth);
+            return GetCsvPropertiesInternal(type, options, accesor, instance, 0, maxDepth);
         }
 
-        private static List<CsvProperty> GetCsvPropertiesInternal(Type type, CsvConverterOptions options, Permission permission, object? instance, int depth, int maxDepth)
+        private static IReadOnlyList<CsvPropertyData> GetCsvPropertiesInternal(Type type, CsvConverterOptions options, PropertyAccesor accesor, object? instance, int depth, int maxDepth)
         {
             // Determines if will handle nested objects
             bool handleNestedObjects = options.NestedObjectHandling != null;
@@ -796,19 +795,19 @@ namespace FastCSV
                 throw new InvalidOperationException($"Reference depth exceeded, depth is {depth} but max was {maxDepth}");
             }
 
-            List<CsvProperty> csvProps;
+            List<CsvPropertyData> csvProps;
 
             var reflector = options.ReflectionProvider;
-            var propertyFlags = GetFlagsFromPermission(permission);
+            var propertyFlags = GetFlagsFromPermission(accesor);
             var properties = reflector.GetProperties(type, propertyFlags);
 
             if (options.IncludeFields)
             {
-                var fieldFlags = GetFlagsFromPermission(permission);
+                var fieldFlags = GetFlagsFromPermission(accesor);
                 var fields = reflector.GetFields(type, fieldFlags);
 
                 // Exact size to avoid reallocations
-                csvProps = new List<CsvProperty>(fields.Count + properties.Count);
+                csvProps = new List<CsvPropertyData>(fields.Count + properties.Count);
 
                 if (!fields.Any() && !properties.Any())
                 {
@@ -817,19 +816,19 @@ namespace FastCSV
 
                 foreach (var field in fields)
                 {
-                    CsvProperty csvProp = CreateCsvProperty(field, options, instance);
+                    CsvPropertyData csvProp = CreateCsvProperty(field, options, instance);
                     csvProps.Add(csvProp);
 
-                    if (handleNestedObjects && !IsBuiltInType(field.FieldType) && csvProp.Converter == null)
+                    if (handleNestedObjects && !IsBuiltInType(field.FieldType) && csvProp.Info.Converter == null)
                     {
-                        csvProp.Children = GetCsvPropertiesInternal(field.FieldType, options, permission, csvProp.Value, depth + 1, maxDepth);
+                        csvProp.Children = GetCsvPropertiesInternal(field.FieldType, options, accesor, csvProp.Value, depth + 1, maxDepth);
                     }
                 }
             }
             else
             {
                 // Exact size to avoid reallocations
-                csvProps = new List<CsvProperty>(properties.Count);
+                csvProps = new List<CsvPropertyData>(properties.Count);
 
                 if (!properties.Any())
                 {
@@ -839,12 +838,12 @@ namespace FastCSV
 
             foreach (var prop in properties)
             {
-                CsvProperty csvProp = CreateCsvProperty(prop, options, instance);
+                CsvPropertyData csvProp = CreateCsvProperty(prop, options, instance);
                 csvProps.Add(csvProp);
 
-                if (handleNestedObjects && !IsBuiltInType(prop.PropertyType) && csvProp.Converter == null)
+                if (handleNestedObjects && !IsBuiltInType(prop.PropertyType) && csvProp.Info.Converter == null)
                 {
-                    csvProp.Children = GetCsvPropertiesInternal(prop.PropertyType, options, permission, csvProp.Value, depth + 1, maxDepth);
+                    csvProp.Children = GetCsvPropertiesInternal(prop.PropertyType, options, accesor, csvProp.Value, depth + 1, maxDepth);
                 }
             }
 
@@ -852,19 +851,16 @@ namespace FastCSV
 
             /// Helpers
 
-            static BindingFlags GetFlagsFromPermission(Permission permission)
+            static BindingFlags GetFlagsFromPermission(PropertyAccesor permission)
             {
                 var flags = BindingFlags.Public | BindingFlags.Instance;
                 switch (permission)
                 {
-                    case Permission.Getter:
+                    case PropertyAccesor.Getter:
                         flags |= BindingFlags.GetField;
                         break;
-                    case Permission.Setter:
+                    case PropertyAccesor.Setter:
                         flags |= BindingFlags.SetField;
-                        break;
-                    case Permission.GetterAndGetter:
-                        flags |= BindingFlags.GetField | BindingFlags.SetField;
                         break;
                 }
 
@@ -965,6 +961,30 @@ namespace FastCSV
             return options.ConverterProvider.GetConverter(elementType);
         }
 
+        private static CsvPropertyData CreateCsvProperty(MemberInfo member, CsvConverterOptions options, object? instance)
+        {
+            CsvFieldAttribute? fieldAttribute = member.GetCustomAttribute<CsvFieldAttribute>();
+            CsvNamingConvention? namingConvention = options.NamingConvention;
+
+            IReflector? reflector = options.ReflectionProvider;
+            CsvPropertyInfo property = reflector.GetCsvProperty(member, options);
+            string originalName = property.OriginalName;
+            string name = fieldAttribute?.Name ?? namingConvention?.Convert(originalName) ?? originalName;
+            object? value = instance != null ? member.GetValue(instance) : null;
+            return new CsvPropertyData(property, name, value);
+        }
+
+        internal static CsvPropertyInfo CreateCsvPropertyInfo(MemberInfo member, CsvConverterOptions options)
+        {
+            CsvValueConverterAttribute? converterAttribute = member.GetCustomAttribute<CsvValueConverterAttribute>();
+            string originalName = member.Name;
+            Type type = member.GetMemberType();
+            bool ignore = member.GetCustomAttribute<CsvIgnoreAttribute>() != null || member.GetCustomAttribute<NonSerializedAttribute>() != null;
+            ICsvCustomConverter? converter = GetValueConverterFromAttribute(converterAttribute, options);
+
+            return new(originalName, type, member, ignore, converter);
+        }
+
         private static ICsvCustomConverter? GetValueConverterFromAttribute(CsvValueConverterAttribute? attribute, CsvConverterOptions options)
         {
             if (attribute == null || attribute.ConverterType == null)
@@ -988,22 +1008,6 @@ namespace FastCSV
 
             object converter = constructor.Invoke(Array.Empty<object>());
             return (ICsvCustomConverter)converter;
-        }
-
-        private static CsvProperty CreateCsvProperty(MemberInfo member, CsvConverterOptions options, object? instance)
-        {
-            CsvFieldAttribute? fieldAttribute = member.GetCustomAttribute<CsvFieldAttribute>();
-            CsvValueConverterAttribute? converterAttribute = member.GetCustomAttribute<CsvValueConverterAttribute>();
-            CsvNamingConvention? namingConvention = options.NamingConvention;
-
-            string originalName = member.Name;
-            string name = fieldAttribute?.Name ?? namingConvention?.Convert(originalName) ?? originalName;
-            Type type = member.GetMemberType();
-            object? value = instance != null ? member.GetValue(instance) : null;
-            bool ignore = member.GetCustomAttribute<CsvIgnoreAttribute>() != null || member.GetCustomAttribute<NonSerializedAttribute>() != null;
-            ICsvCustomConverter? converter = GetValueConverterFromAttribute(converterAttribute, options);
-
-            return new(originalName, name, value, type, member, ignore, converter);
         }
 
         private static bool HasConverter(Type type, CsvConverterOptions options)
