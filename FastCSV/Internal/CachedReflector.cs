@@ -14,7 +14,7 @@ namespace FastCSV.Internal
         private readonly Dictionary<(Type, BindingFlags), IReadOnlyCollection<PropertyInfo>> propertiesCollection;
         private readonly Dictionary<MemberInfo, CsvPropertyInfo> csvProperties;
         private readonly Dictionary<Type, Type> nullableTypes;
-        private readonly Dictionary<MemberInfo, Attribute> memberAttributes;
+        private readonly Dictionary<(MemberInfo, Type), Attribute> memberAttributes;
         private readonly Dictionary<Type, bool> readOnlyTypes;
 
         private CachedReflector()
@@ -23,7 +23,7 @@ namespace FastCSV.Internal
             members = new Dictionary<(Type, string, BindingFlags), MemberInfo>();
             fieldsCollection = new Dictionary<(Type, BindingFlags), IReadOnlyCollection<FieldInfo>>();
             propertiesCollection = new Dictionary<(Type, BindingFlags), IReadOnlyCollection<PropertyInfo>>();
-            memberAttributes = new Dictionary<MemberInfo, Attribute>();
+            memberAttributes = new Dictionary<(MemberInfo, Type), Attribute>();
             csvProperties = new Dictionary<MemberInfo, CsvPropertyInfo>();
             nullableTypes = new Dictionary<Type, Type>();
             readOnlyTypes = new Dictionary<Type, bool>();
@@ -114,14 +114,16 @@ namespace FastCSV.Internal
 
         public TAttribute? GetMemberCustomAttribute<TAttribute>(MemberInfo member) where TAttribute : Attribute
         {
-            if (!memberAttributes.TryGetValue(member, out Attribute? attribute))
+            var key = (member, typeof(TAttribute));
+
+            if (!memberAttributes.TryGetValue(key, out Attribute? attribute))
             {
                 attribute = member.GetCustomAttribute<TAttribute>();
 
                 // We only cache readonly attributes
                 if (IsReadOnlyType(typeof(TAttribute)))
                 {
-                    memberAttributes.Add(member, attribute!);
+                    memberAttributes.Add(key, attribute!);
                 }
             }
 
