@@ -15,6 +15,7 @@ namespace FastCSV.Internal
         private readonly Dictionary<MemberInfo, CsvPropertyInfo> csvProperties;
         private readonly Dictionary<Type, Type> nullableTypes;
         private readonly Dictionary<MemberInfo, Attribute> memberAttributes;
+        private readonly Dictionary<Type, bool> readOnlyTypes;
 
         private CachedReflector()
         {
@@ -25,6 +26,7 @@ namespace FastCSV.Internal
             memberAttributes = new Dictionary<MemberInfo, Attribute>();
             csvProperties = new Dictionary<MemberInfo, CsvPropertyInfo>();
             nullableTypes = new Dictionary<Type, Type>();
+            readOnlyTypes = new Dictionary<Type, bool>();
         }
 
         public ConstructorInfo? GetConstructor(Type type, params Type[] paramsTypes)
@@ -115,7 +117,12 @@ namespace FastCSV.Internal
             if (!memberAttributes.TryGetValue(member, out Attribute? attribute))
             {
                 attribute = member.GetCustomAttribute<TAttribute>();
-                memberAttributes.Add(member, attribute!);
+
+                // We only cache readonly attributes
+                if (IsReadOnlyType(typeof(TAttribute)))
+                {
+                    memberAttributes.Add(member, attribute!);
+                }
             }
 
             return (TAttribute?)attribute;
@@ -150,6 +157,41 @@ namespace FastCSV.Internal
             }
 
             return property;
+        }
+
+        private bool IsReadOnlyType(Type type)
+        {
+            if (!readOnlyTypes.TryGetValue(type, out var isReadOnly))
+            {
+                isReadOnly = IsReadOnlyTypeInternal(type);
+                readOnlyTypes.Add(type, isReadOnly);
+            }
+
+            return isReadOnly;
+        }
+
+        private bool IsReadOnlyTypeInternal(Type type)
+        {
+            var props = GetProperties(type, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var fields = GetFields(type, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            foreach(var p in props)
+            {
+                if (p.CanWrite)
+                {
+                    return false;
+                }
+            }
+
+            foreach (var f in fields)
+            {
+                if (!f.IsInitOnly)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
