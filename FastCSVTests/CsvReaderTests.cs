@@ -69,7 +69,7 @@ namespace FastCSV.Tests
                     $"Homer,35{System.Environment.NewLine}" +
                     $"Marge,28{System.Environment.NewLine}");
 
-            using var reader = new CsvReader(csv);
+            using var reader = CsvReader.FromStream(csv);
 
             Assert.AreEqual(CsvFormat.Default, reader.Format);
             Assert.IsTrue(reader.HasHeader);
@@ -106,6 +106,16 @@ namespace FastCSV.Tests
         }
 
         [Test()]
+        public void ReadEmptyTest2()
+        {
+            using var csv = StreamHelper.CreateStreamFromString("");
+
+            var format = CsvFormat.Default.WithIgnoreWhitespace(false);
+            using var reader = new CsvReader(new StreamReader(csv), format, hasHeader: false);
+            Assert.AreEqual("", reader.Read()!.ToString());
+        }
+
+        [Test()]
         public void ReadBlankTest1()
         {
             using var csv = StreamHelper.CreateStreamFromString(" ");
@@ -132,7 +142,7 @@ namespace FastCSV.Tests
                 $"Homer , 35{System.Environment.NewLine}" +
                 $" Marge,28{System.Environment.NewLine}");
 
-            using var reader = new CsvReader(csv, CsvFormat.Default.WithIgnoreWhitespace(false));
+            using var reader = CsvReader.FromStream(csv, CsvFormat.Default.WithIgnoreWhitespace(false));
 
             Assert.AreEqual("Homer , 35", reader.Read()!.ToString());
             Assert.AreEqual(" Marge,28", reader.Read()!.ToString());
@@ -146,7 +156,7 @@ namespace FastCSV.Tests
                 $"Mario \"The plumber, 20{System.Environment.NewLine}" +
                 $"Luigi, 19{System.Environment.NewLine}");
 
-            using var reader = new CsvReader(csv);
+            using var reader = CsvReader.FromStream(csv);
 
             Assert.Throws<CsvFormatException>(() =>
             {
@@ -162,7 +172,7 @@ namespace FastCSV.Tests
                 $"Homer,35{System.Environment.NewLine}" +
                 $"Marge,28{System.Environment.NewLine}");
 
-            var reader = new CsvReader(csv, CsvFormat.Default.WithStyle(QuoteStyle.Always));
+            var reader = CsvReader.FromStream(csv, CsvFormat.Default.WithStyle(QuoteStyle.Always));
 
             Assert.AreEqual("\"Homer\",\"35\"", reader.Read()!.ToString());
             Assert.AreEqual("\"Marge\",\"28\"", reader.Read()!.ToString());
@@ -173,10 +183,10 @@ namespace FastCSV.Tests
         {
             using var csv = StreamHelper.CreateStreamFromString(
                 $"Name,Age{System.Environment.NewLine}" +
-                $"\"Frida \"\"The Painter\"\"\", 35{System.Environment.NewLine}" +
-                $"\"Pagannini \"\"The violinist\"\"\",28{System.Environment.NewLine}");
+                $"Frida \"The Painter\", 35{System.Environment.NewLine}" +
+                $"Pagannini \"The violinist\",28{System.Environment.NewLine}");
 
-            var reader = new CsvReader(csv, CsvFormat.Default.WithStyle(QuoteStyle.Never));
+            var reader = CsvReader.FromStream(csv, CsvFormat.Default.WithStyle(QuoteStyle.Never));
             Assert.AreEqual("Frida The Painter,35", reader.Read()!.ToString());
             Assert.AreEqual("Pagannini The violinist,28", reader.Read()!.ToString());
         }
@@ -251,7 +261,7 @@ namespace FastCSV.Tests
                 $"Homer,35{System.Environment.NewLine}" +
                 $"Marge,28{System.Environment.NewLine}");
 
-            using var reader = new CsvReader(csv);
+            using var reader = CsvReader.FromStream(csv);
 
             Person p1 = reader.ReadAs<Person>().Value;
             Assert.AreEqual("Homer", p1.Name);
@@ -272,7 +282,7 @@ namespace FastCSV.Tests
                 $"Homer,35{System.Environment.NewLine}" +
                 $"Marge,28{System.Environment.NewLine}");
 
-            using var reader = new CsvReader(csv);
+            using var reader = CsvReader.FromStream(csv);
 
             var persons = reader.ReadAllAs<Person>().ToList();
 
@@ -291,7 +301,7 @@ namespace FastCSV.Tests
                 $"Homer,35{System.Environment.NewLine}" +
                 $"Marge,28{System.Environment.NewLine}");
 
-            using var reader = new CsvReader(csv);
+            using var reader = CsvReader.FromStream(csv);
 
             Person p1 = (await reader.ReadAsAsync<Person>()).Value;
             Assert.AreEqual("Homer", p1.Name);
@@ -312,7 +322,7 @@ namespace FastCSV.Tests
                 $"Homer,35{System.Environment.NewLine}" +
                 $"Marge,28{System.Environment.NewLine}");
 
-            using var reader = new CsvReader(csv);
+            using var reader = CsvReader.FromStream(csv);
             var persons = reader.ReadAllAsAsync<Person>();
 
             await persons.MoveNextAsync();
@@ -391,7 +401,7 @@ namespace FastCSV.Tests
                 $"Homer,35{System.Environment.NewLine}" +
                 $"Marge,28{System.Environment.NewLine}");
 
-            using var reader = new CsvReader(csvStream);
+            using var reader = CsvReader.FromStream(csvStream);
             var readRecords = reader.ReadAll(new CsvFormat(delimiter: "|")).ToArray();
 
             Assert.AreEqual("Homer|35", readRecords[0].ToString());
@@ -402,7 +412,7 @@ namespace FastCSV.Tests
         public void CloseTest()
         {
             using var csv = new MemoryStream();
-            var reader = new CsvReader(csv);
+            var reader = CsvReader.FromStream(csv);
             reader.Close();
 
             Assert.Throws<ObjectDisposedException>(() =>
@@ -415,7 +425,7 @@ namespace FastCSV.Tests
         public void DisposeTest()
         {
             using var csv = new MemoryStream();
-            var reader = new CsvReader(csv);
+            var reader = CsvReader.FromStream(csv);
             reader.Dispose();
 
             Assert.Throws<ObjectDisposedException>(() =>
@@ -430,7 +440,7 @@ namespace FastCSV.Tests
             string newLine = Environment.NewLine;
             using var stream = StreamHelper.CreateStreamFromString($"Name||Age{newLine}Maria||23{newLine}Juan || 20{newLine}");
             var format = new CsvFormat("||");
-            using var reader = new CsvReader(stream, format);
+            using var reader = CsvReader.FromStream(stream, format);
 
             CollectionAssert.AreEqual(new string[] { "Name", "Age" }, reader.Header);
             CollectionAssert.AreEqual(new string[] { "Maria", "23" }, reader.Read());

@@ -20,12 +20,12 @@ namespace FastCSV.Utils
         {
             if(line < 0)
             {
-                throw new ArgumentException("Line number cannot be negative", nameof(line));
+                throw new ArgumentException(nameof(line));
             }
 
             if(offset < 0)
             {
-                throw new ArgumentException("Line offset cannot be negative", nameof(offset));
+                throw new ArgumentException(nameof(offset));
             }
 
             Line = line;

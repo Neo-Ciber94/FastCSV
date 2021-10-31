@@ -138,6 +138,33 @@ namespace FastCSV.Tests
         }
 
         [Test()]
+        public void WithDelimiterTest()
+        {
+            var record = new CsvRecord(null, new string[] { "Violet", "16" });
+            var record2 = record.WithDelimiter("\t");
+
+            Assert.AreEqual(CsvFormat.Default.WithDelimiter("\t"), record2.Format);
+        }
+
+        [Test()]
+        public void WithQuoteTest()
+        {
+            var record = new CsvRecord(null, new string[] { "Violet", "16" });
+            var record2 = record.WithQuote("\"");
+
+            Assert.AreEqual(CsvFormat.Default.WithQuote("\""), record2.Format);
+        }
+
+        [Test()]
+        public void WithStyleTest()
+        {
+            var record = new CsvRecord(null, new string[] { "Violet", "16" });
+            var record2 = record.WithStyle(QuoteStyle.Always);
+
+            Assert.AreEqual(CsvFormat.Default.WithStyle(QuoteStyle.Always), record2.Format);
+        }
+
+        [Test()]
         public void WithFormatTest()
         {
             var record = new CsvRecord(null, new string[] { "Violet", "16" });

@@ -111,7 +111,7 @@ namespace FastCSV
                 format = firstRecord?.Format ?? CsvFormat.Default;
             }
 
-            using CsvWriter writer = new CsvWriter(destination, format, flexible, leaveOpen);
+            using CsvWriter writer = CsvWriter.FromStream(destination, format, flexible, leaveOpen);
 
             if (header != null)
             {
@@ -177,7 +177,7 @@ namespace FastCSV
                 format = firstRecord?.Format ?? CsvFormat.Default;
             }
 
-            using CsvWriter writer = new CsvWriter(destination, format, flexible, leaveOpen);
+            using CsvWriter writer = CsvWriter.FromStream(destination, format, flexible, leaveOpen);
 
             if (header != null)
             {

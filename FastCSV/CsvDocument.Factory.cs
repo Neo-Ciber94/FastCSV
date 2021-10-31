@@ -127,7 +127,7 @@ namespace FastCSV
             options ??= CsvConverterOptions.Default;
             CsvFormat format = options.Format;
 
-            using (CsvReader reader = new CsvReader(memory, format))
+            using (CsvReader reader = CsvReader.FromStream(memory, format))
             {
                 foreach (CsvRecord record in reader.ReadAll())
                 {

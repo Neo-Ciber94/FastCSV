@@ -101,6 +101,33 @@ namespace FastCSV.Tests
         }
 
         [Test]
+        public void WithDelimiterTest()
+        {
+            var header = CsvHeader.FromValues("name", "age");
+            var copy = header.WithDelimiter(";");
+
+            Assert.AreEqual(CsvFormat.Default.WithDelimiter(";"), copy.Format);
+        }
+
+        [Test]
+        public void WithQuoteTest()
+        {
+            var header = CsvHeader.FromValues("name", "age");
+            var copy = header.WithQuote("|");
+
+            Assert.AreEqual(CsvFormat.Default.WithQuote("|"), copy.Format);
+        }
+
+        [Test]
+        public void WithStyleTest()
+        {
+            var header = CsvHeader.FromValues("name", "age");
+            var copy = header.WithStyle(QuoteStyle.Always);
+
+            Assert.AreEqual(CsvFormat.Default.WithStyle(QuoteStyle.Always), copy.Format);
+        }
+
+        [Test]
         public void WithFormatTest()
         {
             var header = CsvHeader.FromValues("name", "age");

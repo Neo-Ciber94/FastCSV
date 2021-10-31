@@ -3,7 +3,6 @@ using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
 namespace FastCSV.Collections
 {
@@ -21,8 +20,6 @@ namespace FastCSV.Collections
         public int Count => _count;
 
         public int Capacity => _arrayFromPool?.Length ?? 0;
-
-        public bool IsEmpty => _count == 0;
 
         public Span<T> Span
         {
@@ -48,30 +45,10 @@ namespace FastCSV.Collections
 
             if (_count == _arrayFromPool.Length)
             {
-                ResizeIfNeeded(1);
+                Resize();
             }
 
             _arrayFromPool[_count++] = value;
-        }
-
-        public void AddRange(Span<T> values)
-        {
-            ResizeIfNeeded(values.Length);
-
-            values.CopyTo(_arrayFromPool.AsSpan(_count));
-            _count += values.Length;
-        }
-
-        public void Clear()
-        {
-            ThrowIfDisposed();
-
-            if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
-            {
-                Array.Clear(_arrayFromPool!, 0, _count);
-            }
-
-            _count = 0;
         }
 
         public T[] ToArray()
@@ -88,25 +65,19 @@ namespace FastCSV.Collections
             return array;
         }
 
-        private void ResizeIfNeeded(int required)
+        private void Resize()
         {
             if (_arrayFromPool == null)
             {
                 return;
             }
 
-            int minRequired = _count + required;
+            int newCapacity = _arrayFromPool.Length * 2;
+            T[] newArray = ArrayPool<T>.Shared.Rent(newCapacity);
 
-            if (minRequired > _arrayFromPool.Length)
-            {
-                int count = _count == 0 ? 4 : _count * 2;
-                int newCapacity = Math.Min(count, minRequired);
-
-                T[] newArray = ArrayPool<T>.Shared.Rent(newCapacity);
-                Array.Copy(_arrayFromPool, newArray, _count);
-                ArrayPool<T>.Shared.Return(_arrayFromPool);
-                _arrayFromPool = newArray;
-            }
+            Array.Copy(_arrayFromPool, newArray, _count);
+            ArrayPool<T>.Shared.Return(_arrayFromPool);
+            _arrayFromPool = newArray;
         }
 
         public void Dispose()
