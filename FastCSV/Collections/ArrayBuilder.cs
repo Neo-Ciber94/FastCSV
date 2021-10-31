@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace FastCSV.Collections
 {
@@ -20,6 +21,8 @@ namespace FastCSV.Collections
         public int Count => _count;
 
         public int Capacity => _arrayFromPool?.Length ?? 0;
+
+        public bool IsEmpty => _count == 0;
 
         public Span<T> Span
         {
@@ -57,6 +60,18 @@ namespace FastCSV.Collections
 
             values.CopyTo(_arrayFromPool.AsSpan(_count));
             _count += values.Length;
+        }
+
+        public void Clear()
+        {
+            ThrowIfDisposed();
+
+            if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+            {
+                Array.Clear(_arrayFromPool!, 0, _count);
+            }
+
+            _count = 0;
         }
 
         public T[] ToArray()
