@@ -1,59 +1,37 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
 using FastCSV.Converters;
 using FastCSV.Extensions;
 
 namespace FastCSV
 {
-    public record CsvPropertyData(CsvPropertyInfo Info, string Name, object? Value)
-    {
-        public IReadOnlyList<CsvPropertyData> Children { get; set; } = new List<CsvPropertyData>();
-    }
-
     /// <summary>
     /// Represents a field or property related to a object.
     /// </summary>
-    public record CsvPropertyInfo
+    public record CsvPropertyInfo : ICsvPropertyInfo
     {
-        /// <summary>
-        /// Original name of the field.
-        /// </summary>
+        /// <inheritdoc/>
         public string OriginalName { get; }
 
-        /// <summary>
-        /// Type of the field.
-        /// </summary>
+        /// <inheritdoc/>
         public Type Type { get; }
 
-        /// <summary>
-        /// Source of the value with is either a field or an property.
-        /// </summary>
+        /// <inheritdoc/>
         public MemberInfo Member { get; }
 
-        /// <summary>
-        /// Whether the field should be ignored or not.
-        /// </summary>
+        /// <inheritdoc/>
         public bool Ignore { get; }
 
-        /// <summary>
-        /// The converter for this property.
-        /// </summary>
-        public ICsvValueConverter? Converter { get;}
+        /// <inheritdoc/>
+        public ICsvValueConverter? Converter { get; }
 
-        /// <summary>
-        /// Whether this instance is a property.
-        /// </summary>
+        /// <inheritdoc/>
         public bool IsProperty => Member is PropertyInfo;
 
-        /// <summary>
-        /// Whether this instance is a field.
-        /// </summary>
+        /// <inheritdoc/>
         public bool IsField => Member is FieldInfo;
 
-        /// <summary>
-        /// Whether this instance is read-only.
-        /// </summary>
+        /// <inheritdoc/>
         public bool IsReadOnly
         {
             get
@@ -67,6 +45,14 @@ namespace FastCSV
             }
         }
 
+        /// <summary>
+        /// Constructs a new <see cref="CsvPropertyInfo"/>.
+        /// </summary>
+        /// <param name="originalName">The name of the property.</param>
+        /// <param name="type">The type of the property.</param>
+        /// <param name="member">The target property/field.</param>
+        /// <param name="ignore">Whether if ignore this property.</param>
+        /// <param name="valueConverter">The converter for this property type.</param>
         public CsvPropertyInfo(string originalName, Type type, MemberInfo member, bool ignore, ICsvCustomConverter? valueConverter)
         {
             OriginalName = originalName;
@@ -76,21 +62,13 @@ namespace FastCSV
             Converter = valueConverter;
         }
 
-        /// <summary>
-        /// Sets a value to the member of the target.
-        /// </summary>
-        /// <param name="target"></param>
-        /// <param name="value"></param>
+        /// <inheritdoc/>
         public void SetValue(object target, object? value)
         {
             Member.SetValue(target, value);
         }
 
-        /// <summary>
-        /// Gets the value of the member of the target.
-        /// </summary>
-        /// <param name="target"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public object? GetValue(object target)
         {
             return Member.GetValue(target);
