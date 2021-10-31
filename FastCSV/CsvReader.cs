@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FastCSV.Internal;
 using FastCSV.Utils;
 
 namespace FastCSV
@@ -14,7 +15,8 @@ namespace FastCSV
     /// <seealso cref="System.IDisposable" />
     public partial class CsvReader : IDisposable
     {
-        private StreamReader? _reader;
+        //private StreamReader? _reader;
+        private CsvParser _reader;
         private int _recordNumber = 0;
 
         /// <summary>
@@ -53,12 +55,14 @@ namespace FastCSV
         /// <param name="hasHeader">if set to <c>true</c> the first record will be considered the header.</param>
         public CsvReader(StreamReader reader, CsvFormat? format = null, bool hasHeader = true)
         {
-            _reader = reader;
-            Format = format ?? CsvFormat.Default;
+            format ??= CsvFormat.Default;
+            _reader = new CsvParser(reader, format);
+            Format = format;
 
             if (hasHeader)
             {
-                string[]? values = CsvUtility.ParseNextRecord(_reader!, Format);
+                //string[]? values = CsvUtility.ParseNextRecord(_reader!, Format);
+                string[]? values = _reader.ParseNext();
                 if (values != null && values.Length > 0)
                 {
                     Header = new CsvHeader(values, Format);
@@ -115,7 +119,7 @@ namespace FastCSV
         /// <value>
         ///   <c>true</c> if done; otherwise, <c>false</c>.
         /// </value>
-        public bool IsDone => _reader?.EndOfStream ?? false;
+        public bool IsDone => _reader.IsDone;
 
         /// <summary>
         /// Reads the next record.
@@ -126,7 +130,8 @@ namespace FastCSV
         {
             ThrowIfDisposed();
 
-            string[]? values = CsvUtility.ParseNextRecord(_reader!, Format);
+            //string[]? values = CsvUtility.ParseNextRecord(_reader!, Format);
+            string[]? values = _reader.ParseNext();
 
             if (values == null || values.Length == 0)
             {
@@ -151,7 +156,8 @@ namespace FastCSV
         public async ValueTask<CsvRecord?> ReadAsync(CsvFormat? overrideFormat = null, CancellationToken cancellationToken = default)
         {
             ThrowIfDisposed();
-            string[]? values = await CsvUtility.ParseNextRecordAsync(_reader!, Format, cancellationToken);
+            //string[]? values = await CsvUtility.ParseNextRecordAsync(_reader!, Format, cancellationToken);
+            string[]? values = await ValueTask.FromResult(_reader.ParseNext());
 
             if (values == null || values.Length == 0)
             {
@@ -218,7 +224,7 @@ namespace FastCSV
                 return false;
             }
 
-            var stream = _reader!.BaseStream;
+            Stream stream = _reader!.BaseStream!;
 
             if (stream.CanSeek)
             {
@@ -252,7 +258,7 @@ namespace FastCSV
                     _reader.Dispose();
                 }
 
-                _reader = null;
+                //_reader = null;
             }
         }
 
