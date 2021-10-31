@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,9 @@ namespace FastCSV
     /// </summary>
     public partial class CsvParser : IDisposable
     {
+        private const int DefaultStringBuilderCapacity = 512;
+        private const int DefaultArrayBuilderCapacity = 32;
+
         private ArrayBuilder<string> _record;
         private StringBuilder _currentField;
 
@@ -40,8 +44,8 @@ namespace FastCSV
         /// <param name="format">The format.</param>
         public CsvParser(StreamReader reader, CsvFormat? format = null)
         {
-            _record = new ArrayBuilder<string>(32);
-            _currentField = StringBuilderCache.Acquire(256);
+            _record = new ArrayBuilder<string>(DefaultArrayBuilderCapacity);
+            _currentField = StringBuilderCache.Acquire(DefaultStringBuilderCapacity);
             _reader = reader;
             _format = format ?? CsvFormat.Default;
         }
@@ -385,6 +389,7 @@ namespace FastCSV
             _currentField.Clear();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void MoveToNextLine()
         {
             currentPosition = currentPosition
@@ -392,6 +397,7 @@ namespace FastCSV
                 .WithOffset(0);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void MoveToNextChar()
         {
             currentPosition = currentPosition.AddOffset(1);
