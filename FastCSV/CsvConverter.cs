@@ -963,10 +963,10 @@ namespace FastCSV
 
         private static CsvPropertyData CreateCsvProperty(MemberInfo member, CsvConverterOptions options, object? instance)
         {
-            CsvFieldAttribute? fieldAttribute = member.GetCustomAttribute<CsvFieldAttribute>();
+            IReflector reflector = options.ReflectionProvider;
+            CsvFieldAttribute? fieldAttribute = reflector.GetMemberCustomAttribute<CsvFieldAttribute>(member);
             CsvNamingConvention? namingConvention = options.NamingConvention;
 
-            IReflector? reflector = options.ReflectionProvider;
             CsvPropertyInfo property = reflector.GetCsvProperty(member, options);
             string originalName = property.OriginalName;
             string name = fieldAttribute?.Name ?? namingConvention?.Convert(originalName) ?? originalName;
@@ -976,10 +976,12 @@ namespace FastCSV
 
         internal static CsvPropertyInfo CreateCsvPropertyInfo(MemberInfo member, CsvConverterOptions options)
         {
-            CsvValueConverterAttribute? converterAttribute = member.GetCustomAttribute<CsvValueConverterAttribute>();
+            IReflector reflector = options.ReflectionProvider;
+            CsvValueConverterAttribute? converterAttribute = reflector.GetMemberCustomAttribute<CsvValueConverterAttribute>(member);
+
             string originalName = member.Name;
             Type type = member.GetMemberType();
-            bool ignore = member.GetCustomAttribute<CsvIgnoreAttribute>() != null || member.GetCustomAttribute<NonSerializedAttribute>() != null;
+            bool ignore = reflector.GetMemberCustomAttribute<CsvIgnoreAttribute>(member) != null || reflector.GetMemberCustomAttribute<NonSerializedAttribute>(member) != null;
             ICsvCustomConverter? converter = GetValueConverterFromAttribute(converterAttribute, options);
 
             return new(originalName, type, member, ignore, converter);
