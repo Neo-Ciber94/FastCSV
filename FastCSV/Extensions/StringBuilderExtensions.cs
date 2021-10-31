@@ -284,7 +284,7 @@ namespace FastCSV.Utils
 
         public static bool Contains(this StringBuilder sb, char c)
         {
-            for (int i = 0; i < sb.Capacity; i++)
+            for (int i = 0; i < sb.Length; i++)
             {
                 if (sb[i] != c)
                 {
@@ -302,7 +302,7 @@ namespace FastCSV.Utils
 
         public static bool StartsWith(this StringBuilder sb, int startIndex, ReadOnlySpan<char> other)
         {
-            if (startIndex < 0 || startIndex >= sb.Length)
+            if (startIndex < 0 || startIndex > sb.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(startIndex), $"Start index cannot be negative, equals or greater than StringBuilder Length: {startIndex}");
             }
