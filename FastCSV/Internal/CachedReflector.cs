@@ -12,8 +12,9 @@ namespace FastCSV.Internal
         private readonly Dictionary<(Type, string, BindingFlags), MemberInfo> members;
         private readonly Dictionary<(Type, BindingFlags), IReadOnlyCollection<FieldInfo>> fieldsCollection;
         private readonly Dictionary<(Type, BindingFlags), IReadOnlyCollection<PropertyInfo>> propertiesCollection;
-        private readonly Dictionary<MemberInfo, CsvPropertyInfo> csvProperties = new();
+        private readonly Dictionary<MemberInfo, CsvPropertyInfo> csvProperties;
         private readonly Dictionary<Type, Type> nullableTypes;
+        private readonly Dictionary<MemberInfo, Attribute> memberAttributes;
 
         private CachedReflector()
         {
@@ -21,6 +22,8 @@ namespace FastCSV.Internal
             members = new Dictionary<(Type, string, BindingFlags), MemberInfo>();
             fieldsCollection = new Dictionary<(Type, BindingFlags), IReadOnlyCollection<FieldInfo>>();
             propertiesCollection = new Dictionary<(Type, BindingFlags), IReadOnlyCollection<PropertyInfo>>();
+            memberAttributes = new Dictionary<MemberInfo, Attribute>();
+            csvProperties = new Dictionary<MemberInfo, CsvPropertyInfo>();
             nullableTypes = new Dictionary<Type, Type>();
         }
 
@@ -105,6 +108,17 @@ namespace FastCSV.Internal
             }
 
             return values;
+        }
+
+        public TAttribute? GetMemberCustomAttribute<TAttribute>(MemberInfo member) where TAttribute : Attribute
+        {
+            if (!memberAttributes.TryGetValue(member, out Attribute? attribute))
+            {
+                attribute = member.GetCustomAttribute<TAttribute>();
+                memberAttributes.Add(member, attribute!);
+            }
+
+            return (TAttribute?)attribute;
         }
 
         public Type? GetNullableType(Type type)

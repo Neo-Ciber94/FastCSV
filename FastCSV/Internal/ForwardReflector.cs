@@ -35,6 +35,11 @@ namespace FastCSV.Internal
             return type.GetProperty(propertyName, bindingFlags);
         }
 
+        public TAttribute? GetMemberCustomAttribute<TAttribute>(MemberInfo member) where TAttribute : Attribute
+        {
+            return member.GetCustomAttribute<TAttribute>();
+        }
+
         public bool IsNullableType(Type type)
         {
             return GetNullableType(type) != null;

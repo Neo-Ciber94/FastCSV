@@ -16,6 +16,8 @@ namespace FastCSV.Internal
 
         public ConstructorInfo? GetConstructor(Type type, params Type[] paramsTypes);
 
+        public TAttribute? GetMemberCustomAttribute<TAttribute>(MemberInfo member) where TAttribute : Attribute;
+
         public Type? GetNullableType(Type type);
 
         public bool IsNullableType(Type nullableType);
