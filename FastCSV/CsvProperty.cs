@@ -56,6 +56,8 @@ namespace FastCSV
         public CsvPropertyInfo(string originalName, Type type, MemberInfo member, bool ignore, ICsvCustomConverter? valueConverter)
         {
             OriginalName = originalName;
+            Name = name;
+            Value = value;
             Type = type;
             Member = member;
             Ignore = ignore;

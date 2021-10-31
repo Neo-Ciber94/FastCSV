@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using FastCSV.Utils;
 
 namespace FastCSV
 {
@@ -14,7 +12,7 @@ namespace FastCSV
     /// <seealso cref="System.IDisposable" />
     public partial class CsvReader : IDisposable
     {
-        private StreamReader? _reader;
+        private CsvParser _reader;
         private int _recordNumber = 0;
 
         /// <summary>
@@ -53,12 +51,13 @@ namespace FastCSV
         /// <param name="hasHeader">if set to <c>true</c> the first record will be considered the header.</param>
         public CsvReader(StreamReader reader, CsvFormat? format = null, bool hasHeader = true)
         {
-            _reader = reader;
-            Format = format ?? CsvFormat.Default;
+            format ??= CsvFormat.Default;
+            _reader = new CsvParser(reader, format);
+            Format = format;
 
             if (hasHeader)
             {
-                string[]? values = CsvUtility.ParseNextRecord(_reader!, Format);
+                string[]? values = _reader.ParseNext();
                 if (values != null && values.Length > 0)
                 {
                     Header = new CsvHeader(values, Format);
@@ -68,19 +67,14 @@ namespace FastCSV
         }
 
         /// <summary>
-        /// Froms the stream.
+        /// Initializes a new instance of the <see cref="CsvReader"/> from a <see cref="Stream"/>.
         /// </summary>
-        /// <param name="stream">The stream.</param>
+        /// <param name="reader">The reader.</param>
         /// <param name="format">The format.</param>
         /// <param name="hasHeader">if set to <c>true</c> the first record will be considered the header.</param>
-        /// <param name="leaveOpen">Whether if leave the stream open after write, default is false.</param>
-        /// <returns>A <c>CsvReader</c> with the given stream.</returns>
-        public static CsvReader FromStream(Stream stream, CsvFormat? format = null, bool hasHeader = true, bool leaveOpen = false)
-        {
-            format ??= CsvFormat.Default;
-            StreamReader reader = new StreamReader(stream, leaveOpen: leaveOpen);
-            return new CsvReader(reader, format, hasHeader);
-        }
+        /// <param name="leaveOpen">Whether if leave the stream open after dispose, default is false.</param>
+        public CsvReader(Stream stream, CsvFormat? format = null, bool hasHeader = true, bool leaveOpen = false) 
+            : this(new StreamReader(stream, leaveOpen: leaveOpen), format, hasHeader) { }
 
         /// <summary>
         /// Gets the format used by this reader.
@@ -120,7 +114,7 @@ namespace FastCSV
         /// <value>
         ///   <c>true</c> if done; otherwise, <c>false</c>.
         /// </value>
-        public bool IsDone => _reader?.EndOfStream ?? false;
+        public bool IsDone => _reader.IsDone;
 
         /// <summary>
         /// Reads the next record.
@@ -131,9 +125,9 @@ namespace FastCSV
         {
             ThrowIfDisposed();
 
-            string[]? values = CsvUtility.ParseNextRecord(_reader!, Format);
+            string[]? values = _reader.ParseNext();
 
-            if (Format.IgnoreWhitespace && (values == null || values.Length == 0))
+            if (values == null || values.Length == 0)
             {
                 return null;
             }
@@ -156,9 +150,9 @@ namespace FastCSV
         public async ValueTask<CsvRecord?> ReadAsync(CsvFormat? overrideFormat = null, CancellationToken cancellationToken = default)
         {
             ThrowIfDisposed();
-            string[]? values = await CsvUtility.ParseNextRecordAsync(_reader!, Format, cancellationToken);
+            string[]? values = await _reader.ParseNextAsync(cancellationToken);
 
-            if (Format.IgnoreWhitespace && (values == null || values.Length == 0))
+            if (values == null || values.Length == 0)
             {
                 return null;
             }
@@ -223,12 +217,10 @@ namespace FastCSV
                 return false;
             }
 
-            var stream = _reader!.BaseStream;
+            Stream stream = _reader!.BaseStream!;
 
-            if (stream.CanSeek)
+            if (_reader.TryReset())
             {
-                stream.Position = 0;
-
                 if (HasHeader)
                 {
                     Read(); // Ignores the header
@@ -256,8 +248,6 @@ namespace FastCSV
                 {
                     _reader.Dispose();
                 }
-
-                _reader = null;
             }
         }
 

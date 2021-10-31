@@ -7,14 +7,14 @@ namespace FastCSV.Utils
     public struct TextParser
     {
         private readonly ReadOnlyMemory<char> text;
-        private Optional<char> nextValue;
+        private Optional<char> next;
         private int pos;
 
         public TextParser(ReadOnlyMemory<char> text)
         {
             this.text = text;
             pos = 0;
-            nextValue = default;
+            next = default;
         }
 
         public TextParser(string text) : this(text.AsMemory()) { }
@@ -32,6 +32,8 @@ namespace FastCSV.Utils
         {
             get => text[pos..];
         }
+
+        public int Count => Rest.Length;
 
         public bool CanConsume(ReadOnlySpan<char> other)
         {
@@ -77,14 +79,14 @@ namespace FastCSV.Utils
         {
             if (pos >= text.Length)
             {
-                nextValue = default;
+                next = default;
             }
             else
             {
-                nextValue = text.Span[pos];
+                next = text.Span[pos];
             }
 
-            return nextValue;
+            return next;
         }
 
         public bool HasNext()
@@ -94,14 +96,14 @@ namespace FastCSV.Utils
 
         public Optional<char> Next()
         {
-            var next = Peek();
+            var nextValue = Peek();
 
-            if (next.HasValue)
+            if (nextValue.HasValue)
             {
                 pos += 1;
             }
 
-            return next;
+            return nextValue;
         }
 
         public TextParser Slice(int start)
@@ -112,6 +114,38 @@ namespace FastCSV.Utils
         public TextParser Slice(int start, int count)
         {
             return new TextParser(Rest.Slice(start, count));
+        }
+
+        /// <summary>
+        /// Returns a <see cref="TextParser"/> ignoring the next leading whitespaces.
+        /// </summary>
+        /// <returns>A parser ignoring the leading whitespaces.</returns>
+        public TextParser TrimStart()
+        {
+            return new TextParser(Rest.TrimStart());
+        }
+
+        /// <summary>
+        /// Returns a <see cref="TextParser"/> ignoring the next trailing whitespaces.
+        /// </summary>
+        /// <returns>A parser ignoring the trailing whitespaces.</returns>
+        public TextParser TrimEnd()
+        {
+            return new TextParser(Rest.TrimStart());
+        }
+
+        /// <summary>
+        /// Returns a <see cref="TextParser"/> ignoring the leading and trailing whitespaces.
+        /// </summary>
+        /// <returns></returns>
+        public TextParser Trim()
+        {
+            return new TextParser(Rest.Trim());
+        }
+
+        public override string ToString()
+        {
+            return Rest.ToString();
         }
     }
 }

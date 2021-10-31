@@ -3,8 +3,6 @@ using FastCSV.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace FastCSV
 {
@@ -18,7 +16,7 @@ namespace FastCSV
         /// <returns>An optional with the value or none is there is no more records to read.</returns>
         public Optional<T> ReadAs<T>(CsvConverterOptions? options = null) where T : notnull
         {
-            Dictionary<string, SingleOrList<string>>? data = Read()?.ToDictionary();
+            Dictionary<string, SingleOrList<string>>? data = Read(options?.Format)?.ToDictionary();
 
             if (data == null)
             {
