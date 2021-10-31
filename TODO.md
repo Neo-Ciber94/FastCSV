@@ -19,10 +19,9 @@
 - [ ] Move exceptions to ThrowHelper
 - [x] Valide if ``CsvRecord`` and ``CsvHeader`` can be change to 'readonly struct'
 - [x] Add more async API
-- [ ] Add api to cache reflection results to reduce allocations
+- [x] Add api to cache reflection results to reduce allocations
 - [x] Add more utility methods to ``CsvDocument\<T>``
 - [x] Add \r\n newlines to csv writers (depending platform)
 - [x] Rename collection itemName to tag
-- [ ] Add custom null handling for ``CsvConverterOptions``
 - [ ] Create sorting methods for ``CsvDocument.Sort`` that generate none or less allocations
 - [ ] Use ``ICsvValueConverter`` for builtin types to avoid extra interface generation
