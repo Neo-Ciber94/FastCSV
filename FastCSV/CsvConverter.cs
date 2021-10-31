@@ -17,7 +17,7 @@ namespace FastCSV
 {
     // Determine if a field/property will be a getter, setter of both.
     [Flags]
-    internal enum AccesorKind
+    internal enum PropertyAccesor
     { 
         /// <summary>
         /// Defines the getter.
@@ -328,7 +328,7 @@ namespace FastCSV
                 }
             }
 
-            List<CsvProperty> csvProps = GetCsvProperties(type, options, AccesorKind.Setter, instance: null);
+            List<CsvProperty> csvProps = GetCsvProperties(type, options, PropertyAccesor.Setter, instance: null);
             object result = FormatterServices.GetUninitializedObject(type);
 
             foreach ((string key, SingleOrList<string> value) in data)
@@ -404,7 +404,7 @@ namespace FastCSV
             }
             else
             {
-                return GetCsvProperties(type, options ?? CsvConverterOptions.Default, AccesorKind.Getter, instance: value)
+                return GetCsvProperties(type, options ?? CsvConverterOptions.Default, PropertyAccesor.Getter, instance: value)
                     .Where(e => !e.Ignore)
                     .Select(e => e.Value?.ToString() ?? string.Empty)
                     .ToArray();
@@ -440,13 +440,13 @@ namespace FastCSV
 
             if (options.NestedObjectHandling == null)
             {
-                return GetCsvProperties(type, options ?? CsvConverterOptions.Default, AccesorKind.Getter, instance: null)
+                return GetCsvProperties(type, options ?? CsvConverterOptions.Default, PropertyAccesor.Getter, instance: null)
                     .Where(f => !f.Ignore)
                     .Select(f => f.Name)
                     .ToArray();
             }
 
-            List<CsvProperty> csvProps = GetCsvProperties(type, options ?? CsvConverterOptions.Default, AccesorKind.Getter, instance: null);
+            List<CsvProperty> csvProps = GetCsvProperties(type, options ?? CsvConverterOptions.Default, PropertyAccesor.Getter, instance: null);
             List<string> values = new List<string>(csvProps.Count);
             Stack<CsvProperty> stack = new Stack<CsvProperty>(csvProps.Count);
             stack.PushRangeReverse(csvProps);
@@ -485,7 +485,7 @@ namespace FastCSV
                 throw new ArgumentException($"Cannot serialize the builtin type {type}");
             }
 
-            List<CsvProperty> csvProps = GetCsvProperties(type, options, AccesorKind.Getter, value);
+            List<CsvProperty> csvProps = GetCsvProperties(type, options, PropertyAccesor.Getter, value);
             bool handleNestedObjects = options.NestedObjectHandling != null;
             bool handleCollections = options.CollectionHandling != null;
 
@@ -594,7 +594,7 @@ namespace FastCSV
                 return default;
             }
 
-            List<CsvProperty> csvProps = GetCsvProperties(type, options, AccesorKind.Setter, null);
+            List<CsvProperty> csvProps = GetCsvProperties(type, options, PropertyAccesor.Setter, null);
 
             if (options.MatchExact && record.Header != null)
             {
@@ -775,13 +775,13 @@ namespace FastCSV
             return record.AsSpan().Slice(startIndex, count);
         }
 
-        private static List<CsvProperty> GetCsvProperties(Type type, CsvConverterOptions options, AccesorKind accesor, object? instance)
+        private static List<CsvProperty> GetCsvProperties(Type type, CsvConverterOptions options, PropertyAccesor accesor, object? instance)
         {
             int maxDepth = options.NestedObjectHandling?.MaxDepth ?? 0;
             return GetCsvPropertiesInternal(type, options, accesor, instance, 0, maxDepth);
         }
 
-        private static List<CsvProperty> GetCsvPropertiesInternal(Type type, CsvConverterOptions options, AccesorKind accesor, object? instance, int depth, int maxDepth)
+        private static List<CsvProperty> GetCsvPropertiesInternal(Type type, CsvConverterOptions options, PropertyAccesor accesor, object? instance, int depth, int maxDepth)
         {
             // Determines if will handle nested objects
             bool handleNestedObjects = options.NestedObjectHandling != null;
@@ -846,15 +846,15 @@ namespace FastCSV
 
             /// Helpers
 
-            static BindingFlags GetFlagsFromAccesor(AccesorKind permission)
+            static BindingFlags GetFlagsFromAccesor(PropertyAccesor permission)
             {
                 var flags = BindingFlags.Public | BindingFlags.Instance;
                 switch (permission)
                 {
-                    case AccesorKind.Getter:
+                    case PropertyAccesor.Getter:
                         flags |= BindingFlags.GetField;
                         break;
-                    case AccesorKind.Setter:
+                    case PropertyAccesor.Setter:
                         flags |= BindingFlags.SetField;
                         break;
                 }
