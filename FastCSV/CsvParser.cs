@@ -2,11 +2,16 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using FastCSV.Collections;
 using FastCSV.Utils;
 
 namespace FastCSV
 {
+    /// <summary>
+    /// A parser for csv files.
+    /// </summary>
     public partial class CsvParser : IDisposable
     {
         private ArrayBuilder<string> _record;
@@ -20,6 +25,19 @@ namespace FastCSV
         Position currentPosition = Position.Zero;
         Position quotePosition = Position.Zero;
 
+        /// <summary>
+        /// Constructs a <see cref="CsvParser"/> from the given csv string.
+        /// </summary>
+        /// <param name="csv">The csv to parse.</param>
+        /// <param name="format">The csv format.</param>
+        public CsvParser(string csv, CsvFormat? format = null) 
+            : this(new StreamReader(StreamHelper.CreateStreamFromString(csv)), format) { }
+
+        /// <summary>
+        /// Constructs a <see cref="CsvParser"/>.
+        /// </summary>
+        /// <param name="reader">The reader to use.</param>
+        /// <param name="format">The format.</param>
         public CsvParser(StreamReader reader, CsvFormat? format = null)
         {
             _record = new ArrayBuilder<string>(32);
@@ -28,10 +46,20 @@ namespace FastCSV
             _format = format ?? CsvFormat.Default;
         }
 
+        /// <summary>
+        /// Whether if this parser had consume all the characters.
+        /// </summary>
         public bool IsDone => _reader?.EndOfStream?? true;
 
+        /// <summary>
+        /// Gets the source <see cref="Stream"/>.
+        /// </summary>
         public Stream? BaseStream => _reader?.BaseStream;
 
+        /// <summary>
+        /// Parse the next record.
+        /// </summary>
+        /// <returns>Returns the columns of the record or null if is done.</returns>
         public string[]? ParseNext()
         {
             ThrowIfDisposed();
@@ -79,6 +107,97 @@ namespace FastCSV
             return result;
         }
 
+        /// <summary>
+        /// Parse the next record asynchronously.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token to cancel this operation.</param>
+        /// <returns>Returns the columns of the record or null if is done.</returns>
+        public async ValueTask<string[]?> ParseNextAsync(CancellationToken cancellationToken = default)
+        {
+            ThrowIfDisposed();
+
+            if (_reader!.EndOfStream)
+            {
+                return null;
+            }
+
+            // If the record don't contains multi-line values, this outer loop will only run once
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                string? line = await _reader.ReadLineAsync();
+
+                if (line == null)
+                {
+                    break;
+                }
+
+                MoveToNextLine();
+
+                // Ignore empty entries if the format don't allow whitespaces
+                if (_format.IgnoreWhitespace && string.IsNullOrWhiteSpace(line))
+                {
+                    continue;
+                }
+
+                // Parse the next line
+                ParseLine(line);
+
+                // Exit if we aren't in a quote
+                if (!hasQuote)
+                {
+                    break;
+                }
+            }
+
+            if (hasQuote)
+            {
+                ThrowException(CsvFormatError.UnclosedQuote);
+            }
+
+            string[]? result = _record.ToArray();
+            _record.Clear();
+            return result;
+        }
+
+        /// <summary>
+        /// Reset this parser.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If the parser cannot be reset.</exception>
+        public void Reset()
+        {
+            ThrowIfDisposed();
+
+            if (!TryReset())
+            {
+                throw new InvalidOperationException("Cannot reset this parser");
+            }
+        }
+
+        /// <summary>
+        /// Attemps to reset this parser.
+        /// </summary>
+        /// <returns><c>true</c> if was reset otherwise false.</returns>
+        public bool TryReset()
+        {
+            Stream? stream = BaseStream;
+
+            if (stream == null)
+            {
+                return false;
+            }
+
+            if (stream.CanSeek)
+            {
+                stream.Position = 0;
+                return true;
+            }
+
+            return false;
+        }
+
+        #region Internal Methods
         private void ParseLine(string line)
         {
             string delimiter = _format.Delimiter;
@@ -285,6 +404,7 @@ namespace FastCSV
                 throw new ObjectDisposedException($"{GetType()} is already disposed");
             }
         }
+        #endregion
 
         public void Dispose()
         {
