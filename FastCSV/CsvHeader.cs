@@ -70,7 +70,7 @@ namespace FastCSV
         /// <returns>The header using the names of the public fields and properties of the specified type.</returns>
         public static CsvHeader FromType<T>()
         {
-            return FromType<T>(CsvFormat.Default);
+            return FromType<T>(CsvConverterOptions.Default);
         }
 
         /// <summary>
@@ -83,6 +83,13 @@ namespace FastCSV
         {
             var values = CsvConverter.GetHeader<T>();
             return new CsvHeader(values, format);
+        }
+
+        public static CsvHeader FromType<T>(CsvConverterOptions? options = null)
+        {
+            options ??= CsvConverterOptions.Default;
+            var values = CsvConverter.GetHeader<T>(options);
+            return new CsvHeader(values, options.Format);
         }
 
         /// <summary>

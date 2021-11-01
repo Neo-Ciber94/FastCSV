@@ -371,3 +371,5 @@ foreach(Person e in document.Values)
 // to force match all the csv columns
 record Person(int Id, string? FirstName, string? LastName, int Age);
 ```
+
+#### Read and query from file

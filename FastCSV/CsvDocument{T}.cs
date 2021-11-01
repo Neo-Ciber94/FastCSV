@@ -64,27 +64,27 @@ namespace FastCSV
         /// <summary>
         /// Initializes a new instance of the <see cref="CsvDocument{T}"/> class.
         /// </summary>
-        public CsvDocument() : this(CsvFormat.Default) { }
+        public CsvDocument() : this(CsvConverterOptions.Default) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CsvDocument{T}"/> class.
         /// </summary>
-        /// <param name="format">The format.</param>
-        public CsvDocument(CsvFormat format)
-            : this(s_EmptyArray, CsvHeader.FromType<T>(format), format) { }
+        /// <param name="options">The options.</param>
+        public CsvDocument(CsvConverterOptions? options = null)
+            : this(s_EmptyArray, CsvHeader.FromType<T>(options?.Format?? CsvFormat.Default), options) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CsvDocument{T}"/> class.
         /// </summary>
         /// <param name="elements">The elements.</param>
         /// <param name="format">The format.</param>
-        public CsvDocument(IEnumerable<T> elements, CsvFormat? format = null)
+        public CsvDocument(IEnumerable<T> elements, CsvConverterOptions? options = null)
         {
             _records = s_EmptyArray;
-            format ??= CsvFormat.Default;
+            options ??= CsvConverterOptions.Default;
 
-            Header = new CsvHeader(CsvConverter.GetHeader<T>(), format);
-            Format = format;
+            Header = new CsvHeader(CsvConverter.GetHeader<T>(), options.Format);
+            Options = options;
 
             foreach (var e in elements)
             {
@@ -92,9 +92,11 @@ namespace FastCSV
             }
         }
 
-        internal CsvDocument(TypedRecord[] records, CsvHeader header, CsvFormat format)
+        internal CsvDocument(TypedRecord[] records, CsvHeader header, CsvConverterOptions? options)
         {
-            if (header.Format != format)
+            options ??= CsvConverterOptions.Default;
+
+            if (header.Format != options.Format)
             {
                 throw new ArgumentException("Header format differs from the given format");
             }
@@ -102,7 +104,7 @@ namespace FastCSV
             _records = records;
             _count = records.Length;
             Header = header;
-            Format = format;
+            Options = options;
         }
 
         /// <summary>
@@ -129,7 +131,7 @@ namespace FastCSV
         /// <value>
         /// The format.
         /// </value>
-        public CsvFormat Format { get; }
+        public CsvConverterOptions Options { get; }
 
         /// <summary>
         /// Gets the number of records in this csv.
@@ -154,6 +156,8 @@ namespace FastCSV
         /// The values.
         /// </value>
         public ValueCollection Values => new ValueCollection(this);
+
+        public CsvFormat Format => Options.Format;
 
         /// <summary>
         /// Writes the specified value as a record.
@@ -403,8 +407,10 @@ namespace FastCSV
         /// <returns></returns>
         public CsvDocument<T> WithFormat(CsvFormat format)
         {
+            CsvConverterOptions options = Options with { Format = format };
+
             TypedRecord[] array = _records.AsSpan(0, _count).ToArray();
-            return new CsvDocument<T>(array, Header.WithFormat(format), format);
+            return new CsvDocument<T>(array, Header.WithFormat(format), options);
         }
 
         private void Resize(int required)

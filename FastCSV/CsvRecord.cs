@@ -226,7 +226,7 @@ namespace FastCSV
             
             if (options.IncludeHeader)
             {
-                CsvHeader header = CsvHeader.FromType<T>(options.Format);
+                CsvHeader header = CsvHeader.FromType<T>(options);
                 CsvRecord record = new CsvRecord(header, _values, options.Format);
                 return CsvConverter.DeserializeFromRecord<T>(record, options);
             }

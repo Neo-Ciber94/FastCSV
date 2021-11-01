@@ -128,14 +128,14 @@ namespace FastCSV
 
             using (CsvReader reader = new CsvReader(memory, format))
             {
-                foreach (CsvRecord record in reader.ReadAll())
+                foreach (CsvRecord record in reader.ReadAll(format))
                 {
                     T value = record.ConvertTo<T>(options);
                     list.Add(value);
                 }
             }
 
-            return new CsvDocument<T>(list, format);
+            return new CsvDocument<T>(list, options);
         }
 
         /// <summary>

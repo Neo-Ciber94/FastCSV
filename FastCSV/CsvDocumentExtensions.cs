@@ -14,11 +14,11 @@ namespace FastCSV
         /// </summary>
         /// <typeparam name="T">Type of the elements.</typeparam>
         /// <param name="enumerable">The enumerable.</param>
-        /// <param name="format">The format to use.</param>
+        /// <param name="options">The options to use.</param>
         /// <returns>A csv document from the items of the enumerable.</returns>
-        public static CsvDocument<T> ToCsvDocument<T>(this IEnumerable<T> enumerable, CsvFormat? format = null)
+        public static CsvDocument<T> ToCsvDocument<T>(this IEnumerable<T> enumerable, CsvConverterOptions? options = null)
         {
-            return new CsvDocument<T>(enumerable, format);
+            return new CsvDocument<T>(enumerable, options);
         }
 
         /// <summary>

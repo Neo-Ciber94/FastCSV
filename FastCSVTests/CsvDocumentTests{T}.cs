@@ -26,7 +26,8 @@ namespace FastCSV.Tests
         public void CsvDocumentTest1()
         {
             var format = new CsvFormat(";", "\"");
-            var document = new CsvDocument<Person>(format);
+            var options = CsvConverterOptions.Default with { Format = format };
+            var document = new CsvDocument<Person>(options);
 
             Assert.AreEqual(0, document.Count);
             Assert.IsTrue(document.IsEmpty);
@@ -61,7 +62,8 @@ namespace FastCSV.Tests
             };
 
             var format = new CsvFormat(";", "\"");
-            var document = new CsvDocument<Person>(persons, format);
+            var options = CsvConverterOptions.Default with { Format = format };
+            var document = new CsvDocument<Person>(persons, options);
 
             Assert.AreEqual(2, document.Count);
             Assert.IsFalse(document.IsEmpty);

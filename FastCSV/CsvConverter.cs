@@ -457,7 +457,6 @@ namespace FastCSV
                 throw new InvalidOperationException("IncludeHeader must be true when deserializing arrays");
             }
 
-            bool handleNestedObjects = options.NestedObjectHandling != null;
             bool handleCollections = options.CollectionHandling != null;
 
             if (record == null)
