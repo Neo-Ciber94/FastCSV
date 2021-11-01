@@ -13,7 +13,7 @@ namespace FastCSV
         /// </summary>
         public void Sort()
         {
-            SortInternal(RecordWithValueComparer.Default);
+            SortInternal(TypedRecordComparer.Default);
         }
 
         /// <summary>
@@ -23,7 +23,7 @@ namespace FastCSV
         public void Sort(Comparison<T> comparison)
         {
             // FIXME: This creates a new allocation
-            SortInternal(new RecordWithValueComparer(Comparer<T>.Create(comparison)));
+            SortInternal(new TypedRecordComparer(Comparer<T>.Create(comparison)));
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace FastCSV
         public void Sort(IComparer<T> comparer)
         {
             // FIXME: This creates a new allocation
-            SortInternal(new RecordWithValueComparer(comparer));
+            SortInternal(new TypedRecordComparer(comparer));
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace FastCSV
                 return keyComparer.Compare(xKey, yKey);
             });
 
-            SortInternal(new RecordWithValueComparer(comparer));
+            SortInternal(new TypedRecordComparer(comparer));
         }
 
         private void SortInternal(IComparer<TypedRecord> comparer)
@@ -70,13 +70,13 @@ namespace FastCSV
             Array.Sort(_records, 0, _count, comparer);
         }
 
-        class RecordWithValueComparer : IComparer<TypedRecord>
+        class TypedRecordComparer : IComparer<TypedRecord>
         {
-            public static readonly RecordWithValueComparer Default = new(Comparer<T>.Default);
+            public static readonly TypedRecordComparer Default = new(Comparer<T>.Default);
 
             private readonly IComparer<T> _comparer;
 
-            public RecordWithValueComparer(IComparer<T> comparer)
+            public TypedRecordComparer(IComparer<T> comparer)
             {
                 _comparer = comparer;
             }
