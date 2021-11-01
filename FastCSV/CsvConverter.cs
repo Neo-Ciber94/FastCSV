@@ -216,8 +216,31 @@ namespace FastCSV
                     return ParseString(type, ref state);
                 }
             }
+            else
+            {
+                using Stream stream = StreamHelper.CreateStreamFromString(csv);
+                using CsvReader reader = new CsvReader(stream, options.Format, options.IncludeHeader);
+                CsvRecord? record = reader.Read(options.Format);
 
-            using ValueList<DataToDeserialize> dataToDeserialize = GetDeserializeData(csv, type, options);
+                if (record == null)
+                {
+                    return null;
+                }
+
+                return DeserializeFromRecord(record, type, options);
+            }
+        }
+
+        internal static T DeserializeFromRecord<T>(CsvRecord record, CsvConverterOptions? options = null)
+        {
+            return (T)DeserializeFromRecord(record, typeof(T), options)!;
+        }
+
+        internal static object? DeserializeFromRecord(CsvRecord record, Type type, CsvConverterOptions? options = null)
+        {
+            options ??= CsvConverterOptions.Default;
+
+            using ValueList<DataToDeserialize> dataToDeserialize = GetDeserializeData(record, type, options);
             object obj = FormatterServices.GetUninitializedObject(type);
 
             foreach (var data in dataToDeserialize)
@@ -423,13 +446,8 @@ namespace FastCSV
             return items;
         }
 
-        private static ValueList<DataToDeserialize> GetDeserializeData(ReadOnlySpan<char> csv, Type type, CsvConverterOptions options)
+        private static ValueList<DataToDeserialize> GetDeserializeData(CsvRecord record, Type type, CsvConverterOptions options)
         {
-            if (csv.IsEmpty || csv.IsWhiteSpace())
-            {
-                throw new ArgumentException("csv cannot be empty", nameof(csv));
-            }
-
             if (IsBuiltInType(type))
             {
                 throw new ArgumentException($"Cannot deserialize the builtin type {type}");
@@ -440,12 +458,8 @@ namespace FastCSV
                 throw new InvalidOperationException("IncludeHeader must be true when deserializing arrays");
             }
 
-            using Stream stream = StreamHelper.CreateStreamFromString(csv);
-            using CsvReader reader = new CsvReader(stream, options.Format, options.IncludeHeader);
             bool handleNestedObjects = options.NestedObjectHandling != null;
             bool handleCollections = options.CollectionHandling != null;
-
-            CsvRecord? record = reader.Read();
 
             if (record == null)
             {

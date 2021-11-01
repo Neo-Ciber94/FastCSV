@@ -220,17 +220,20 @@ namespace FastCSV
             return new CsvRecord(Header?.WithFormat(format), _values, format);
         }
 
-        internal T ConvertTo<T>(CsvConverterOptions? options)
+        internal T ConvertTo<T>(CsvConverterOptions? options = null)
         {
             options ??= CsvConverterOptions.Default;
             
-            // TODO: Remove extra allocations to just use the array of header and values
-            string[] headerArray = CsvConverter.GetHeader<T>(options);
-            string csvHeader = CsvUtility.ToCsvString(headerArray, options.Format);
-            string csvValues = CsvUtility.ToCsvString(this, options.Format);
-
-            string csv = $"{csvHeader}\n{csvValues}";
-            return CsvConverter.Deserialize<T>(csv, options);
+            if (options.IncludeHeader)
+            {
+                CsvHeader header = CsvHeader.FromType<T>(options.Format);
+                CsvRecord record = new CsvRecord(header, _values, options.Format);
+                return CsvConverter.DeserializeFromRecord<T>(record, options);
+            }
+            else
+            {
+                return CsvConverter.DeserializeFromRecord<T>(this, options);
+            }
         }
 
         /// <summary>
