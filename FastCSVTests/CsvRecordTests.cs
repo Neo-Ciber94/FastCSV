@@ -146,17 +146,6 @@ namespace FastCSV.Tests
             Assert.AreEqual(new CsvFormat(";", "\""), record2.Format);
         }
 
-        [Test]
-        public void ToDictionaryTest()
-        {
-            var header = CsvHeader.FromValues("Name", "Age");
-            var record = new CsvRecord(header, new string[] { "Maria", "20" });
-
-            var dictionary = record.ToDictionary();
-            Assert.AreEqual("Maria", dictionary["Name"]);
-            Assert.AreEqual("20", dictionary["Age"]);
-        }
-
         [Test()]
         public void MutateTest()
         {

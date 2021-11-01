@@ -220,26 +220,17 @@ namespace FastCSV
             return new CsvRecord(Header?.WithFormat(format), _values, format);
         }
 
-        /// <summary>
-        /// Converts this record to a dictionary if has a header.
-        /// </summary>
-        /// <param name="comparer">The comparer.</param>
-        /// <returns>A dictionary containing the key and values of this record, or null if this record don't have a header</returns>
-        public Dictionary<string, SingleOrList<string>>? ToDictionary(IEqualityComparer<string>? comparer = null)
+        internal T ConvertTo<T>(CsvConverterOptions? options)
         {
-            if (Header == null)
-            {
-                return null;
-            }
+            options ??= CsvConverterOptions.Default;
+            
+            // TODO: Remove extra allocations to just use the array of header and values
+            string[] headerArray = CsvConverter.GetHeader<T>(options);
+            string csvHeader = CsvUtility.ToCsvString(headerArray, options.Format);
+            string csvValues = CsvUtility.ToCsvString(this, options.Format);
 
-            Dictionary<string, SingleOrList<string>> result = new(Length, comparer);
-
-            foreach (string key in Header)
-            {
-                result.Add(key, this[key]);
-            }
-
-            return result;
+            string csv = $"{csvHeader}\n{csvValues}";
+            return CsvConverter.Deserialize<T>(csv, options);
         }
 
         /// <summary>

@@ -25,23 +25,6 @@ namespace FastCSV
         }
 
         [Test]
-        public void DeserializeDictionaryNoExactTest()
-        {
-            var data = new Dictionary<string, SingleOrList<string>>
-            {
-                {"Id", "2" },
-                {"FirstName", "Horatius" },
-                {"LastName", "Garner" },
-                {"Age", "51" },
-                {"Email", "hgarner1@163.com," },
-                {"IpAddress",  "30.236.135.5"}
-            };
-
-            Person product = CsvConverter.DeserializeFromDictionary<Person>(data);
-            Assert.AreEqual(new Person(2, "Horatius", "Garner"), product);
-        }
-
-        [Test]
         public void DeserializeExactTest()
         {
             string csv = @"Id,FirstName,LastName,Age,Email,Gemder,IpAddress
@@ -52,26 +35,6 @@ namespace FastCSV
                 Person product = CsvConverter.Deserialize<Person>(csv, Options);
             });
         }
-
-        [Test]
-        public void DeserializeDictionaryExactTest()
-        {
-            var data = new Dictionary<string, SingleOrList<string>>
-            {
-                {"Id", "2" },
-                {"FirstName", "Horatius" },
-                {"LastName", "Garner" },
-                {"Age", "51" },
-                {"Email", "hgarner1@163.com," },
-                {"IpAddress",  "30.236.135.5"}
-            };
-
-            Assert.Throws<InvalidOperationException>(() =>
-            {
-                Person product = CsvConverter.DeserializeFromDictionary<Person>(data, Options);
-            });
-        }
-
         record Person(int Id, string FirstName, string LastName);
     }
 }

@@ -6,7 +6,6 @@ using System.Numerics;
 using System.Net;
 using System.Runtime.CompilerServices;
 using FastCSV.Utils;
-using FastCSV.Collections;
 using FastCSV.Extensions;
 
 namespace FastCSV
@@ -131,8 +130,7 @@ namespace FastCSV
             {
                 foreach (CsvRecord record in reader.ReadAll())
                 {
-                    Dictionary<string, SingleOrList<string>>? data = record.ToDictionary()!;
-                    T value = CsvConverter.DeserializeFromDictionary<T>(data, options);
+                    T value = record.ConvertTo<T>(options);
                     list.Add(value);
                 }
             }

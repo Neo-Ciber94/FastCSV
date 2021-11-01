@@ -16,15 +16,14 @@ namespace FastCSV
         /// <returns>An optional with the value or none is there is no more records to read.</returns>
         public Optional<T> ReadAs<T>(CsvConverterOptions? options = null) where T : notnull
         {
-            Dictionary<string, SingleOrList<string>>? data = Read(options?.Format)?.ToDictionary();
+            CsvRecord? record = Read(options?.Format);
 
-            if (data == null)
+            if (record == null)
             {
                 return Optional.None<T>();
             }
 
-            var result = CsvConverter.DeserializeFromDictionary<T>(data, options);
-            return Optional.Some(result);
+            return record.ConvertTo<T>(options);
         }
 
         /// <summary>

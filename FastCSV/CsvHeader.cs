@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using FastCSV.Collections;
-using FastCSV.Utils;
 
 namespace FastCSV
 {
