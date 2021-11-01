@@ -1,29 +1,31 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using FastCSV;
+
+using var stream = new MemoryStream();
+using var writter = new CsvWriter(stream, leaveOpen: true);
 
 var options = new CsvConverterOptions
 {
-    NamingConvention = CsvNamingConvention.SnakeCase
+    NamingConvention = new UpperCaseNamingConvention()
 };
 
-//var document = CsvDocument.FromPath<Person>("example.csv", options)
-//    .Values
-//    .Skip(10)
-//    .Take(500)
-//    .Where(e => e.Age >= 20 && e.Age <= 40)
-//    .OrderBy(e => e.Gender)
-//    .ThenBy(e => e.Age)
-//    .ToCsvDocument(options);
+writter.WriteType<Product>(options);
+writter.WriteValue(new Product(1, "Red Chair", 500m), options);
+writter.WriteValue(new Product(2, "Blue Toaster", 100m), options);
+writter.WriteValue(new Product(3, "Green Sofa", 2350m), options);
 
-var document = CsvDocument.FromPath<Person>("example.csv", options);
+Console.WriteLine(Encoding.UTF8.GetString(stream.ToArray()));
 
-foreach (var record in document.Values)
+class UpperCaseNamingConvention : CsvNamingConvention
 {
-    Console.WriteLine(record);
+    public override string Convert(string name)
+    {
+        return name.ToUpper();
+    }
 }
 
-enum BinaryGender { Male, Female }
-
-record Person(string? Id, string? FirstName, string? LastName, int Age,  BinaryGender Gender, string? Email, IPAddress? IpAddress);
+record Product(int Id, string Name, decimal Price);

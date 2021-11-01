@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace FastCSV.Tests
@@ -243,6 +244,31 @@ namespace FastCSV.Tests
             Assert.AreEqual($"Kenny,40{Environment.NewLine}Levi,30{Environment.NewLine}", streamReader.ReadToEnd());
         }
 
+        [Test]
+        public void WriteTypeTest1()
+        {
+            using var memory = new MemoryStream();
+            using var writer = new CsvWriter(memory, leaveOpen: true);
+
+            writer.WriteType<Person>();
+            string values = Encoding.UTF8.GetString(memory.ToArray());
+
+            Assert.AreEqual("Name,Age", values.TrimEnd(new char[] { '\r', '\n' }));
+        }
+
+        [Test]
+        public void WriteTypeTest2()
+        {
+            var options = new CsvConverterOptions { IncludeFields = true, NamingConvention = CsvNamingConvention.SnakeCase };
+            using var memory = new MemoryStream();
+            using var writer = new CsvWriter(memory, leaveOpen: true);
+
+            writer.WriteType<Product>(options);
+            string values = Encoding.UTF8.GetString(memory.ToArray());
+
+            Assert.AreEqual("id,name,price", values.TrimEnd(new char[] { '\r', '\n' }));
+        }
+
         [Test()]
         public void CloseTest()
         {
@@ -273,6 +299,16 @@ namespace FastCSV.Tests
         {
             public string Name { get; set; }
             public int Age { get; set; }
+        }
+
+        record Product(string Name, decimal Price)
+        {
+            public readonly int id;
+
+            public Product(int id, string name, decimal price) : this(name, price)
+            {
+                this.id = id;
+            }
         }
     }
 }

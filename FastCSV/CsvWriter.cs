@@ -121,13 +121,25 @@ namespace FastCSV
         }
 
         /// <summary>
+        /// Writes the fields/properties names from the given type, which can be used to write headers.
+        /// </summary>
+        /// <typeparam name="T">The type.</typeparam>
+        /// <param name="options">The options to use.</param>
+        public void WriteType<T>(CsvConverterOptions? options = null)
+        {
+            string[] values = CsvConverter.GetHeader<T>(options);
+            WriteAll(values);
+        }
+
+        /// <summary>
         /// Writes the specified value.
         /// </summary>
         /// <typeparam name="T">Type of the value</typeparam>
         /// <param name="value">The value to write.</param>
-        public void WriteValue<T>(T value)
+        /// <param name="options">The options to use.</param>
+        public void WriteValue<T>(T value, CsvConverterOptions? options = null)
         {
-            string[] values = CsvConverter.GetValues(value);
+            string[] values = CsvConverter.GetValues(value, options);
             WriteAll(values);
         }
 
@@ -173,15 +185,16 @@ namespace FastCSV
         /// </summary>
         /// <typeparam name="T">Type of the value</typeparam>
         /// <param name="value">The value to write.</param>
+        /// <param name="options">The options to use.</param>
         /// <param name="cancellationToken">A cancellation token for cancelling this operation</param>
-        public Task WriteValueAsync<T>(T value, CancellationToken cancellationToken = default)
+        public Task WriteValueAsync<T>(T value, CsvConverterOptions? options = null, CancellationToken cancellationToken = default)
         {
             if (cancellationToken.IsCancellationRequested)
             {
                 return Task.FromCanceled(cancellationToken);
             }
 
-            WriteValue(value);
+            WriteValue(value, options);
             return Task.CompletedTask;
         }
 

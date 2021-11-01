@@ -25,6 +25,7 @@ A CSharp library for read and write csv documents.
 - [CsvDocument\<T\>](#csv-document-typed)
   - [Write into CsvDocument\<T\>](#csv-document-typed-write)
   - [Read csv from file](#csv-document-read-file)
+- [CsvConverterOptions](#csv-converter-options)
 
 
 > The examples are written using C# 'top-level statements'
@@ -373,3 +374,44 @@ record Person(int Id, string? FirstName, string? LastName, int Age);
 ```
 
 #### Read and query from file
+
+```csharp
+using System;
+using System.Linq;
+using System.Net;
+using FastCSV;
+
+var options = new CsvConverterOptions
+{
+    NamingConvention = CsvNamingConvention.SnakeCase
+};
+
+var document = CsvDocument.FromPath<Person>("example.csv", options)
+    .Values
+    .Take(500)
+    .Where(e => e.Age >= 20 && e.Age <= 40)
+    .OrderBy(e => e.Gender)
+    .ThenBy(e => e.Age)
+    .ToCsvDocument(options);
+
+foreach (Person person in document.Values)
+{
+    Console.WriteLine(person);
+}
+
+enum BinaryGender { Male, Female }
+
+record Person(string? Id, string? FirstName, string? LastName, int Age,  BinaryGender Gender, string? Email, IPAddress? IpAddress);
+```
+
+## CsvConverterOptions
+
+```CsvConverterOptions``` is the configuration used during serialization/deserialization of a csv document.
+
+### Naming convention
+
+The naming convention determines how to read and write the fields of a csv document,
+all naming conventions inherit from ```CsvNamingConvention``` class.
+
+```csharp
+```
