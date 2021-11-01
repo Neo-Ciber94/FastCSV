@@ -16,7 +16,6 @@ using FastCSV.Extensions;
 namespace FastCSV
 {
     // Determine if a field/property will be a getter, setter of both.
-    [Flags]
     internal enum PropertyAccesor
     { 
         /// <summary>
