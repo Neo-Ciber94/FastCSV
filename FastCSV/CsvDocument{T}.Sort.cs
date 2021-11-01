@@ -65,12 +65,12 @@ namespace FastCSV
             SortInternal(new RecordWithValueComparer(comparer));
         }
 
-        private void SortInternal(IComparer<CsvRecordWithValue<T>> comparer)
+        private void SortInternal(IComparer<TypedRecord> comparer)
         {
             Array.Sort(_records, 0, _count, comparer);
         }
 
-        class RecordWithValueComparer : IComparer<CsvRecordWithValue<T>>
+        class RecordWithValueComparer : IComparer<TypedRecord>
         {
             public static readonly RecordWithValueComparer Default = new(Comparer<T>.Default);
 
@@ -81,7 +81,7 @@ namespace FastCSV
                 _comparer = comparer;
             }
 
-            public int Compare(CsvRecordWithValue<T> x, CsvRecordWithValue<T> y)
+            public int Compare(TypedRecord x, TypedRecord y)
             {
                 return _comparer.Compare(x.Value, y.Value);
             }

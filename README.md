@@ -179,7 +179,7 @@ record Person(string? Id, string? FirstName, string? LastName, int Age, BinaryGe
 ###  Read Asynchronously
 **FastCSV** also provides support for ``async-await``
 
-### # Read from file async
+#### Read from file async
 ```csharp
 using FastCSV;
 using System;
@@ -200,7 +200,7 @@ while (true)
 }
 ```
 
-### # Iterate asynchronously
+#### Iterate asynchronously
 ```csharp
 using FastCSV;
 using System;
@@ -322,7 +322,7 @@ id,name,price
 ```CsvDocument``` allow to write, read and update which is more versatile.
 
 ### CsvDocument\<T\>
-```CsvDocument<T>``` is an in-mermory csv document that allows to write, read, updates and remove typed data into a csv,
+```CsvDocument<T>``` is an in-mermory csv document that allows to write, read, updates and remove typed data from a csv,
 also provides operations to query over the document.
 
 #### Write into CsvDocument\<T\>
@@ -349,7 +349,7 @@ record Product(int Id, string? Name, decimal Price);
 ```
 
 #### Read csv from file
-You can also read csv documents from files into a typed ``CsvDocument\<T>```
+You can also read csv documents from files into a typed ``CsvDocument<T>``
 
 ```csharp
 using FastCSV;
@@ -367,6 +367,7 @@ foreach(Person e in document.Values)
     Console.WriteLine(e);
 }
 
-// Only map the necesary colums, use 'CsvConverterOptions.MatchExact = true' to force match all the csv columns
+// Only map the necesary colums, use 'CsvConverterOptions.MatchExact = true' 
+// to force match all the csv columns
 record Person(int Id, string? FirstName, string? LastName, int Age);
 ```

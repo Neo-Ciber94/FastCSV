@@ -19,9 +19,46 @@ namespace FastCSV
     /// <seealso cref="FastCSV.ICsvDocument" />
     public partial class CsvDocument<T> : ICsvDocument
     {
-        private static readonly CsvRecordWithValue<T>[] s_EmptyArray = Array.Empty<CsvRecordWithValue<T>>();
+        internal readonly struct TypedRecord
+        {
+            internal readonly T _value;
+            private readonly CsvRecord _record;
 
-        private CsvRecordWithValue<T>[] _records;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public TypedRecord(T value, CsvFormat format)
+            {
+                _record = CsvRecord.From(value, format);
+                _value = value;
+            }
+
+            public CsvRecord Record
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => _record;
+            }
+
+            public T Value
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => _value;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Deconstruct(out CsvRecord record, out T value)
+            {
+                record = Record;
+                value = _value;
+            }
+
+            public override string ToString()
+            {
+                return _value?.ToString() ?? string.Empty;
+            }
+        }
+
+        private static readonly TypedRecord[] s_EmptyArray = Array.Empty<TypedRecord>();
+
+        private TypedRecord[] _records;
         private int _count = 0;
 
         /// <summary>
@@ -55,7 +92,7 @@ namespace FastCSV
             }
         }
 
-        internal CsvDocument(CsvRecordWithValue<T>[] records, CsvHeader header, CsvFormat format)
+        internal CsvDocument(TypedRecord[] records, CsvHeader header, CsvFormat format)
         {
             if (header.Format != format)
             {
@@ -129,7 +166,7 @@ namespace FastCSV
                 Resize(1);
             }
 
-            _records[_count++] = new CsvRecordWithValue<T>(value, Format);
+            _records[_count++] = new TypedRecord(value, Format);
         }
 
         /// <summary>
@@ -150,7 +187,7 @@ namespace FastCSV
             }
 
             Array.Copy(_records, index, _records, index + 1, _count - index);
-            _records[index] = new CsvRecordWithValue<T>(value, Format);
+            _records[index] = new TypedRecord(value, Format);
             _count += 1;
         }
 
@@ -166,7 +203,7 @@ namespace FastCSV
                 throw ThrowHelper.ArgumentOutOfRange(nameof(index), index, _count);
             }
 
-            _records[index] = new CsvRecordWithValue<T>(value, Format);
+            _records[index] = new TypedRecord(value, Format);
         }
 
         /// <summary>
@@ -366,7 +403,7 @@ namespace FastCSV
         /// <returns></returns>
         public CsvDocument<T> WithFormat(CsvFormat format)
         {
-            CsvRecordWithValue<T>[] array = _records.AsSpan(0, _count).ToArray();
+            TypedRecord[] array = _records.AsSpan(0, _count).ToArray();
             return new CsvDocument<T>(array, Header.WithFormat(format), format);
         }
 
@@ -379,7 +416,7 @@ namespace FastCSV
                 int size = _count == 0 ? 1 : _count;
                 int newCapacity = Math.Max(minCapacity, size * 2);
 
-                CsvRecordWithValue<T>[] newArray = new CsvRecordWithValue<T>[newCapacity];
+                TypedRecord[] newArray = new TypedRecord[newCapacity];
                 Array.Copy(_records, newArray, _count);
                 _records = newArray;
             }
@@ -408,7 +445,7 @@ namespace FastCSV
 
             sb.AppendLine(Header.ToString(format));
 
-            foreach (CsvRecordWithValue<T> typedRecord in _records.AsSpan(0, _count))
+            foreach (TypedRecord typedRecord in _records.AsSpan(0, _count))
             {
                 sb.AppendLine(typedRecord.Record.ToString(format));
             }
@@ -448,11 +485,11 @@ namespace FastCSV
 
         public struct Enumerator : IEnumerator<CsvRecord>
         {
-            private readonly CsvRecordWithValue<T>[]? items;
+            private readonly TypedRecord[]? items;
             private readonly int count;
             private int index;
 
-            internal Enumerator(CsvRecordWithValue<T>[] items, int count)
+            internal Enumerator(TypedRecord[] items, int count)
             {
                 this.items = items;
                 this.count = count;

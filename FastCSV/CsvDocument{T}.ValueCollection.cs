@@ -31,7 +31,7 @@ namespace FastCSV
 
         public struct ValueCollectionEnumerator : IEnumerator<T>
         {
-            private readonly CsvRecordWithValue<T>[] _values;
+            private readonly TypedRecord[] _values;
             private readonly int _count;
             private int _index;
 
