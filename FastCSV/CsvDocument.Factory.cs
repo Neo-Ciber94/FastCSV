@@ -130,7 +130,7 @@ namespace FastCSV
             {
                 foreach (CsvRecord record in reader.ReadAll(format))
                 {
-                    T value = record.ConvertTo<T>(options);
+                    T value = CsvConverter.DeserializeFromRecord<T>(record, options);
                     list.Add(value);
                 }
             }

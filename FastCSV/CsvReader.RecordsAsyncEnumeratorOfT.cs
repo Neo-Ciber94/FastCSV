@@ -24,7 +24,7 @@ namespace FastCSV
                 return Optional.None<T>();
             }
 
-            return record.ConvertTo<T>(options);
+            return CsvConverter.DeserializeFromRecord<T>(record, options);
         }
 
         /// <summary>

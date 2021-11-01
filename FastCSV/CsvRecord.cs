@@ -220,22 +220,6 @@ namespace FastCSV
             return new CsvRecord(Header?.WithFormat(format), _values, format);
         }
 
-        internal T ConvertTo<T>(CsvConverterOptions? options = null)
-        {
-            options ??= CsvConverterOptions.Default;
-            
-            if (options.IncludeHeader)
-            {
-                CsvHeader header = CsvHeader.FromType<T>(options);
-                CsvRecord record = new CsvRecord(header, _values, options.Format);
-                return CsvConverter.DeserializeFromRecord<T>(record, options);
-            }
-            else
-            {
-                return CsvConverter.DeserializeFromRecord<T>(this, options);
-            }
-        }
-
         /// <summary>
         /// Mutates the contents of this instance and get the mutated instance.
         /// </summary>
