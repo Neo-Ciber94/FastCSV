@@ -148,7 +148,18 @@ namespace FastCSV.Tests
             Assert.AreEqual(230, deserialized.Value);
         }
 
+        [Test]
+        public void DeserializeUnorderedFieldsTest()
+        {
+            string csv = @"Working,Id,Name
+true,10,Marie";
+
+            var deserialized = CsvConverter.Deserialize<Person>(csv);
+            Assert.AreEqual(new Person(10, "Marie", true), deserialized);
+        }
+
         #region Helper Classes
+        record Person(int Id, string Name, bool Working);
 
         record ReadOnlyField<T>
         {
