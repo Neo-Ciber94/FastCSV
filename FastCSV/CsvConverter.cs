@@ -121,10 +121,10 @@ namespace FastCSV
             while(index < props.Length)
             {
                 DataToSerialize p = props[index];
-                CsvNode prop = p.Property;
-                object? obj = prop.Value;
-                Type elementType = prop.Info.Type;
-                ICsvValueConverter? converter = GetConverter(elementType, options, prop.Info.Converter);
+                CsvNode node = p.Node;
+                object? obj = node.Value;
+                Type elementType = node.Info.Type;
+                ICsvValueConverter? converter = GetConverter(elementType, options, node.Info.Converter);
                 CsvSerializeState state = new(options, value, buffer, converter);
 
                 if (converter == null || !converter.CanConvert(elementType) || !converter.TrySerialize(obj, elementType, ref state))
@@ -230,32 +230,6 @@ namespace FastCSV
             }
         }
 
-        internal static T DeserializeFromRecord<T>(CsvRecord record, CsvConverterOptions? options = null)
-        {
-            return (T)DeserializeFromRecord(record, typeof(T), options)!;
-        }
-
-        internal static object? DeserializeFromRecord(CsvRecord record, Type type, CsvConverterOptions? options = null)
-        {
-            options ??= CsvConverterOptions.Default;
-
-            using ValueList<DataToDeserialize> dataToDeserialize = GetDeserializeData(record, type, options);
-            object obj = FormatterServices.GetUninitializedObject(type);
-
-            foreach (var data in dataToDeserialize)
-            {
-                CsvPropertyInfo csvProperty = data.Property;
-
-                if (!csvProperty.IsReadOnly)
-                {
-                    var value = data.Value;
-                    csvProperty.SetValue(obj, value);
-                }
-            }
-
-            return obj;
-        }
-
         /// <summary>
         /// Returns an array of the field values of the given object.
         /// </summary>
@@ -353,6 +327,95 @@ namespace FastCSV
             return values.ToArray();
         }
 
+        internal static T DeserializeFromRecord<T>(CsvRecord record, CsvConverterOptions? options = null)
+        {
+            return (T)DeserializeFromRecord(record, typeof(T), options)!;
+        }
+
+        internal static object? DeserializeFromRecord(CsvRecord record, Type type, CsvConverterOptions? options = null)
+        {
+            options ??= CsvConverterOptions.Default;
+
+            using ValueList<DataToDeserialize> dataToDeserialize = GetDeserializeData(record, type, options);
+            object obj = FormatterServices.GetUninitializedObject(type);
+
+            foreach (var data in dataToDeserialize)
+            {
+                CsvPropertyInfo csvProperty = data.Property;
+
+                if (!csvProperty.IsReadOnly)
+                {
+                    var value = data.Value;
+                    csvProperty.SetValue(obj, value);
+                }
+            }
+
+            return obj;
+        }
+
+        private static object? ParseString(Type type, ref CsvDeserializeState state, ICsvValueConverter? converter = null)
+        {
+            if (state.Count == 0)
+            {
+                return null;
+            }
+
+            var reflector = state.Options.ReflectionProvider;
+
+            if (reflector.IsNullableType(type))
+            {
+                if (state.Count == 1)
+                {
+                    ReadOnlySpan<char> s = state.Read();
+
+                    if (s.IsEmpty || s.IsWhiteSpace())
+                    {
+                        return null;
+                    }
+                }
+
+                type = reflector.GetNullableType(type)!;
+            }
+
+            converter = GetConverter(type, state.Options, converter);
+
+            if (converter == null || !converter.CanConvert(type) || !converter.TryDeserialize(out object? value, type, ref state))
+            {
+                throw ThrowHelper.CannotDeserializeToType(state.Values.ToArray(), type);
+            }
+
+            return value;
+        }
+
+        private static void ValueToString(Type type, ref CsvSerializeState state, ICsvValueConverter? converter = null)
+        {
+            object? value = state.Value;
+
+            if (value != null && !EqualTypes(value.GetType(), type, state.Options))
+            {
+                throw new ArgumentException($"Type missmatch, expected {type} but was {value.GetType()}");
+            }
+
+            var reflector = state.Options.ReflectionProvider;
+            if (reflector.IsNullableType(type))
+            {
+                if (value == null)
+                {
+                    state.WriteNull();
+                    return;
+                }
+
+                type = reflector.GetNullableType(type)!;
+            }
+
+            converter = GetConverter(type, state.Options, converter);
+
+            if (converter == null || !converter.CanConvert(type) || !converter.TrySerialize(value, type, ref state))
+            {
+                throw new InvalidOperationException($"No converter found for type {type}");
+            }
+        }
+
         private static ValueList<DataToSerialize> GetSerializeData(object? value, Type type, CsvConverterOptions options)
         {
             if (value != null && !EqualTypes(value.GetType(), type, options))
@@ -432,7 +495,7 @@ namespace FastCSV
 
                     while (itemIndex < tuple.Length)
                     {
-                        var item = tuple[itemIndex];
+                        object? item = tuple[itemIndex];
                         items.Add(new DataToSerialize(node, $"{itemName}{++itemIndex}", item));
                     }
                 }
@@ -595,7 +658,7 @@ namespace FastCSV
 
         private static ReadOnlySpan<string> ReadCollectionFromRecord(CsvRecord record, int startIndex, CollectionHandling collectionHandling)
         {
-            var header = record.Header;
+            CsvHeader? header = record.Header;
 
             if (header == null)
             {
@@ -653,24 +716,20 @@ namespace FastCSV
 
         private static IReadOnlyList<CsvNode> GetCsvNodesInternal(Type type, CsvConverterOptions options, PropertyAccesor accesor, object? instance, int depth, int maxDepth, CsvNode? parent)
         {
-            // Determines if will handle nested objects
-            bool handleNestedObjects = options.NestedObjectHandling != null;
-
-            if (handleNestedObjects && depth > maxDepth)
+            // Check depth
+            if (options.NestedObjectHandling != null && depth > maxDepth)
             {
                 throw new InvalidOperationException($"Reference depth exceeded, depth is {depth} but max was {maxDepth}");
             }
 
             List<CsvNode> nodes;
-            NestedObjectHandling? nestedObjectHandling = options.NestedObjectHandling;
-
             IReflector reflector = options.ReflectionProvider;
-            BindingFlags propertyFlags = GetFlagsFromPermission(accesor);
+            BindingFlags propertyFlags = GetFlagsFromPropertyAccesor(accesor);
             IReadOnlyCollection<PropertyInfo> properties = reflector.GetProperties(type, propertyFlags);
 
             if (options.IncludeFields)
             {
-                BindingFlags fieldFlags = GetFlagsFromPermission(accesor);
+                BindingFlags fieldFlags = GetFlagsFromPropertyAccesor(accesor);
                 IReadOnlyCollection<FieldInfo> fields = reflector.GetFields(type, fieldFlags);
 
                 // Exact size to avoid reallocations
@@ -681,15 +740,42 @@ namespace FastCSV
                     throw new ArgumentException($"No public fields or properties available for type {type}");
                 }
 
-                foreach (FieldInfo field in fields)
-                {
-                    CsvNode csvNode = CreateCsvNode(field, options, instance);
+                // Set the nodes from the type fields
+                SetNodes(options, accesor, instance, depth, maxDepth, parent, nodes, fields);
+            }
+            else
+            {
+                // Exact size to avoid reallocations
+                nodes = new List<CsvNode>(properties.Count);
 
-                    if (handleNestedObjects && !IsBuiltInType(field.FieldType) && csvNode.Info.Converter == null)
+                if (!properties.Any())
+                {
+                    throw new ArgumentException($"No public properties available for type {type}");
+                }
+            }
+
+            // Set the nodes from the type properties
+            SetNodes(options, accesor, instance, depth, maxDepth, parent, nodes, properties);
+
+            return nodes;
+
+            /// Helpers
+            
+            static void SetNodes<TMember>(CsvConverterOptions options, PropertyAccesor accesor, object? instance, int depth, int maxDepth, CsvNode? parent, List<CsvNode> nodes, IReadOnlyCollection<TMember> members) where TMember: MemberInfo
+            {
+                NestedObjectHandling? nestedObjectHandling = options.NestedObjectHandling;
+                bool handleNestedObjects = nestedObjectHandling != null;
+
+                foreach (TMember member in members)
+                {
+                    Type memberType = member.GetMemberType();
+                    CsvNode csvNode = CreateCsvNode(member, options, instance);
+
+                    if (handleNestedObjects && !IsBuiltInType(memberType) && csvNode.Info.Converter == null)
                     {
                         csvNode.Parent = parent;
 
-                        if (DetectReferenceLoop(csvNode, nestedObjectHandling!.ReferenceLoopHandling))
+                        if (DetectReferenceLoop(csvNode))
                         {
                             switch (nestedObjectHandling!.ReferenceLoopHandling)
                             {
@@ -708,63 +794,15 @@ namespace FastCSV
                             }
                         }
 
-                        csvNode.Children = GetCsvNodesInternal(field.FieldType, options, accesor, csvNode.Value, depth + 1, maxDepth, csvNode);
+                        csvNode.Children = GetCsvNodesInternal(memberType, options, accesor, csvNode.Value, depth + 1, maxDepth, csvNode);
                     }
 
                     // Adds the node
                     nodes.Add(csvNode);
                 }
             }
-            else
-            {
-                // Exact size to avoid reallocations
-                nodes = new List<CsvNode>(properties.Count);
 
-                if (!properties.Any())
-                {
-                    throw new ArgumentException($"No public properties available for type {type}");
-                }
-            }
-
-            foreach (PropertyInfo prop in properties)
-            {
-                CsvNode csvNode = CreateCsvNode(prop, options, instance);
-
-                if (handleNestedObjects && !IsBuiltInType(prop.PropertyType) && csvNode.Info.Converter == null)
-                {
-                    csvNode.Parent = parent;
-
-                    if (DetectReferenceLoop(csvNode, nestedObjectHandling!.ReferenceLoopHandling))
-                    {
-                        switch (nestedObjectHandling!.ReferenceLoopHandling)
-                        {
-                            case ReferenceLoopHandling.Error:
-                                throw new InvalidOperationException($"Reference loop detected in member '{csvNode.Info.OriginalName}'");
-                            case ReferenceLoopHandling.Ignore:
-                                continue;
-                            case ReferenceLoopHandling.Serialize:
-                                {
-                                    if (csvNode.Value == null)
-                                    {
-                                        continue;
-                                    }
-                                }
-                                break;
-                        }
-                    }
-
-                    csvNode.Children = GetCsvNodesInternal(prop.PropertyType, options, accesor, csvNode.Value, depth + 1, maxDepth, csvNode);
-                }
-
-                // Adds the node
-                nodes.Add(csvNode);
-            }
-
-            return nodes;
-
-            /// Helpers
-
-            static BindingFlags GetFlagsFromPermission(PropertyAccesor permission)
+            static BindingFlags GetFlagsFromPropertyAccesor(PropertyAccesor permission)
             {
                 var flags = BindingFlags.Public | BindingFlags.Instance;
                 switch (permission)
@@ -780,7 +818,7 @@ namespace FastCSV
                 return flags;
             }
 
-            static bool DetectReferenceLoop(CsvNode node, ReferenceLoopHandling loopHandling)
+            static bool DetectReferenceLoop(CsvNode node)
             {
                 if (node.Parent == null)
                 {
@@ -809,69 +847,7 @@ namespace FastCSV
 
                 return false;
             }
-        }
 
-        private static object? ParseString(Type type, ref CsvDeserializeState state, ICsvValueConverter? converter = null)
-        {
-            if (state.Count == 0)
-            {
-                return null;
-            }
-
-            var reflector = state.Options.ReflectionProvider;
-
-            if (reflector.IsNullableType(type))
-            {
-                if (state.Count == 1) 
-                {
-                    ReadOnlySpan<char> s = state.Read();
-
-                    if (s.IsEmpty || s.IsWhiteSpace())
-                    {
-                        return null;
-                    }
-                }
-
-                type = reflector.GetNullableType(type)!;
-            }
-
-            converter = GetConverter(type, state.Options, converter);
-
-            if (converter == null || !converter.CanConvert(type) || !converter.TryDeserialize(out object? value, type, ref state))
-            {
-                throw ThrowHelper.CannotDeserializeToType(state.Values.ToArray(), type);
-            }
-
-            return value;
-        }
-
-        private static void ValueToString(Type type, ref CsvSerializeState state, ICsvValueConverter? converter = null)
-        {
-            object? value = state.Value;
-
-            if (value != null && !EqualTypes(value.GetType(), type, state.Options))
-            {
-                throw new ArgumentException($"Type missmatch, expected {type} but was {value.GetType()}");
-            }
-
-            var reflector = state.Options.ReflectionProvider;
-            if (reflector.IsNullableType(type))
-            {
-                if (value == null)
-                {
-                    state.WriteNull();
-                    return;
-                }
-
-                type = reflector.GetNullableType(type)!;
-            }
-
-            converter = GetConverter(type, state.Options, converter);
-
-            if (converter == null || !converter.CanConvert(type) || !converter.TrySerialize(value, type, ref state))
-            {
-                throw new InvalidOperationException($"No converter found for type {type}");
-            }
         }
 
         /// Convenient method to try get a converter for the given type

@@ -2,15 +2,15 @@
 {
     internal readonly struct DataToSerialize
     {
-        public CsvNode Property { get; }
+        public CsvNode Node { get; }
 
         public string ColumnName { get; }
 
         public object? Value { get; }
 
-        public DataToSerialize(CsvNode property, string columnName, object? value)
+        public DataToSerialize(CsvNode node, string columnName, object? value)
         {
-            Property = property;
+            Node = node;
             ColumnName = columnName;
             Value = value;
         }
