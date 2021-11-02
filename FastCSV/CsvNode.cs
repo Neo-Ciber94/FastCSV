@@ -8,14 +8,17 @@ namespace FastCSV
     /// <summary>
     /// Holds information about a csv property.
     /// </summary>
-    public record CsvPropertyData(CsvPropertyInfo Info, string Name, object? Value) : ICsvPropertyInfo
+    public record CsvNode(CsvPropertyInfo Info, string Name, object? Value) : ICsvPropertyInfo
     {
-        public CsvPropertyData? Parent { get; set; }
+        /// <summary>
+        /// The parent node.
+        /// </summary>
+        public CsvNode? Parent { get; set; }
 
         /// <summary>
         /// Children of this csv property data.
         /// </summary>
-        public IReadOnlyList<CsvPropertyData> Children { get; set; } = new List<CsvPropertyData>();
+        public IReadOnlyList<CsvNode> Children { get; set; } = new List<CsvNode>();
 
         /// <inheritdoc/>
         public string OriginalName => Info.OriginalName;

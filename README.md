@@ -26,6 +26,12 @@ A CSharp library for read and write csv documents.
   - [Write into CsvDocument\<T\>](#csv-document-typed-write)
   - [Read csv from file](#csv-document-read-file)
 - [CsvConverterOptions](#csv-converter-options)
+  - [Naming Convention](#csv-converter-options-naming-convention)
+  - [Nested Objects](#csv-converter-options-nested-objects)
+  - [Collections](#csv-converter-options-collections)
+  - [Custom Converters](#csv-converter-options-converters)
+  - [Type Guesser](#csv-converter-options-type-guesser)
+  - [Reflection Provider](#csv-converter-options-reflection)
 
 
 > The examples are written using C# 'top-level statements'
@@ -408,10 +414,54 @@ record Person(string? Id, string? FirstName, string? LastName, int Age,  BinaryG
 
 ```CsvConverterOptions``` is the configuration used during serialization/deserialization of a csv document.
 
-### Naming convention
+### Naming Convention
 
-The naming convention determines how to read and write the fields of a csv document,
+The naming convention determines how to read and write the field names of a csv document,
 all naming conventions inherit from ```CsvNamingConvention``` class.
 
 ```csharp
+using System;
+using System.IO;
+using System.Text;
+using FastCSV;
+
+using var stream = new MemoryStream();
+using var writter = new CsvWriter(stream, leaveOpen: true);
+
+var options = new CsvConverterOptions
+{
+    NamingConvention = new UpperCaseNamingConvention()
+};
+
+writter.WriteType<Product>(options);
+writter.WriteValue(new Product(1, "Red Chair", 500m), options);
+writter.WriteValue(new Product(2, "Blue Toaster", 100m), options);
+writter.WriteValue(new Product(3, "Green Sofa", 2350m), options);
+
+Console.WriteLine(Encoding.UTF8.GetString(stream.ToArray()));
+
+class UpperCaseNamingConvention : CsvNamingConvention
+{
+    public override string Convert(string name)
+    {
+        return name.ToUpper();
+    }
+}
+
+record Product(int Id, string Name, decimal Price);
 ```
+
+**Output**
+
+```bash
+ID,NAME,PRICE
+1,Red Chair,500
+2,Blue Toaster,100
+3,Green Sofa,2350
+```
+
+### Nested Objects
+When serializing or deserializing objects we will try to get a converter to transform a value from an specify type into
+a collection of fields to the csv and if a converter is not found for a type an exception will be throw.
+
+For thoses cases you can tell the converter to use a ```NestedObjectHandling``` to flatten those nested objects.
