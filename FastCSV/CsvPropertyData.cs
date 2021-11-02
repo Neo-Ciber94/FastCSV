@@ -10,6 +10,8 @@ namespace FastCSV
     /// </summary>
     public record CsvPropertyData(CsvPropertyInfo Info, string Name, object? Value) : ICsvPropertyInfo
     {
+        public CsvPropertyData? Parent { get; set; }
+
         /// <summary>
         /// Children of this csv property data.
         /// </summary>

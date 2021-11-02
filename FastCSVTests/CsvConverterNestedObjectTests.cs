@@ -52,9 +52,110 @@ namespace FastCSV.Tests
             });
         }
 
+        [Test]
+        public void ThrowErrorOnReferenceLoopTest()
+        {
+            var node = new ParentNode
+            {
+                Value = 50,
+                Right = new Node
+                {
+                    Value = 40,
+                    Left = new Node
+                    {
+                        Value = 30,
+                    }
+                }
+            };
+
+            var options = new CsvConverterOptions
+            {
+                NestedObjectHandling = new NestedObjectHandling
+                {
+                    MaxDepth = 10,
+                    ReferenceLoopHandling = ReferenceLoopHandling.Error
+                }
+            };
+
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                var _ = CsvConverter.Serialize(node, options);
+            }, "Reference loop detected in property 'Left'");
+        }
+
+        [Test]
+        public void IgnoreReferenceLoopTest()
+        {
+            var node = new ParentNode
+            {
+                Value = 50,
+                Right = new Node
+                {
+                    Value = 40,
+                    Left = new Node
+                    {
+                        Value = 30,
+                    }
+                }
+            };
+
+            var options = new CsvConverterOptions
+            {
+                NestedObjectHandling = new NestedObjectHandling
+                {
+                    MaxDepth = 10,
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                }
+            };
+
+            var csv = CsvConverter.Serialize(node, options);
+            Assert.AreEqual($"Value,Value{Environment.NewLine}50,40", csv);
+        }
+
+        [Test]
+        public void SerializeReferenceLoopTest()
+        {
+            var node = new ParentNode
+            {
+                Value = 50,
+                Right = new Node
+                {
+                    Value = 40,
+                    Left = new Node
+                    {
+                        Value = 30,
+                    }
+                }
+            };
+
+            var options = new CsvConverterOptions
+            {
+                NestedObjectHandling = new NestedObjectHandling
+                {
+                    MaxDepth = 10,
+                    ReferenceLoopHandling = ReferenceLoopHandling.Serialize
+                }
+            };
+
+            var csv = CsvConverter.Serialize(node, options);
+            Assert.AreEqual($"Value,Value,Value{Environment.NewLine}50,40,30", csv);
+        }
+
         record Product(string Name, Pricing Price);
 
         record Pricing(string Currency, decimal Price);
+
+        class ParentNode
+        {
+            public int Value { get; set; }
+            public Node Right { get; set; }
+        }
+
+        class Node
+        {
+            public int Value { get; set; }
+            public Node Left { get; set; }
+        }
 
         record A(B B);
         record B(C C);

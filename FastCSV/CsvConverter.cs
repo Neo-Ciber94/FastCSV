@@ -645,13 +645,13 @@ namespace FastCSV
             return record.AsSpan().Slice(startIndex, count);
         }
 
-        private static IReadOnlyList<CsvPropertyData> GetCsvProperties(Type type, CsvConverterOptions options, PropertyAccesor accesor, object? instance)
+        private static IReadOnlyList<CsvPropertyData> GetCsvProperties(Type type, CsvConverterOptions options, PropertyAccesor accesor, object? instance, CsvPropertyData? parent = null)
         {
             int maxDepth = options.NestedObjectHandling?.MaxDepth ?? 0;
-            return GetCsvPropertiesInternal(type, options, accesor, instance, 0, maxDepth);
+            return GetCsvPropertiesInternal(type, options, accesor, instance, 0, maxDepth, parent);
         }
 
-        private static IReadOnlyList<CsvPropertyData> GetCsvPropertiesInternal(Type type, CsvConverterOptions options, PropertyAccesor accesor, object? instance, int depth, int maxDepth)
+        private static IReadOnlyList<CsvPropertyData> GetCsvPropertiesInternal(Type type, CsvConverterOptions options, PropertyAccesor accesor, object? instance, int depth, int maxDepth, CsvPropertyData? parent)
         {
             // Determines if will handle nested objects
             bool handleNestedObjects = options.NestedObjectHandling != null;
@@ -662,15 +662,16 @@ namespace FastCSV
             }
 
             List<CsvPropertyData> csvProps;
+            NestedObjectHandling? nestedObjectHandling = options.NestedObjectHandling;
 
-            var reflector = options.ReflectionProvider;
-            var propertyFlags = GetFlagsFromPermission(accesor);
-            var properties = reflector.GetProperties(type, propertyFlags);
+            IReflector reflector = options.ReflectionProvider;
+            BindingFlags propertyFlags = GetFlagsFromPermission(accesor);
+            IReadOnlyCollection<PropertyInfo> properties = reflector.GetProperties(type, propertyFlags);
 
             if (options.IncludeFields)
             {
-                var fieldFlags = GetFlagsFromPermission(accesor);
-                var fields = reflector.GetFields(type, fieldFlags);
+                BindingFlags fieldFlags = GetFlagsFromPermission(accesor);
+                IReadOnlyCollection<FieldInfo> fields = reflector.GetFields(type, fieldFlags);
 
                 // Exact size to avoid reallocations
                 csvProps = new List<CsvPropertyData>(fields.Count + properties.Count);
@@ -680,15 +681,38 @@ namespace FastCSV
                     throw new ArgumentException($"No public fields or properties available for type {type}");
                 }
 
-                foreach (var field in fields)
+                foreach (FieldInfo field in fields)
                 {
                     CsvPropertyData csvProp = CreateCsvProperty(field, options, instance);
-                    csvProps.Add(csvProp);
 
                     if (handleNestedObjects && !IsBuiltInType(field.FieldType) && csvProp.Info.Converter == null)
                     {
-                        csvProp.Children = GetCsvPropertiesInternal(field.FieldType, options, accesor, csvProp.Value, depth + 1, maxDepth);
+                        csvProp.Parent = parent;
+
+                        if (DetectReferenceLoop(csvProp, nestedObjectHandling!.ReferenceLoopHandling))
+                        {
+                            switch (nestedObjectHandling!.ReferenceLoopHandling)
+                            {
+                                case ReferenceLoopHandling.Error:
+                                    throw new InvalidOperationException($"Reference loop detected in property '{csvProp.Info.OriginalName}'");
+                                case ReferenceLoopHandling.Ignore:
+                                    continue;
+                                case ReferenceLoopHandling.Serialize:
+                                    {
+                                        if (csvProp.Value == null)
+                                        {
+                                            continue;
+                                        }
+                                    }
+                                    break;
+                            }
+                        }
+
+                        csvProp.Children = GetCsvPropertiesInternal(field.FieldType, options, accesor, csvProp.Value, depth + 1, maxDepth, csvProp);
                     }
+
+                    // Adds the node
+                    csvProps.Add(csvProp);
                 }
             }
             else
@@ -702,15 +726,38 @@ namespace FastCSV
                 }
             }
 
-            foreach (var prop in properties)
+            foreach (PropertyInfo prop in properties)
             {
                 CsvPropertyData csvProp = CreateCsvProperty(prop, options, instance);
-                csvProps.Add(csvProp);
 
                 if (handleNestedObjects && !IsBuiltInType(prop.PropertyType) && csvProp.Info.Converter == null)
                 {
-                    csvProp.Children = GetCsvPropertiesInternal(prop.PropertyType, options, accesor, csvProp.Value, depth + 1, maxDepth);
+                    csvProp.Parent = parent;
+
+                    if (DetectReferenceLoop(csvProp, nestedObjectHandling!.ReferenceLoopHandling))
+                    {
+                        switch (nestedObjectHandling!.ReferenceLoopHandling)
+                        {
+                            case ReferenceLoopHandling.Error:
+                                throw new InvalidOperationException($"Reference loop detected in property '{csvProp.Info.OriginalName}'");
+                            case ReferenceLoopHandling.Ignore:
+                                continue;
+                            case ReferenceLoopHandling.Serialize:
+                                {
+                                    if (csvProp.Value == null)
+                                    {
+                                        continue;
+                                    }
+                                }
+                                break;
+                        }
+                    }
+
+                    csvProp.Children = GetCsvPropertiesInternal(prop.PropertyType, options, accesor, csvProp.Value, depth + 1, maxDepth, csvProp);
                 }
+
+                // Adds the node
+                csvProps.Add(csvProp);
             }
 
             return csvProps;
@@ -731,6 +778,36 @@ namespace FastCSV
                 }
 
                 return flags;
+            }
+
+            static bool DetectReferenceLoop(CsvPropertyData node, ReferenceLoopHandling loopHandling)
+            {
+                if (node.Parent == null)
+                {
+                    return false;
+                }
+
+                Type type = node.Type;
+                CsvPropertyData? current = node;
+
+                while (current != null)
+                {
+                    Type? parentDeclaringType = current.Info.Member.DeclaringType;
+
+                    if (parentDeclaringType == null)
+                    {
+                        return false;
+                    }
+
+                    if (parentDeclaringType == type)
+                    {
+                        return true;
+                    }
+
+                    current = current.Parent;
+                }
+
+                return false;
             }
         }
 
