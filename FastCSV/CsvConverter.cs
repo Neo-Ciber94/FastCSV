@@ -287,30 +287,16 @@ namespace FastCSV
             }
             else
             {
-                return GetCsvNodes(type, options, PropertyAccesor.Getter, instance: value)
-                    .Where(e => !e.Info.Ignore)
-                    .Select(node => ConvertObject(node.Info.Type, node.Value, options))
-                    .ToArray();
-            }
+                List<string> result = new List<string>();
+                IEnumerable<CsvNode> nodes = GetCsvNodes(type, options, PropertyAccesor.Getter, value).Where(e => !e.Info.Ignore);
 
-            // if (IsBuiltInType(type))
-            // {
-            //     var converter = GetConverter(type, options);
-            //     return new string[] { value?.ToString() ?? string.Empty };
-            // }
-            // else if (typeof(IEnumerable).IsAssignableFrom(type))
-            // {
-            //     return ((IEnumerable)value).Cast<object>()
-            //         .Select(e => e.ToString() ?? string.Empty)
-            //         .ToArray();
-            // }
-            // else
-            // {
-            //     return GetCsvNodes(type, options ?? CsvConverterOptions.Default, PropertyAccesor.Getter, instance: value)
-            //         .Where(e => !e.Info.Ignore)
-            //         .Select(e => e.Value?.ToString() ?? string.Empty)
-            //         .ToArray();
-            // }
+                foreach(CsvNode node in nodes)
+                {
+                    result.Add(ConvertObject(node.Info.Type, node.Value, options));
+                }
+
+                return result.ToArray();
+            }
 
             static string ConvertObject(Type type, object? obj, CsvConverterOptions options)
             {
