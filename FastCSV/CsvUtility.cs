@@ -463,12 +463,14 @@ namespace FastCSV
         /// <param name="values">The values.</param>
         /// <param name="format">The format.</param>
         /// <returns></returns>
-        public static string ToCsvString(IEnumerable<string> values, CsvFormat format)
+        public static string ToCsvString(IEnumerable<string> values, CsvFormat? format = null)
         {
             if (!values.Any())
             {
                 return string.Empty;
             }
+
+            format ??= CsvFormat.Default;
 
             // Helper local function to add quotes
             static string AddQuote(CsvFormat format, string s)
@@ -489,7 +491,115 @@ namespace FastCSV
             }
 
             using var stringBuilder = new ValueStringBuilder(stackalloc char[128]);
-            IEnumerator<string> enumerator = values.GetEnumerator();
+            var enumerator = values.GetEnumerator();
+            QuoteStyle style = format.Style;
+
+            if (enumerator.MoveNext())
+            {
+                while (true)
+                {
+                    string field = enumerator.Current;
+
+                    if (format.IgnoreNewLine)
+                    {
+                        if (field.Contains('\n'))
+                        {
+                            field = field
+                                .Replace("\r\n", string.Empty)
+                                .Replace("\n", string.Empty);
+                        }
+                    }
+
+                    if (format.IgnoreWhitespace)
+                    {
+                        field = field.Trim();
+                    }
+
+                    // Ensure the csv field is well formated
+                    field = FormatCsvString(field, format);
+
+                    switch (style)
+                    {
+                        case QuoteStyle.Always:
+                            if (!field.EnclosedWith(format.Quote))
+                            {
+                                field = AddQuote(format, field);
+                            }
+                            break;
+                        case QuoteStyle.Never:
+                            // Remove quotes and line breaks if the style don't allow quotes to avoid format errors
+                            field = field.Replace("\"", string.Empty)
+                                         .Replace("\r", string.Empty)
+                                         .Replace("\n", string.Empty);
+                            break;
+                        case QuoteStyle.WhenNeeded:
+                            // Field is formatted before
+                            break;
+                    }
+
+                    stringBuilder.Append(field);
+
+                    // If there is more values add a delimiter
+                    if (enumerator.MoveNext())
+                    {
+                        stringBuilder.Append(format.Delimiter);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return stringBuilder.ToString();
+        }
+
+        /// <summary>
+        /// Converts the given <see cref="Array"/> into a csv string.
+        /// </summary>
+        /// <param name="values">The values.</param>
+        /// <param name="format">The format.</param>
+        /// <returns></returns>
+        public static string ToCsvString(string[] values, CsvFormat? format = null)
+        {
+            return ToCsvString(values.AsSpan(), format);
+        }
+
+        /// <summary>
+        /// Converts the given <see cref="ReadOnlySpan{T}"/> into a csv string.
+        /// </summary>
+        /// <param name="values">The values.</param>
+        /// <param name="format">The format.</param>
+        /// <returns></returns>
+        public static string ToCsvString(ReadOnlySpan<string> values, CsvFormat? format = null)
+        {
+            if (values.IsEmpty)
+            {
+                return string.Empty;
+            }
+
+            format ??= CsvFormat.Default;
+
+            // Helper local function to add quotes
+            static string AddQuote(CsvFormat format, string s)
+            {
+                int length = s.Length + (format.Quote.Length * 2);
+
+                return string.Create(length, (format.Quote, s), static (span, state) =>
+                {
+                    int quoteLength = state.Quote.Length;
+                    int lastQuoteIndex = span.Length - quoteLength;
+                    ReadOnlySpan<char> quote = state.Quote;
+                    string stringValue = state.s;
+
+                    quote.CopyTo(span);
+                    quote.CopyTo(span[lastQuoteIndex..]);
+                    stringValue.AsSpan().CopyTo(span[quoteLength..lastQuoteIndex]);
+                });
+            }
+
+            using var stringBuilder = new ValueStringBuilder(stackalloc char[128]);
+            var enumerator = values.GetEnumerator();
             QuoteStyle style = format.Style;
 
             if (enumerator.MoveNext())

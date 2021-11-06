@@ -556,6 +556,7 @@ namespace FastCSV
             Stack<CsvNode> parents = new Stack<CsvNode>();
             props.PushRangeReverse(csvNodes);
 
+            string?[] toDeserialize = record.Header?.ToArray() ?? Array.Empty<string?>();
             ValueList<DataToDeserialize> items = new(csvNodes.Count);
             int index = 0;
 
@@ -618,7 +619,7 @@ namespace FastCSV
                         }
                         else
                         {
-                            string csvValue = GetCsvValue(record, node, index++);
+                            string csvValue = GetCsvValue(record, node, toDeserialize, index++);
                             var state = new CsvDeserializeState(options, node.Info, csvValue);
                             value = ParseString(node.Info.Type, ref state, node.Info.Converter);
                         }
@@ -636,11 +637,12 @@ namespace FastCSV
                 }
             }
 
+
             return items;
 
             // Helper
 
-            static string GetCsvValue(CsvRecord record, CsvNode property, int index)
+            static string GetCsvValue(CsvRecord record, CsvNode property, string?[] toDeserialize, int index)
             {
                 if ((uint)index > (uint)record.Length)
                 {
@@ -652,7 +654,22 @@ namespace FastCSV
                     throw new InvalidOperationException($"Cannot find \"{property.Name}\" value in the record");
                 }
 
-                return record.Header != null ? record[property.Name] : record[index];
+                if (record.Header != null)
+                {
+                    // The property was already deserialized
+                    if (!toDeserialize.Contains(property.Name))
+                    {
+                        throw new InvalidOperationException($"Cannot find \"{property.Name}\" value in the record");
+                    }
+
+                    int valueIndex = Array.IndexOf(toDeserialize, property.Name);
+                    toDeserialize[valueIndex] = null;
+                    return record[valueIndex];
+                }
+                else
+                {
+                    return record[index];
+                }
             }
         }
 

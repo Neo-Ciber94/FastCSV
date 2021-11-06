@@ -18,7 +18,7 @@ namespace FastCSV
     [Serializable]
     public class CsvRecord : IEnumerable<string>, ICloneable<CsvRecord>, IEquatable<CsvRecord?>
     {
-        private readonly ReadOnlyArray<string> _values;
+        internal readonly ReadOnlyArray<string> _values;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CsvRecord"/> class.
@@ -165,6 +165,36 @@ namespace FastCSV
         /// <param name="range">The range.</param>
         /// <returns></returns>
         public ReadOnlyMemory<string> this[Range range] => _values.AsMemory(range);
+
+        /// <summary>
+        /// Gets the columns of this record.
+        /// </summary>
+        /// <returns>A view to the columns of this record.</returns>
+        public CsvColumns AsColumns()
+        {
+            return new CsvColumns(this);
+        }
+
+        /// <summary>
+        /// Gets the columns of this record from the given range.
+        /// </summary>
+        /// <param name="startIndex">The start index.</param>
+        /// <returns>A view to the columns of this record.</returns>
+        public CsvColumns AsColumns(int startIndex)
+        {
+            return new CsvColumns(this, startIndex);
+        }
+
+        /// <summary>
+        /// Gets the columns of this record from the given range.
+        /// </summary>
+        /// <param name="startIndex">The start index.</param>
+        /// <param name="count">The number of elements.</param>
+        /// <returns>A view to the columns of this record.</returns>
+        public CsvColumns AsColumns(int startIndex, int count)
+        {
+            return new CsvColumns(this, startIndex, count);
+        }
 
         /// <summary>
         /// Gets a <see cref="ReadOnlyMemory{T}"/> view to the elements of this record.

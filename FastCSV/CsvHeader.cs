@@ -16,7 +16,7 @@ namespace FastCSV
     [Serializable]
     public class CsvHeader : IEnumerable<string>, ICloneable<CsvHeader>, IEquatable<CsvHeader?>
     {
-        private readonly ReadOnlyArray<string> _values;
+        internal readonly ReadOnlyArray<string> _values;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CsvHeader"/> class.
