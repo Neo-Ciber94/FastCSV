@@ -9,15 +9,15 @@ using System.Runtime.Serialization;
 using FastCSV.Collections;
 using FastCSV.Converters;
 using FastCSV.Converters.Collections;
+using FastCSV.Extensions;
 using FastCSV.Internal;
 using FastCSV.Utils;
-using FastCSV.Extensions;
 
 namespace FastCSV
 {
     // Determine if a field/property will be a getter, setter of both.
     internal enum PropertyAccesor
-    { 
+    {
         /// <summary>
         /// Defines the getter.
         /// </summary>
@@ -92,9 +92,9 @@ namespace FastCSV
                         {
                             throw ThrowHelper.CollectionHandlingRequired();
                         }
-     
+
                         string itemName = collectionHandling.Tag;
-                        int count = state.Serialized.Count;
+                        int count = state.Count;
                         string[] headerArray = new string[count];
 
                         for (int i = 0; i < headerArray.Length; i++)
@@ -118,7 +118,7 @@ namespace FastCSV
             var buffer = new List<string>(props.Length);
             int index = 0;
 
-            while(index < props.Length)
+            while (index < props.Length)
             {
                 DataToSerialize p = props[index];
                 CsvNode node = p.Node;
@@ -132,7 +132,7 @@ namespace FastCSV
                     throw ThrowHelper.CannotSerializeToType(obj, elementType);
                 }
 
-                int serializedCount = state.Serialized.Count;
+                int serializedCount = state.Count;
 
                 // If nothing was serialized move to the next value to avoid overflow
                 index = index == serializedCount ? index + 1 : serializedCount;
@@ -244,24 +244,84 @@ namespace FastCSV
                 throw new ArgumentNullException(nameof(value));
             }
 
+            options ??= CsvConverterOptions.Default;
             Type type = value!.GetType();
 
-            if (IsBuiltInType(type))
+            if (HasConverter(type, options))
             {
-                return new string[] { value?.ToString() ?? string.Empty };
+                return new string[] { ConvertObject(type, value, options) };
             }
-            else if (typeof(IEnumerable).IsAssignableFrom(type))
+            else if (type.IsEnumerableType())
             {
-                return ((IEnumerable)value).Cast<object>()
-                    .Select(e => e.ToString() ?? string.Empty)
-                    .ToArray();
+                if (typeof(ITuple).IsAssignableFrom(type))
+                {
+                    ITuple tuple = (ITuple)value;
+                    string[] result = new string[tuple.Length];
+
+                    for (int i = 0; i < tuple.Length; i++)
+                    {
+                        result[i] = ConvertObject(tuple.GetType(), tuple[i], options);
+                    }
+
+                    return result;
+                }
+                else
+                {
+                    IEnumerable<object> enumerable = ((IEnumerable)value).Cast<object>();
+                    List<string> result = new(enumerable.Count());
+
+                    foreach (object? item in enumerable)
+                    {
+                        if (item == null)
+                        {
+                            result.Add(CsvConverter.Null);
+                        }
+                        else
+                        {
+                            result.Add(ConvertObject(item.GetType(), item, options));
+                        }
+                    }
+
+                    return result.ToArray();
+                }
             }
             else
             {
-                return GetCsvNodes(type, options ?? CsvConverterOptions.Default, PropertyAccesor.Getter, instance: value)
+                return GetCsvNodes(type, options, PropertyAccesor.Getter, instance: value)
                     .Where(e => !e.Info.Ignore)
-                    .Select(e => e.Value?.ToString() ?? string.Empty)
+                    .Select(node => ConvertObject(node.Info.Type, node.Value, options))
                     .ToArray();
+            }
+
+            // if (IsBuiltInType(type))
+            // {
+            //     var converter = GetConverter(type, options);
+            //     return new string[] { value?.ToString() ?? string.Empty };
+            // }
+            // else if (typeof(IEnumerable).IsAssignableFrom(type))
+            // {
+            //     return ((IEnumerable)value).Cast<object>()
+            //         .Select(e => e.ToString() ?? string.Empty)
+            //         .ToArray();
+            // }
+            // else
+            // {
+            //     return GetCsvNodes(type, options ?? CsvConverterOptions.Default, PropertyAccesor.Getter, instance: value)
+            //         .Where(e => !e.Info.Ignore)
+            //         .Select(e => e.Value?.ToString() ?? string.Empty)
+            //         .ToArray();
+            // }
+
+            static string ConvertObject(Type type, object? obj, CsvConverterOptions options)
+            {
+                if (obj == null)
+                {
+                    return CsvConverter.Null;
+                }
+
+                CsvSerializeState state = new(options, obj, new List<string>());
+                ValueToString(type, ref state);
+                return state.GetSerializedValue(0);
             }
         }
 
@@ -387,7 +447,7 @@ namespace FastCSV
             return value;
         }
 
-        private static void ValueToString(Type type, ref CsvSerializeState state, ICsvValueConverter? converter = null)
+        private static IEnumerable<string> ValueToString(Type type, ref CsvSerializeState state, ICsvValueConverter? converter = null)
         {
             object? value = state.Value;
 
@@ -402,7 +462,7 @@ namespace FastCSV
                 if (value == null)
                 {
                     state.WriteNull();
-                    return;
+                    return state.Serialized;
                 }
 
                 type = reflector.GetNullableType(type)!;
@@ -414,6 +474,8 @@ namespace FastCSV
             {
                 throw new InvalidOperationException($"No converter found for type {type}");
             }
+
+            return state.Serialized;
         }
 
         private static ValueList<DataToSerialize> GetSerializeData(object? value, Type type, CsvConverterOptions options)
@@ -691,7 +753,7 @@ namespace FastCSV
             int count = 0;
             int index = startIndex;
 
-            while(index < record.Length)
+            while (index < record.Length)
             {
                 string headerItem = header[index];
 
@@ -777,8 +839,8 @@ namespace FastCSV
             return nodes;
 
             /// Helpers
-            
-            static void SetNodes<TMember>(CsvConverterOptions options, PropertyAccesor accesor, object? instance, int depth, int maxDepth, CsvNode? parent, List<CsvNode> nodes, IReadOnlyCollection<TMember> members) where TMember: MemberInfo
+
+            static void SetNodes<TMember>(CsvConverterOptions options, PropertyAccesor accesor, object? instance, int depth, int maxDepth, CsvNode? parent, List<CsvNode> nodes, IReadOnlyCollection<TMember> members) where TMember : MemberInfo
             {
                 NestedObjectHandling? nestedObjectHandling = options.NestedObjectHandling;
                 bool handleNestedObjects = nestedObjectHandling != null;
@@ -903,7 +965,7 @@ namespace FastCSV
                     return customConverter;
                 }
             }
-            
+
             if (options.CollectionHandling != null && elementType.IsEnumerableType())
             {
                 var collectionConverter = CsvCollectionConverterProvider.Default.GetConverter(elementType);

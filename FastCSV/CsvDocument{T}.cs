@@ -25,9 +25,9 @@ namespace FastCSV
             private readonly CsvRecord _record;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public TypedRecord(T value, CsvFormat format)
+            public TypedRecord(T value, CsvConverterOptions options)
             {
-                _record = CsvRecord.From(value, format);
+                _record = CsvRecord.From(value, options);
                 _value = value;
             }
 
@@ -170,7 +170,7 @@ namespace FastCSV
                 Resize(1);
             }
 
-            _records[_count++] = new TypedRecord(value, Format);
+            _records[_count++] = new TypedRecord(value, Options);
         }
 
         /// <summary>
@@ -191,7 +191,7 @@ namespace FastCSV
             }
 
             Array.Copy(_records, index, _records, index + 1, _count - index);
-            _records[index] = new TypedRecord(value, Format);
+            _records[index] = new TypedRecord(value, Options);
             _count += 1;
         }
 
@@ -207,7 +207,7 @@ namespace FastCSV
                 throw ThrowHelper.ArgumentOutOfRange(nameof(index), index, _count);
             }
 
-            _records[index] = new TypedRecord(value, Format);
+            _records[index] = new TypedRecord(value, Options);
         }
 
         /// <summary>
