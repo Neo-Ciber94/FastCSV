@@ -9,7 +9,7 @@ namespace FastCSV
     /// </summary>
     public readonly ref struct CsvColumns
     {
-        public static CsvColumns Empty => new CsvColumns(Array.Empty<string>(), Array.Empty<string>(), CsvFormat.Default);
+        public static CsvColumns Empty => new(Array.Empty<string>(), Array.Empty<string>(), CsvFormat.Default);
 
         private readonly ReadOnlySpan<string> _values;
         private readonly ReadOnlySpan<string> _header;
@@ -91,8 +91,8 @@ namespace FastCSV
 
         public CsvColumns Slice(int startIndex, int count)
         {
-            var values = _values.Slice(startIndex);
-            var header = _header.IsEmpty ? _header : _header.Slice(startIndex);
+            var values = _values.Slice(startIndex, count);
+            var header = _header.IsEmpty ? _header : _header.Slice(startIndex, count);
             return new CsvColumns(values, header, _format!);
         }
 
@@ -114,7 +114,7 @@ namespace FastCSV
             return new CsvColumns(_values, _header, format);
         }
 
-        public Enumerator GetEnumerator() => new Enumerator(_values);
+        public Enumerator GetEnumerator() => new(_values);
 
         public override string ToString()
         {
