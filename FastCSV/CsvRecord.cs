@@ -78,11 +78,32 @@ namespace FastCSV
         /// <returns></returns>
         public static CsvRecord From<T>(T value, CsvFormat format)
         {
-            var headerValues = CsvConverter.GetHeader<T>();
-            var values = CsvConverter.GetValues(value);
+            if (format != CsvFormat.Default)
+            {
+                var options = CsvConverterOptions.Default with { Format = format };
+                return From(value, options);
+            }
+            else
+            {
+                return From(value, CsvConverterOptions.Default);
+            }
+        }
 
-            var header = new CsvHeader(headerValues, format);
-            return new CsvRecord(header, values, format);
+        /// <summary>
+        /// Creates a record from the specified value.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value">The value.</param>
+        /// <param name="options">The options.</param>
+        /// <returns></returns>
+        public static CsvRecord From<T>(T value, CsvConverterOptions? options = null)
+        {
+            options ??= CsvConverterOptions.Default;
+            var headerValues = CsvConverter.GetHeader<T>(options);
+            var values = CsvConverter.GetValues(value, options);
+
+            var header = new CsvHeader(headerValues, options.Format);
+            return new CsvRecord(header, values, options.Format);
         }
 
         /// <summary>

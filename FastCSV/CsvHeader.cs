@@ -134,6 +134,36 @@ namespace FastCSV
         /// <returns>The values at the specified range.</returns>
         public ReadOnlyMemory<string> this[Range range] => _values.AsMemory(range);
 
+        /// <summary>
+        /// Gets the columns of this header.
+        /// </summary>
+        /// <returns>A view to the columns of this record.</returns>
+        public CsvColumns AsColumns()
+        {
+            return new CsvColumns(this);
+        }
+
+        /// <summary>
+        /// Gets the columns of this header from the given range.
+        /// </summary>
+        /// <param name="startIndex">The start index.</param>
+        /// <returns>A view to the columns of this record.</returns>
+        public CsvColumns AsColumns(int startIndex)
+        {
+            return new CsvColumns(this, startIndex);
+        }
+
+        /// <summary>
+        /// Gets the columns of this header from the given range.
+        /// </summary>
+        /// <param name="startIndex">The start index.</param>
+        /// <param name="count">The number of elements.</param>
+        /// <returns>A view to the columns of this record.</returns>
+        public CsvColumns AsColumns(int startIndex, int count)
+        {
+            return new CsvColumns(this, startIndex, count);
+        }
+
         /// Gets a <see cref="ReadOnlyMemory{T}"/> view to the elements of this header.
         /// </summary>
         public ReadOnlyMemory<string> AsMemory()
