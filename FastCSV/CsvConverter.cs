@@ -777,6 +777,26 @@ namespace FastCSV
 
                         if (DetectReferenceLoop(csvNode))
                         {
+                            /*
+                             * Currently we are not able to deserialize types with multiple reference loops, 
+                             * because is not possible to know how deep the loop goes.
+                             * 
+                             * For example:
+                             * 
+                             * Given the type:
+                             *      record Node(int Value, Node? Left, Node? Right)
+                             *      
+                             * And the csv: 
+                             *      Value,Value,Value,Value
+                             *      1,    3,    20,   5
+                             *      
+                             * We can't decide when the 'Value' represents the Left or Right node.
+                             */
+                            if (accesor == PropertyAccesor.Setter)
+                            {
+                                throw new NotSupportedException($"Cannot set value to member '{member.Name}' due reference loop");
+                            }
+
                             switch (nestedObjectHandling!.ReferenceLoopHandling)
                             {
                                 case ReferenceLoopHandling.Error:
@@ -847,7 +867,6 @@ namespace FastCSV
 
                 return false;
             }
-
         }
 
         /// Convenient method to try get a converter for the given type

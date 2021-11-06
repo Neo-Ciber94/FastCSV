@@ -53,7 +53,7 @@ namespace FastCSV.Tests
         }
 
         [Test]
-        public void ThrowErrorOnReferenceLoopTest()
+        public void SerializeThrowErrorOnReferenceLoopTest()
         {
             var node = new ParentNode
             {
@@ -84,7 +84,7 @@ namespace FastCSV.Tests
         }
 
         [Test]
-        public void IgnoreReferenceLoopTest()
+        public void SerializeIgnoreReferenceLoopTest()
         {
             var node = new ParentNode
             {
@@ -110,6 +110,26 @@ namespace FastCSV.Tests
 
             var csv = CsvConverter.Serialize(node, options);
             Assert.AreEqual($"Value,Value{Environment.NewLine}50,40", csv);
+        }
+
+        [Test]
+        public void DeserializeIgnoreReferenceLoopTest()
+        {
+            var options = new CsvConverterOptions
+            {
+                NestedObjectHandling = new NestedObjectHandling
+                {
+                    MaxDepth = 10,
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                }
+            };
+
+            var csv = $"Value,Value{Environment.NewLine}50,40";
+
+            Assert.Throws<NotSupportedException>(() =>
+            {
+                ParentNode deserialized = CsvConverter.Deserialize<ParentNode>(csv, options);
+            });
         }
 
         [Test]
@@ -141,17 +161,36 @@ namespace FastCSV.Tests
             Assert.AreEqual($"Value,Value,Value{Environment.NewLine}50,40,30", csv);
         }
 
+        [Test]
+        public void DeserializeReferenceLoopTest()
+        {
+            var options = new CsvConverterOptions
+            {
+                NestedObjectHandling = new NestedObjectHandling
+                {
+                    MaxDepth = 10,
+                    ReferenceLoopHandling = ReferenceLoopHandling.Serialize 
+                }
+            };
+
+            var csv = $"Value,Value,Value{Environment.NewLine}50,40,30";
+            Assert.Throws<NotSupportedException>(() =>
+            {
+                ParentNode deserialized = CsvConverter.Deserialize<ParentNode>(csv, options);
+            });
+        }
+
         record Product(string Name, Pricing Price);
 
         record Pricing(string Currency, decimal Price);
 
-        class ParentNode
+        record ParentNode
         {
             public int Value { get; set; }
             public Node Right { get; set; }
         }
 
-        class Node
+        record Node
         {
             public int Value { get; set; }
             public Node Left { get; set; }
