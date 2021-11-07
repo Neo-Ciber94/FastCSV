@@ -71,7 +71,7 @@ namespace FastCSV
         /// </summary>
         /// <param name="options">The options.</param>
         public CsvDocument(CsvConverterOptions? options = null)
-            : this(s_EmptyArray, CsvHeader.FromType<T>(options?.Format?? CsvFormat.Default), options) { }
+            : this(s_EmptyArray, CsvHeader.FromType<T>(options), options) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CsvDocument{T}"/> class.

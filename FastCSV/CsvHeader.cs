@@ -76,15 +76,9 @@ namespace FastCSV
         /// <summary>
         /// Creates a csv header for the specified type.
         /// </summary>
-        /// <typeparam name="T">Type used to create the header</typeparam>
-        /// <param name="format">The format.</param>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="options">The options</param>
         /// <returns>The header using the names of the public fields and properties of the specified type.</returns>
-        public static CsvHeader FromType<T>(CsvFormat format)
-        {
-            var values = CsvConverter.GetHeader<T>();
-            return new CsvHeader(values, format);
-        }
-
         public static CsvHeader FromType<T>(CsvConverterOptions? options = null)
         {
             options ??= CsvConverterOptions.Default;

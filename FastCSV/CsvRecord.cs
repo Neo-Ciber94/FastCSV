@@ -66,27 +66,7 @@ namespace FastCSV
         /// <returns></returns>
         public static CsvRecord From<T>(T value)
         {
-            return From(value, CsvFormat.Default);
-        }
-
-        /// <summary>
-        /// Creates a record from the specified value.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="value">The value.</param>
-        /// <param name="format">The format.</param>
-        /// <returns></returns>
-        public static CsvRecord From<T>(T value, CsvFormat format)
-        {
-            if (format != CsvFormat.Default)
-            {
-                var options = CsvConverterOptions.Default with { Format = format };
-                return From(value, options);
-            }
-            else
-            {
-                return From(value, CsvConverterOptions.Default);
-            }
+            return From(value, CsvConverterOptions.Default);
         }
 
         /// <summary>
@@ -95,14 +75,15 @@ namespace FastCSV
         /// <typeparam name="T"></typeparam>
         /// <param name="value">The value.</param>
         /// <param name="options">The options.</param>
+        /// <param name="format>The format.</param>
         /// <returns></returns>
         public static CsvRecord From<T>(T value, CsvConverterOptions? options = null)
         {
             options ??= CsvConverterOptions.Default;
-            var headerValues = CsvConverter.GetHeader<T>(options);
-            var values = CsvConverter.GetValues(value, options);
 
-            var header = new CsvHeader(headerValues, options.Format);
+            string[] headerValues = CsvConverter.GetHeader<T>(options);
+            string[] values = CsvConverter.GetValues(value, options);
+            CsvHeader header = new CsvHeader(headerValues, options.Format);
             return new CsvRecord(header, values, options.Format);
         }
 
