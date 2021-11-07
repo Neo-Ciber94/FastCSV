@@ -118,9 +118,9 @@ namespace FastCSV.Tests
                 Age = 50
             });
 
-            var values = record.GetValues("ID", "FirstName".As("Name"));
+            var values = record.GetValues("ID", "FirstName");
             Assert.AreEqual("10", values["ID"]);
-            Assert.AreEqual("BoJack", values["Name"]);
+            Assert.AreEqual("BoJack", values["FirstName"]);
         }
 
         [Test()]

@@ -219,7 +219,7 @@ namespace FastCSV
         /// </summary>
         /// <param name="columnNames">The column names, this value can be implicit converted from <see cref="string"/>.</param>
         /// <returns>Gets the values of the specified column names.</returns>
-        public IReadOnlyDictionary<string, string> GetValues(params ColumnName[] columnNames)
+        public IReadOnlyDictionary<string, string> GetValues(params string[] columnNames)
         {
             if (columnNames.Length == 0)
             {
@@ -228,9 +228,9 @@ namespace FastCSV
 
             var result = new Dictionary<string, string>(columnNames.Length);
 
-            foreach (ColumnName columnName in columnNames)
+            foreach (string columnName in columnNames)
             {
-                result.Add(columnName.GetAliasOrName(), this[columnName.Name]);
+                result.Add(columnName, this[columnName]);
             }
 
             return result;
