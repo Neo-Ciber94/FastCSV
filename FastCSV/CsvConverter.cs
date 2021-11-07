@@ -945,10 +945,12 @@ namespace FastCSV
             // Prioritize custom converters
             if (options.Converters.Any())
             {
-                ICsvValueConverter? customConverter = options.Converters.FirstOrDefault(e => e.CanConvert(elementType));
-                if (customConverter != null)
+                foreach(ICsvValueConverter customConverter in options.Converters)
                 {
-                    return customConverter;
+                    if (customConverter.CanConvert(elementType))
+                    {
+                        return customConverter;
+                    }
                 }
             }
 
