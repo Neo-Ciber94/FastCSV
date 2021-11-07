@@ -215,25 +215,19 @@ namespace FastCSV
         }
 
         /// <summary>
-        /// Gets a <see cref="IReadOnlyDictionary{TKey, TValue}"/> with the values of the specified column names.
+        /// Gets a row with the columns with the given names.
         /// </summary>
-        /// <param name="columnNames">The column names, this value can be implicit converted from <see cref="string"/>.</param>
-        /// <returns>Gets the values of the specified column names.</returns>
-        public IReadOnlyDictionary<string, string> GetValues(params string[] columnNames)
+        /// <param name="columnNames">The names of the columns.</param>
+        /// <returns>A row with the specified columns.</returns>
+        public CsvRowColumns GetColumns(params string[] columnNames)
         {
             if (columnNames.Length == 0)
             {
-                return EmptyDictionary<string, string>.Value;
+                var header = Header == null? Array.Empty<string>() : Header._values;
+                return new CsvRowColumns(this, header);
             }
 
-            var result = new Dictionary<string, string>(columnNames.Length);
-
-            foreach (string columnName in columnNames)
-            {
-                result.Add(columnName, this[columnName]);
-            }
-
-            return result;
+            return new CsvRowColumns(this, columnNames);
         }
 
         /// <summary>

@@ -1,7 +1,7 @@
-﻿using NUnit.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using NUnit.Framework;
 
 namespace FastCSV.Tests
 {
@@ -92,7 +92,7 @@ namespace FastCSV.Tests
         }
 
         [Test()]
-        public void GetValuesTest1()
+        public void GetColumnsTest1()
         {
             var record = CsvRecord.From(new
             {
@@ -102,13 +102,13 @@ namespace FastCSV.Tests
                 Age = 50
             });
 
-            var values = record.GetValues("ID", "FirstName");
+            var values = record.GetColumns("ID", "FirstName");
             Assert.AreEqual("10", values["ID"]);
             Assert.AreEqual("BoJack", values["FirstName"]);
         }
 
         [Test()]
-        public void GetValuesTest2()
+        public void GetColumnsTest2()
         {
             var record = CsvRecord.From(new
             {
@@ -118,9 +118,27 @@ namespace FastCSV.Tests
                 Age = 50
             });
 
-            var values = record.GetValues("ID", "FirstName");
+            var values = record.GetColumns("ID", "FirstName");
             Assert.AreEqual("10", values["ID"]);
             Assert.AreEqual("BoJack", values["FirstName"]);
+        }
+
+        [Test()]
+        public void GetColumnsTest3()
+        {
+            var record = CsvRecord.From(new
+            {
+                ID = 10,
+                FirstName = "BoJack",
+                LastName = "Horseman",
+                Age = 50
+            });
+
+            var values = record.GetColumns();
+            Assert.AreEqual("10", values["ID"]);
+            Assert.AreEqual("BoJack", values["FirstName"]);
+            Assert.AreEqual("Horseman", values["LastName"]);
+            Assert.AreEqual("50", values["Age"]);
         }
 
         [Test()]
