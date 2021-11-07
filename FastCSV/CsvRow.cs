@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using FastCSV.Internal;
 
 namespace FastCSV
@@ -9,7 +10,10 @@ namespace FastCSV
     /// </summary>
     public readonly ref struct CsvRow
     {
-        public static CsvRow Empty => new(Array.Empty<string>(), Array.Empty<string>(), CsvFormat.Default);
+        /// <summary>
+        /// An empty <see cref="CsvRow"/>.
+        /// </summary>
+        public static CsvRow Empty => default;
 
         private readonly ReadOnlySpan<string> _values;
         private readonly ReadOnlySpan<string> _header;
@@ -46,22 +50,55 @@ namespace FastCSV
             _format = format;
         }
 
+        /// <summary>
+        /// The number of columns in this row.
+        /// </summary>
         public int Length => _values.Length;
 
+        /// <summary>
+        /// Check if this row is empty.
+        /// </summary>
         public bool IsEmpty => _values.IsEmpty;
 
+        /// <summary>
+        /// The csv format of this row.
+        /// </summary>
         public CsvFormat Format => _format ?? CsvFormat.Default;
 
+        /// <summary>
+        /// The header column values.
+        /// </summary>
         public ReadOnlySpan<string> Header => _header;
 
+        /// <summary>
+        /// The row column values.
+        /// </summary>
         public ReadOnlySpan<string> Values => _values;
 
+        /// <summary>
+        /// Get the value of the specified column index.
+        /// </summary>
         public string this[int index] => _values[index];
 
+        /// <summary>
+        /// Get the value of the specified column index.
+        /// </summary>
         public string this[Index index] => _values[index];
 
-        public CsvRow this[Range range] => Slice(range);
+        /// <summary>
+        /// Gets the <see cref="CsvRow"/> from the given range.
+        /// </summary>
+        /// <returns></returns>
+        public CsvRow this[Range range]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => Slice(range);
+        }
 
+        /// <summary>
+        /// Gets the value with the given key, or null if not found.
+        /// </summary>
+        /// <value></value>
         public string? this[string key]
         {
             get
@@ -82,13 +119,24 @@ namespace FastCSV
             }
         }
 
+        /// <summary>
+        /// Gets a new <see cref="CsvRow"/> from the given range.
+        /// </summary>
+        /// <param name="startIndex">The start column.</param>
+        /// <returns></returns>
         public CsvRow Slice(int startIndex)
         {
-            var values = _values.Slice(startIndex);
-            var header = _header.IsEmpty ? _header : _header.Slice(startIndex);
+            var values = _values[startIndex..];
+            var header = _header.IsEmpty ? _header : _header[startIndex..];
             return new CsvRow(values, header, _format!);
         }
 
+        /// <summary>
+        /// Gets a new <see cref="CsvRow"/> from the given range.
+        /// </summary>
+        /// <param name="startIndex">The start column.</param>
+        /// <param name="count">The number of columns</param>
+        /// <returns></returns>
         public CsvRow Slice(int startIndex, int count)
         {
             var values = _values.Slice(startIndex, count);
@@ -96,12 +144,22 @@ namespace FastCSV
             return new CsvRow(values, header, _format!);
         }
 
+        /// <summary>
+        /// Gets a new <see cref="CsvRow"/> from the given range.
+        /// </summary>
+        /// <param name="index">The start column.</param>
+        /// <returns></returns>
         public CsvRow Slice(Index index)
         {
             int actualIndex = index.GetOffset(_values.Length);
-            return Slice(actualIndex);
+            return this[actualIndex..];
         }
 
+        /// <summary>
+        /// Gets a new <see cref="CsvRow"/> from the given range.
+        /// </summary>
+        /// <param name="range">The range of columns</param>
+        /// <returns></returns>
         public CsvRow Slice(Range range)
         {
             var values = _values[range];
@@ -109,18 +167,36 @@ namespace FastCSV
             return new CsvRow(values, header, _format!);
         }
 
+        /// <summary>
+        /// Gets a copy of this <see cref="CsvRow"/> with the given format.
+        /// </summary>
+        /// <param name="format">The format.</param>
+        /// <returns></returns>
         public CsvRow WithFormat(CsvFormat format)
         {
             return new CsvRow(_values, _header, format);
         }
 
+        /// <summary>
+        /// Gets an enumerator over the values of this row.
+        /// </summary>
+        /// <returns></returns>
         public Enumerator GetEnumerator() => new(_values);
 
+        /// <summary>
+        /// Gets a string representation of this row.
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             return ToString(_format!);
         }
 
+        /// <summary>
+        /// Gets a string representation of this row.
+        /// </summary>
+        /// <param name="format">The format to use.</param>
+        /// <returns></returns>
         public string ToString(CsvFormat format)
         {
             return CsvUtility.ToCsvString(_values, format);

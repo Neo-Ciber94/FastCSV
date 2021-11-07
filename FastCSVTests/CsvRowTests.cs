@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace FastCSV.Tests
@@ -34,23 +29,23 @@ namespace FastCSV.Tests
         }
 
         [Test]
-        public void NewCsvColumnsTest()
+        public void NewCsvRowTest()
         {
             var record = CsvRecord.From(new Product(2, "Chair", 450, true, "Red"));
-            var columns = record.AsRow();
+            var row = record.AsRow();
 
-            Assert.IsFalse(columns.IsEmpty);
-            Assert.AreEqual(5, columns.Length);
-            Assert.AreEqual(CsvFormat.Default, columns.Format);
+            Assert.IsFalse(row.IsEmpty);
+            Assert.AreEqual(5, row.Length);
+            Assert.AreEqual(CsvFormat.Default, row.Format);
         }
 
         [Test]
         public void SliceTest1()
         {
             var record = CsvRecord.From(new Product(2, "Chair", 450, true, "Red"));
-            var columns = record.AsRow();
+            var row = record.AsRow();
 
-            var slice = columns.Slice(0, 3);
+            var slice = row.Slice(0, 3);
 
             Assert.AreEqual(3, slice.Length);
             Assert.AreEqual("2", slice[0]);
@@ -62,9 +57,9 @@ namespace FastCSV.Tests
         public void SliceTest2()
         {
             var record = CsvRecord.From(new Product(2, "Chair", 450, true, "Red"));
-            var columns = record.AsRow();
+            var row = record.AsRow();
 
-            var slice = columns.Slice(1, 3);
+            var slice = row.Slice(1, 3);
 
             Assert.AreEqual(3, slice.Length);
             Assert.AreEqual("Chair", slice[0]);
@@ -76,9 +71,9 @@ namespace FastCSV.Tests
         public void SliceTest3()
         {
             var record = CsvRecord.From(new Product(2, "Chair", 450, true, "Red"));
-            var columns = record.AsRow();
+            var row = record.AsRow();
 
-            var slice = columns.Slice(^3);
+            var slice = row.Slice(^3);
 
             Assert.AreEqual(3, slice.Length);
             Assert.AreEqual("450", slice[0]);
@@ -91,9 +86,9 @@ namespace FastCSV.Tests
         public void SliceTest4()
         {
             var record = CsvRecord.From(new Product(2, "Chair", 450, true, "Red"));
-            var columns = record.AsRow();
+            var row = record.AsRow();
 
-            var slice = columns.Slice(2..5);
+            var slice = row.Slice(2..5);
 
             Assert.AreEqual(3, slice.Length);
             Assert.AreEqual("450", slice[0]);
@@ -105,48 +100,48 @@ namespace FastCSV.Tests
         public void IndexerTest1()
         {
             var record = CsvRecord.From(new Product(2, "Chair", 450, true, "Red"));
-            var columns = record.AsRow();
+            var row = record.AsRow();
 
-            Assert.AreEqual("2", columns[0]);
-            Assert.AreEqual("Chair", columns[1]);
-            Assert.AreEqual("450", columns[2]);
-            Assert.AreEqual("true", columns[3]);
-            Assert.AreEqual("Red", columns[4]);            
+            Assert.AreEqual("2", row[0]);
+            Assert.AreEqual("Chair", row[1]);
+            Assert.AreEqual("450", row[2]);
+            Assert.AreEqual("true", row[3]);
+            Assert.AreEqual("Red", row[4]);            
         }
 
         [Test]
         public void IndexerTest2()
         {
             var record = CsvRecord.From(new Product(2, "Chair", 450, true, "Red"));
-            var columns = record.AsRow();
+            var row = record.AsRow();
 
-            Assert.AreEqual("2", columns[^5]);
-            Assert.AreEqual("Chair", columns[^4]);
-            Assert.AreEqual("450", columns[^3]);
-            Assert.AreEqual("true", columns[^2]);
-            Assert.AreEqual("Red", columns[^1]);         
+            Assert.AreEqual("2", row[^5]);
+            Assert.AreEqual("Chair", row[^4]);
+            Assert.AreEqual("450", row[^3]);
+            Assert.AreEqual("true", row[^2]);
+            Assert.AreEqual("Red", row[^1]);         
         }
 
         [Test]
         public void IndexerByKeyTest()
         {
             var record = CsvRecord.From(new Product(2, "Chair", 450, true, "Red"));
-            var columns = record.AsRow();
+            var row = record.AsRow();
 
-            Assert.AreEqual("2", columns["Id"]);
-            Assert.AreEqual("Chair", columns["Name"]);
-            Assert.AreEqual("450", columns["Price"]);
-            Assert.AreEqual("true", columns["Available"]);
-            Assert.AreEqual("Red", columns["Color"]);
+            Assert.AreEqual("2", row["Id"]);
+            Assert.AreEqual("Chair", row["Name"]);
+            Assert.AreEqual("450", row["Price"]);
+            Assert.AreEqual("true", row["Available"]);
+            Assert.AreEqual("Red", row["Color"]);
         }
 
         [Test]
         public void GetEnumeratorTest()
         {
             var record = CsvRecord.From(new Product(2, "Chair", 450, true, "Red"));
-            var columns = record.AsRow();
+            var row = record.AsRow();
 
-            var enumerator = columns.GetEnumerator();
+            var enumerator = row.GetEnumerator();
 
             Assert.IsTrue(enumerator.MoveNext());
             Assert.AreEqual("2", enumerator.Current);
