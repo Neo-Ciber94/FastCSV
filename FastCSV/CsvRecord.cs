@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using FastCSV.Collections;
-using FastCSV.Utils;
 using FastCSV.Extensions;
+using FastCSV.Utils;
 
 namespace FastCSV
 {
@@ -169,33 +169,33 @@ namespace FastCSV
         public ReadOnlyMemory<string> this[Range range] => _values.AsMemory(range);
 
         /// <summary>
-        /// Gets the columns of this record.
+        /// Gets this record as a row.
         /// </summary>
-        /// <returns>A view to the columns of this record.</returns>
-        public CsvColumns AsColumns()
+        /// <returns>A view to the row of this record.</returns>
+        public CsvRow AsRow()
         {
-            return new CsvColumns(this);
+            return new CsvRow(this);
         }
 
         /// <summary>
-        /// Gets the columns of this record from the given range.
+        /// Gets this record as a row.
         /// </summary>
         /// <param name="startIndex">The start index.</param>
-        /// <returns>A view to the columns of this record.</returns>
-        public CsvColumns AsColumns(int startIndex)
+        /// <returns>A view to the row of this record.</returns>
+        public CsvRow AsRow(int startIndex)
         {
-            return new CsvColumns(this, startIndex);
+            return new CsvRow(this, startIndex);
         }
 
         /// <summary>
-        /// Gets the columns of this record from the given range.
+        /// Gets this record as a row from the given column range.
         /// </summary>
         /// <param name="startIndex">The start index.</param>
         /// <param name="count">The number of elements.</param>
-        /// <returns>A view to the columns of this record.</returns>
-        public CsvColumns AsColumns(int startIndex, int count)
+        /// <returns>A view to the row of this record.</returns>
+        public CsvRow AsRow(int startIndex, int count)
         {
-            return new CsvColumns(this, startIndex, count);
+            return new CsvRow(this, startIndex, count);
         }
 
         /// <summary>

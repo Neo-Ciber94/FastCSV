@@ -129,33 +129,33 @@ namespace FastCSV
         public ReadOnlyMemory<string> this[Range range] => _values.AsMemory(range);
 
         /// <summary>
-        /// Gets the columns of this header.
+        /// Gets this header as row.
         /// </summary>
-        /// <returns>A view to the columns of this record.</returns>
-        public CsvColumns AsColumns()
+        /// <returns>A view to the header row.</returns>
+        public CsvRow AsRow()
         {
-            return new CsvColumns(this);
+            return new CsvRow(this);
         }
 
         /// <summary>
-        /// Gets the columns of this header from the given range.
+        /// Gets the row of this header from the given range of columns.
         /// </summary>
         /// <param name="startIndex">The start index.</param>
-        /// <returns>A view to the columns of this record.</returns>
-        public CsvColumns AsColumns(int startIndex)
+        /// <returns>A view to the header row.</returns>
+        public CsvRow AsRow(int startIndex)
         {
-            return new CsvColumns(this, startIndex);
+            return new CsvRow(this, startIndex);
         }
 
         /// <summary>
-        /// Gets the columns of this header from the given range.
+        /// Gets the row of this header from the given range of columns.
         /// </summary>
         /// <param name="startIndex">The start index.</param>
         /// <param name="count">The number of elements.</param>
-        /// <returns>A view to the columns of this record.</returns>
-        public CsvColumns AsColumns(int startIndex, int count)
+        /// <returns>A view to the header row.</returns>
+        public CsvRow AsRow(int startIndex, int count)
         {
-            return new CsvColumns(this, startIndex, count);
+            return new CsvRow(this, startIndex, count);
         }
 
         /// Gets a <see cref="ReadOnlyMemory{T}"/> view to the elements of this header.

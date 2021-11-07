@@ -9,7 +9,7 @@ using NUnit.Framework;
 namespace FastCSV.Tests
 {
     [TestFixture]
-    public class CsvColumnsTests
+    public class CsvRowTests
     {
         [Test]
         public void RecordOutOfRangeTest()
@@ -18,7 +18,7 @@ namespace FastCSV.Tests
 
             Assert.Throws<ArgumentOutOfRangeException>(() =>
             {
-                var _ = record.AsColumns(0, 10);
+                var _ = record.AsRow(0, 10);
             });
         }
 
@@ -29,7 +29,7 @@ namespace FastCSV.Tests
 
             Assert.Throws<ArgumentOutOfRangeException>(() =>
             {
-                var _ = header.AsColumns(0, 10);
+                var _ = header.AsRow(0, 10);
             });
         }
 
@@ -37,7 +37,7 @@ namespace FastCSV.Tests
         public void NewCsvColumnsTest()
         {
             var record = CsvRecord.From(new Product(2, "Chair", 450, true, "Red"));
-            var columns = record.AsColumns();
+            var columns = record.AsRow();
 
             Assert.IsFalse(columns.IsEmpty);
             Assert.AreEqual(5, columns.Length);
@@ -48,7 +48,7 @@ namespace FastCSV.Tests
         public void SliceTest1()
         {
             var record = CsvRecord.From(new Product(2, "Chair", 450, true, "Red"));
-            var columns = record.AsColumns();
+            var columns = record.AsRow();
 
             var slice = columns.Slice(0, 3);
 
@@ -62,7 +62,7 @@ namespace FastCSV.Tests
         public void SliceTest2()
         {
             var record = CsvRecord.From(new Product(2, "Chair", 450, true, "Red"));
-            var columns = record.AsColumns();
+            var columns = record.AsRow();
 
             var slice = columns.Slice(1, 3);
 
@@ -76,7 +76,7 @@ namespace FastCSV.Tests
         public void SliceTest3()
         {
             var record = CsvRecord.From(new Product(2, "Chair", 450, true, "Red"));
-            var columns = record.AsColumns();
+            var columns = record.AsRow();
 
             var slice = columns.Slice(^3);
 
@@ -91,7 +91,7 @@ namespace FastCSV.Tests
         public void SliceTest4()
         {
             var record = CsvRecord.From(new Product(2, "Chair", 450, true, "Red"));
-            var columns = record.AsColumns();
+            var columns = record.AsRow();
 
             var slice = columns.Slice(2..5);
 
@@ -105,7 +105,7 @@ namespace FastCSV.Tests
         public void IndexerTest1()
         {
             var record = CsvRecord.From(new Product(2, "Chair", 450, true, "Red"));
-            var columns = record.AsColumns();
+            var columns = record.AsRow();
 
             Assert.AreEqual("2", columns[0]);
             Assert.AreEqual("Chair", columns[1]);
@@ -118,7 +118,7 @@ namespace FastCSV.Tests
         public void IndexerTest2()
         {
             var record = CsvRecord.From(new Product(2, "Chair", 450, true, "Red"));
-            var columns = record.AsColumns();
+            var columns = record.AsRow();
 
             Assert.AreEqual("2", columns[^5]);
             Assert.AreEqual("Chair", columns[^4]);
@@ -131,7 +131,7 @@ namespace FastCSV.Tests
         public void IndexerByKeyTest()
         {
             var record = CsvRecord.From(new Product(2, "Chair", 450, true, "Red"));
-            var columns = record.AsColumns();
+            var columns = record.AsRow();
 
             Assert.AreEqual("2", columns["Id"]);
             Assert.AreEqual("Chair", columns["Name"]);
@@ -144,7 +144,7 @@ namespace FastCSV.Tests
         public void GetEnumeratorTest()
         {
             var record = CsvRecord.From(new Product(2, "Chair", 450, true, "Red"));
-            var columns = record.AsColumns();
+            var columns = record.AsRow();
 
             var enumerator = columns.GetEnumerator();
 
