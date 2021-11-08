@@ -268,7 +268,7 @@ namespace FastCSV
             return ToString(Format);
         }
 
-        public Enumerator GetEnumerator() => new Enumerator(_values);
+        public Enumerator GetEnumerator() => new(_values);
 
         IEnumerator<string> IEnumerable<string>.GetEnumerator() => GetEnumerator();
 

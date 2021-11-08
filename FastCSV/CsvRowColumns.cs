@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using FastCSV.Collections;
@@ -99,13 +100,22 @@ namespace FastCSV
 
         public string ToString(CsvFormat format)
         {
-            string[] values = new string[_columnNames.Count];
+            string[] arrayFromPool = ArrayPool<string>.Shared.Rent(_columnNames.Count);
+            Span<string> columnNames = new(arrayFromPool, 0, _columnNames.Count);
+
             for (int i = 0; i < _columnNames.Count; i++)
             {
-                values[i] = this[i]!;
+                columnNames[i] = this[i]!;
             }
 
-            return CsvUtility.ToCsvString(values, format);
+            try
+            {
+                return CsvUtility.ToCsvString(columnNames, format);
+            }
+            finally
+            {
+                ArrayPool<string>.Shared.Return(arrayFromPool);
+            }
         }
 
         public override string ToString()

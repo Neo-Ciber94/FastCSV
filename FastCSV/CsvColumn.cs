@@ -29,7 +29,7 @@ namespace FastCSV
         /// </summary>
         /// <param name="document">The document.</param>
         /// <param name="columnName">Name of the column.</param>
-        /// <exception cref="ArgumentException">If cannot find the column.</exception>
+        /// <exception cref="ArgumentException">If cannot find a header or the column</exception>
         public CsvColumn(IEnumerable<CsvRecord> records, string columnName)
         {
             CsvHeader? header = records.FirstOrDefault()?.Header;
@@ -51,6 +51,12 @@ namespace FastCSV
             Name = columnName;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CsvColumn"/> struct.
+        /// </summary>
+        /// <param name="document">The document.</param>
+        /// <param name="columnIndex">Index of the column.</param>
+        /// <exception cref="ArgumentException">If cannot find a header or the column</exception>
         public CsvColumn(IEnumerable<CsvRecord> records, int columnIndex)
         {
             CsvHeader? header = records.FirstOrDefault()?.Header;
@@ -70,6 +76,12 @@ namespace FastCSV
             Name = header[columnIndex]!;
         }
 
+        /// <summary>
+        /// Transforms the columns to the type <typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="options">The options to use.</param>
+        /// <typeparam name="T">The type</typeparam>
+        /// <returns>An enumerable of object of type T.</returns>
         public IEnumerable<T> Cast<T>(CsvConverterOptions? options = null)
         {
             options ??= CsvConverterOptions.Default;
@@ -108,6 +120,9 @@ namespace FastCSV
 
         IEnumerator IEnumerable.GetEnumerator() => new Enumerator(this);
 
+        /// <summary>
+        /// An enumerator over the values of this column.
+        /// </summary>
         public struct Enumerator : IEnumerator<string>
         {
             private readonly CsvColumn _column;
