@@ -5,6 +5,9 @@ using FastCSV.Collections;
 
 namespace FastCSV
 {
+    /// <summary>
+    /// Represents a collection of specify columns in a row.
+    /// </summary>
     public readonly struct CsvRowColumns : IEquatable<CsvRowColumns>, IEnumerable<string>
     {
         public static CsvRowColumns Empty { get; } = default;
