@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using FastCSV.Collections;
 using FastCSV.Internal;
 using FastCSV.Utils;
 
@@ -17,7 +18,7 @@ namespace FastCSV
     /// </summary>
     /// <typeparam name="T">Type of the csv values.</typeparam>
     /// <seealso cref="FastCSV.ICsvDocument" />
-    public partial class CsvDocument<T> : ICsvDocument
+    public partial class CsvDocument<T> : ICsvDocument, IValueEnumerable<CsvRecord, CsvDocument<T>.Enumerator>
     {
         internal readonly struct TypedRecord
         {
@@ -413,6 +414,26 @@ namespace FastCSV
             return new CsvDocument<T>(array, Header.WithFormat(format), options);
         }
 
+        /// <summary>
+        /// Gets the column with the specify index.
+        /// </summary>
+        /// <param name="columnIndex">The index of the column.</param>
+        /// <returns>The column with the given index.</returns>
+        public CsvColumn<CsvDocument<T>, Enumerator> GetColumn(int columnIndex)
+        {
+            return new CsvColumn<CsvDocument<T>, Enumerator>(this, columnIndex);
+        }
+
+        /// <summary>
+        /// Gets the column with the specify name.
+        /// </summary>
+        /// <param name="columName">The name of the column.</param>
+        /// <returns>The column with the given name.</returns>
+        public CsvColumn<CsvDocument<T>, Enumerator> GetColumn(string columName)
+        {
+            return new CsvColumn<CsvDocument<T>, Enumerator>(this, columName);
+        }
+
         private void Resize(int required)
         {
             int minCapacity = _count + required;
@@ -483,7 +504,7 @@ namespace FastCSV
         /// Gets the enumerator.
         /// </summary>
         /// <returns></returns>
-        public Enumerator GetEnumerator() => new Enumerator(_records, _count);
+        public Enumerator GetEnumerator() => new(_records, _count);
 
         IEnumerator<CsvRecord> IEnumerable<CsvRecord>.GetEnumerator() => GetEnumerator();
 

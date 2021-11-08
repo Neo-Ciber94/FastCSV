@@ -1,4 +1,5 @@
-﻿using System;
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,13 +9,12 @@ using FastCSV.Internal;
 
 namespace FastCSV
 {
-    /// <summary>
-    /// Represents a column in a CSV file.
-    /// </summary>
-    /// <seealso cref="IEnumerable{string}" />
-    public readonly partial struct CsvColumn : IEnumerable<string>
+    public readonly struct CsvColumn<TEnumerable, TEnumerator> 
+        : IValueEnumerable<string, CsvColumn<TEnumerable, TEnumerator>.Enumerator>
+        where TEnumerable : IValueEnumerable<CsvRecord, TEnumerator>
+        where TEnumerator : IEnumerator<CsvRecord>
     {
-        private readonly IEnumerable<CsvRecord> _records;
+        private readonly TEnumerable _records;
         private readonly int _columnIndex;
 
         /// <summary>
@@ -25,13 +25,7 @@ namespace FastCSV
         /// </value>
         public string Name { get; }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CsvColumn"/> struct.
-        /// </summary>
-        /// <param name="document">The document.</param>
-        /// <param name="columnName">Name of the column.</param>
-        /// <exception cref="ArgumentException">If cannot find a header or the column</exception>
-        public CsvColumn(IEnumerable<CsvRecord> records, string columnName)
+        public CsvColumn(TEnumerable records, string columnName)
         {
             CsvHeader? header = records.FirstOrDefault()?.Header;
 
@@ -52,13 +46,7 @@ namespace FastCSV
             Name = columnName;
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CsvColumn"/> struct.
-        /// </summary>
-        /// <param name="document">The document.</param>
-        /// <param name="columnIndex">Index of the column.</param>
-        /// <exception cref="ArgumentException">If cannot find a header or the column</exception>
-        public CsvColumn(IEnumerable<CsvRecord> records, int columnIndex)
+        public CsvColumn(TEnumerable records, int columnIndex)
         {
             CsvHeader? header = records.FirstOrDefault()?.Header;
 
@@ -111,26 +99,20 @@ namespace FastCSV
             return result;
         }
 
-        /// <summary>
-        /// Gets an enumerator over the values of this column.
-        /// </summary>
-        /// <returns></returns>
+        public static implicit operator CsvColumn(CsvColumn<TEnumerable, TEnumerator> column)
+        {
+            return new CsvColumn(column._records, column._columnIndex);
+        }
+
         public Enumerator GetEnumerator() => new(this);
-
-        IEnumerator<string> IEnumerable<string>.GetEnumerator() => new Enumerator(this);
-
-        IEnumerator IEnumerable.GetEnumerator() => new Enumerator(this);
-
-        /// <summary>
-        /// An enumerator over the values of this column.
-        /// </summary>
+        
         public struct Enumerator : IEnumerator<string>
         {
-            private readonly CsvColumn _column;
-            private IEnumerator<CsvRecord> _enumerator;
+            private readonly CsvColumn<TEnumerable, TEnumerator> _column;
+            private TEnumerator _enumerator;
             private CsvRecord? _current;
 
-            public Enumerator(CsvColumn column)
+            public Enumerator(CsvColumn<TEnumerable, TEnumerator> column)
             {
                 _enumerator = column._records.GetEnumerator();
                 _column = column;
@@ -149,7 +131,7 @@ namespace FastCSV
                 }
 
                 _current = _enumerator.Current;
-                AssertIsValidColumnRecord(_current, _column._columnIndex, _column.Name);
+                CsvColumn.AssertIsValidColumnRecord(_current, _column._columnIndex, _column.Name);
                 return true;
             }
 
@@ -158,27 +140,7 @@ namespace FastCSV
                 _enumerator = _column._records.GetEnumerator();
             }
 
-            void IDisposable.Dispose()
-            {
-            }
-        }
-
-        internal static void AssertIsValidColumnRecord(CsvRecord record, int columnIndex, string columnName)
-        {
-            if (record.Header == null)
-            {
-                throw new ArgumentException("No header found");
-            }
-
-            if (columnIndex < 0 || columnIndex >= record.Header.Length)
-            {
-                throw new ArgumentOutOfRangeException(nameof(columnIndex), $"{nameof(columnIndex)}: {columnIndex}");
-            }
-
-            if (columnName != record.Header[columnIndex])
-            {
-                throw new ArgumentException($"{nameof(columnName)}: {columnName}", nameof(columnName));
-            }
+            void IDisposable.Dispose() { }
         }
     }
 }
