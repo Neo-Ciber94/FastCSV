@@ -121,15 +121,15 @@ namespace FastCSV.Collections
 
         public void Add(T item)
         {
-            if (_value is T[])
+            if (_value is T[] v)
             {
-                int length = ((T[])_value).Length;
+                int length = v.Length;
                 if (_count == length)
                 {
                     Resize(1);
                 }
 
-                ((T[])_value)[_count] = item;
+                v[_count] = item;
             }
             else
             {
