@@ -1,81 +1,20 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using FastCSV.Converters;
+using FastCSV.Internal;
 
 namespace FastCSV
 {
     /// <summary>
-    /// A view to a column of csv data.
+    /// Represents a column in a CSV file.
     /// </summary>
     /// <seealso cref="IEnumerable{string}" />
     public readonly struct CsvColumn : IEnumerable<string>
     {
-        private readonly IReadOnlyList<CsvRecord> _records;
+        private readonly IEnumerable<CsvRecord> _records;
         private readonly int _columnIndex;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CsvColumn"/> struct.
-        /// </summary>
-        /// <param name="document">The document.</param>
-        /// <param name="columnName">Name of the column.</param>
-        /// <exception cref="ArgumentException">If cannot find the column.</exception>
-        public CsvColumn(CsvDocument document, string columnName)
-        {
-            _columnIndex = document.Header.IndexOf(columnName);
-
-            if(_columnIndex < 0)
-            {
-                throw new ArgumentException("Cannot find a column named: " + columnName);
-            }
-
-            _records = document._records;
-            Name = columnName;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CsvColumn"/> struct.
-        /// </summary>
-        /// <param name="document">The document.</param>
-        /// <param name="columnIndex">Index of the column.</param>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public CsvColumn(CsvDocument document, int columnIndex)
-        {
-            _columnIndex = columnIndex;
-            if(_columnIndex < 0 | columnIndex > document.Header.Length)
-            {
-                throw new ArgumentOutOfRangeException($"{nameof(columnIndex)}: {columnIndex}");
-            }
-
-            _records = document._records;
-            Name = document.Header[_columnIndex];
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CsvColumn"/> struct.
-        /// </summary>
-        /// <param name="records">The records.</param>
-        /// <param name="columnIndex">Index of the column.</param>
-        /// <exception cref="ArgumentException">
-        /// If the first record don't have a header.
-        /// </exception>
-        public CsvColumn(IReadOnlyList<CsvRecord> records, int columnIndex)
-        {
-            if (records.Count == 0)
-            {
-                throw new ArgumentException($"{nameof(records)} is empty");
-            }
-
-            CsvHeader? header = records[0].Header;
-
-            if (header == null)
-            {
-                throw new ArgumentException("First record don't have a header.");
-            }
-
-            _records = records;
-            _columnIndex = columnIndex;
-            Name = header[columnIndex]!;
-        }
 
         /// <summary>
         /// Gets the name of the column.
@@ -86,10 +25,84 @@ namespace FastCSV
         public string Name { get; }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="CsvColumn"/> struct.
+        /// </summary>
+        /// <param name="document">The document.</param>
+        /// <param name="columnName">Name of the column.</param>
+        /// <exception cref="ArgumentException">If cannot find the column.</exception>
+        public CsvColumn(IEnumerable<CsvRecord> records, string columnName)
+        {
+            CsvHeader? header = records.FirstOrDefault()?.Header;
+
+            if (header == null)
+            {
+                throw new ArgumentException("No header found");
+            }
+
+            int index = header.IndexOf(columnName);
+
+            if (index < 0)
+            {
+                throw new ArgumentException("Cannot find a column named: " + columnName);
+            }
+
+            _records = records;
+            _columnIndex = index;
+            Name = columnName;
+        }
+
+        public CsvColumn(IEnumerable<CsvRecord> records, int columnIndex)
+        {
+            CsvHeader? header = records.FirstOrDefault()?.Header;
+
+            if (header == null)
+            {
+                throw new ArgumentException("No header found");
+            }
+
+            if (columnIndex < 0 || columnIndex >= header.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(columnIndex), $"{nameof(columnIndex)}: {columnIndex}");
+            }
+
+            _records = records;
+            _columnIndex = columnIndex;
+            Name = header[columnIndex]!;
+        }
+
+        public IEnumerable<T> Cast<T>(CsvConverterOptions? options = null)
+        {
+            options ??= CsvConverterOptions.Default;
+            Type type = typeof(T);
+            var converter = CsvConverter.GetConverter(type, options);
+
+            if (converter == null)
+            {
+                return Array.Empty<T>();
+            }
+
+            List<T> result = new();
+
+            foreach (string value in this)
+            {
+                var state = new CsvDeserializeState(options, type, value);
+
+                if (!converter.TryDeserialize(out object? obj, type, ref state))
+                {
+                    throw ThrowHelper.CannotDeserializeToType(new string[] { value }, type);
+                }
+
+                result.Add((T)obj!);
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Gets an enumerator over the values of this column.
         /// </summary>
         /// <returns></returns>
-        public Enumerator GetEnumerator() => new Enumerator(this);
+        public Enumerator GetEnumerator() => new(this);
 
         IEnumerator<string> IEnumerable<string>.GetEnumerator() => new Enumerator(this);
 
@@ -97,40 +110,59 @@ namespace FastCSV
 
         public struct Enumerator : IEnumerator<string>
         {
-            private readonly IReadOnlyList<CsvRecord> _records;
-            private readonly int _columnIndex;
-            private int _index;
+            private readonly CsvColumn _column;
+            private IEnumerator<CsvRecord> _enumerator;
+            private CsvRecord? _current;
 
-            internal Enumerator(in CsvColumn column)
+            public Enumerator(CsvColumn column)
             {
-                _records = column._records;
-                _columnIndex = column._columnIndex;
-                _index = -1;
+                _enumerator = column._records.GetEnumerator();
+                _column = column;
+                _current = null;
             }
 
-            public string Current => _records[_index][_columnIndex];
+            public string Current => _current?[_column._columnIndex]!;
 
-            object? IEnumerator.Current => Current;
+            object IEnumerator.Current => Current;
 
             public bool MoveNext()
             {
-                int i = _index + 1;
-
-                if(i < _records.Count)
+                if (!_enumerator.MoveNext())
                 {
-                    _index = i;
-                    return true;
+                    return false;
                 }
 
-                return false;
+                _current = _enumerator.Current;
+                AssertIsValidColumnRecord(_current, _column._columnIndex, _column.Name);
+                return true;
             }
 
             public void Reset()
             {
-                _index = -1;
+                _enumerator = _column._records.GetEnumerator();
             }
 
-            public void Dispose() { }
+            void IDisposable.Dispose()
+            {
+            }
+        }
+
+        internal static void AssertIsValidColumnRecord(CsvRecord record, int columnIndex, string columnName)
+        {
+            if (record.Header == null)
+            {
+                throw new ArgumentException("No header found");
+            }
+
+            if (columnIndex < 0 || columnIndex >= record.Header.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(columnIndex), $"{nameof(columnIndex)}: {columnIndex}");
+            }
+
+            if (columnName != record.Header[columnIndex])
+            {
+                throw new ArgumentException($"{nameof(columnName)}: {columnName}", nameof(columnName));
+            }
         }
     }
 }
