@@ -28,6 +28,7 @@ A CSharp library for read and write csv documents.
 - [CsvConverterOptions](#csv-converter-options)
   - [Naming Convention](#csv-converter-options-naming-convention)
   - [Nested Objects](#csv-converter-options-nested-objects)
+    - [Limitations](#csv-converter-options-nested-objects-limitations)
   - [Collections](#csv-converter-options-collections)
   - [Custom Converters](#csv-converter-options-converters)
   - [Type Guesser](#csv-converter-options-type-guesser)
@@ -465,3 +466,195 @@ When serializing or deserializing objects we will try to get a converter to tran
 a collection of fields to the csv and if a converter is not found for a type an exception will be throw.
 
 For thoses cases you can tell the converter to use a ```NestedObjectHandling``` to flatten those nested objects.
+
+```csharp
+using FastCSV;
+
+var options = new CsvConverterOptions
+{
+    NestedObjectHandling = NestedObjectHandling.Default
+};
+
+using var writer = new CsvWriter("output.csv");
+
+writer.WriteType<ShoppingCart>(options);
+writer.WriteValue<ShoppingCart>(new ShoppingCart(Id: 1, Quantity: 12, Info: new ProductInfo("Apple", 20)), options);
+writer.WriteValue<ShoppingCart>(new ShoppingCart(Id: 2, Quantity: 1, Info: new ProductInfo("Frozen Pizza", 200)), options);
+writer.WriteValue<ShoppingCart>(new ShoppingCart(Id: 3, Quantity: 5, Info: new ProductInfo("Chair", 800)), options);
+
+record ShoppingCart(int Id, int Quantity, ProductInfo Info);
+
+record ProductInfo(string Name, decimal Price);
+```
+
+*output.csv*
+```bash
+Id,Quantity,Name,Price
+1,12,Apple,20
+2,1,Frozen Pizza,200
+3,5,Chair,800
+```
+
+#### Limitations
+
+Nested object serialization may fail when serializing types with self referencing fields/properties:
+
+```csharp
+class Node
+{
+    public int Value { get; set; }
+    public Node? Next { get; set; }
+    public Node? Prev { get; set; }
+}
+```
+
+### Collections
+Using the ``CollectionHandling`` you can allow serialize/deserialize collections,
+inline in the csv.
+
+The way this is done is using a ``tag`` which identifies the items with a name and index,
+starting at 1. The default tag when using ``CollectionHandling.Default`` is ``"item"``.
+
+```csharp
+using System;
+using FastCSV;
+using FastCSV.Utils;
+
+string csv = @"
+CartId,item1,item2,item3
+1,Apple,Pinnable,Banana
+2,Keyboard,Mouse,Monitor
+3,Coffee,Tea,Milk
+".Trim();
+
+var options = new CsvConverterOptions
+{
+    CollectionHandling = CollectionHandling.Default
+};
+
+var stream = StreamHelper.CreateStreamFromString(csv);
+using var reader = new CsvReader(stream);
+
+foreach(var e in reader.ReadAllAs<ShoppingCart>(options))
+{
+    Console.WriteLine(e);
+}
+
+record ShoppingCart(int CartId, string[] Products)
+{
+    public override string ToString()
+    {
+        string items = string.Join(", ", Products);
+        return $"{nameof(ShoppingCart)} {{ CartId = {CartId}, Products = [ {items} ] }}";
+    }
+}
+```
+
+**Output**
+
+```bash
+ShoppingCart { CartId = 1, Products = [ Apple, Pinnable, Banana ] }
+ShoppingCart { CartId = 2, Products = [ Keyboard, Mouse, Monitor ] }
+ShoppingCart { CartId = 3, Products = [ Coffee, Tea, Milk ] }
+```
+
+### Custom Converters
+
+By default when serializing/deserializing an object all the built-in types will be serializer with an built-in converter.
+
+The list of built-in types can be found on: ``FastCSV\Converters\CsvDefaultConverterProvider.BuiltinTypes.g.cs``
+
+But when required you can add your own custom converters to the ``CsvConverterOptions.Converters`` by inheriting from:
+
+- ``ICsvValueConverter`` : Provides a low-level API for convert a from and to a string.
+- ``ICsvCustomConverter`` : Provides a simple API to convert a value from and to a string.
+
+```csharp
+using System;
+using FastCSV;
+using FastCSV.Converters;
+using FastCSV.Utils;
+
+var csv = @"
+Id,Position
+1,""(20,-34)""
+2,""(1,3)""
+3,""(-3,400)""
+".Trim();
+
+var options = new CsvConverterOptions
+{
+    Converters = new []{ new PointConverter() },
+};
+
+var stream = StreamHelper.CreateStreamFromString(csv, writable: true);
+
+using(var writer = new CsvWriter(stream, leaveOpen: true))
+{
+    writer.Write(); // Adds a new line
+    writer.WriteValue(new Data(4, new Point(12, 34)), options);
+}
+
+stream.Position = 0; // Reset the stream position
+using var reader = new CsvReader(stream);
+
+foreach (Data data in reader.ReadAllAs<Data>(options))
+{
+    Console.WriteLine(data);
+}
+
+record Data(int Id, Point Position);
+
+record Point(int X, int Y);
+
+class PointConverter : ICsvCustomConverter<Point>
+{
+    public string? ConvertFrom(Point value)
+    {
+        return $"({value.X},{value.Y})";
+    }
+
+    public bool ConvertTo(ReadOnlySpan<char> s, out Point value)
+    {
+        value = default!;
+        s = s.Trim();
+
+        if (s.Length < 5 || s[0] != '(' || s[^1] != ')')
+        {
+            return false;
+        }
+
+        s = s[1..^1];
+
+        if (s.Length == 0)
+        {
+            return false;
+        }
+
+        int separator = s.IndexOf(',');
+        if (separator == -1)
+        {
+            return false;
+        }
+
+        ReadOnlySpan<char> x = s[..separator].Trim();
+        ReadOnlySpan<char> y = s[(separator + 1)..].Trim();
+
+        if (!int.TryParse(x, out int xValue) || !int.TryParse(y, out int yValue))
+        {
+            return false;
+        }
+
+        value = new Point(xValue, yValue);
+        return true;
+    }
+}
+```
+
+**Output**
+```bash
+Data { Id = 1, Position = Point { X = 20, Y = -34 } }
+Data { Id = 2, Position = Point { X = 1, Y = 3 } }
+Data { Id = 3, Position = Point { X = -3, Y = 400 } }
+Data { Id = 4, Position = Point { X = 12, Y = 34 } }
+```
