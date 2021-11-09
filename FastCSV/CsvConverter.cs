@@ -1036,6 +1036,12 @@ namespace FastCSV
          */
         private static bool EqualTypes(Type leftType, Type rightType, CsvConverterOptions options)
         {
+            // Allow any object conversion
+            if (leftType == typeof(object) || rightType == typeof(object))
+            {
+                return true;
+            }
+
             var reflector = options.ReflectionProvider;
             if (leftType.IsGenericType && reflector.IsNullableType(leftType))
             {
