@@ -658,3 +658,90 @@ Data { Id = 2, Position = Point { X = 1, Y = 3 } }
 Data { Id = 3, Position = Point { X = -3, Y = 400 } }
 Data { Id = 4, Position = Point { X = 12, Y = 34 } }
 ```
+
+**Using the ICsvValueConverter API**
+
+```csharp
+using System;
+using FastCSV;
+using FastCSV.Converters;
+using FastCSV.Utils;
+
+var csv = @"
+Id,Position
+1,""(20,-34)""
+2,""(1,3)""
+3,""(-3,400)""
+".Trim();
+
+var options = new CsvConverterOptions
+{
+    Converters = new []{ new PointConverter() },
+};
+
+var stream = StreamHelper.CreateStreamFromString(csv, writable: true);
+
+using(var writer = new CsvWriter(stream, leaveOpen: true))
+{
+    writer.Write(); // Adds a new line
+    writer.WriteValue(new Data(4, new Point(12, 34)), options);
+}
+
+stream.Position = 0; // Reset the stream position
+using var reader = new CsvReader(stream);
+
+foreach (Data data in reader.ReadAllAs<Data>(options))
+{
+    Console.WriteLine(data);
+}
+
+record Data(int Id, Point Position);
+
+record Point(int X, int Y);
+
+class PointConverter : ICsvValueConverter<Point>
+{
+    public bool TrySerialize(Point value, ref CsvSerializeState state)
+    {
+        state.Write($"({value.X},{value.Y})");
+        return true;
+    }
+
+    public bool TryDeserialize(out Point value, ref CsvDeserializeState state)
+    {
+        value = default!;
+        ReadOnlySpan<char> s = state.Read();
+
+        s = s.Trim();
+
+        if (s.Length < 5 || s[0] != '(' || s[^1] != ')')
+        {
+            return false;
+        }
+
+        s = s[1..^1];
+
+        if (s.Length == 0)
+        {
+            return false;
+        }
+
+        int separator = s.IndexOf(',');
+        if (separator == -1)
+        {
+            return false;
+        }
+
+        ReadOnlySpan<char> x = s[..separator].Trim();
+        ReadOnlySpan<char> y = s[(separator + 1)..].Trim();
+
+        if (!int.TryParse(x, out int xValue) || !int.TryParse(y, out int yValue))
+        {
+            return false;
+        }
+
+        value = new Point(xValue, yValue);
+        return true;
+    }
+}
+```
