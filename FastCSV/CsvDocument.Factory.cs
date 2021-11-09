@@ -30,7 +30,7 @@ namespace FastCSV
 
             using Stream memory = StreamHelper.CreateStreamFromString(csv);
 
-            using (CsvReader reader = new CsvReader(new StreamReader(memory), format))
+            using (CsvReader reader = new(new StreamReader(memory), format))
             {
                 List<CsvRecord>? records;
 
@@ -61,20 +61,17 @@ namespace FastCSV
         }
 
         /// <summary>
-        /// Creates a <see cref="CsvDocument"/> from a csv file at the given path.
+        /// Creates a <see cref="CsvDocument"/> from a csv file at the given stream.
         /// </summary>
-        /// <param name="path">The path of the csv file.</param>
+        /// <param name="stream">The stream of the csv file.</param>
         /// <param name="format">The format.</param>
         /// <param name="flexible">if set to <c>true</c> will allow records of differents lengths.</param>
         /// <returns>A csv document from the file at the given path.</returns>
-        public static CsvDocument FromPath(string path, CsvFormat? format = null, bool flexible = false)
+        public static CsvDocument FromStream(Stream stream, CsvFormat? format = null, bool flexible = false)
         {
             format ??= CsvFormat.Default;
-
-            using (StreamReader streamReader = new StreamReader(path))
-            {
-                return FromCsv(streamReader.ReadToEnd(), format, flexible);
-            }
+            using StreamReader streamReader = new(stream);
+            return FromCsv(streamReader.ReadToEnd(), format, flexible);
         }
 
         /// <summary>
@@ -86,7 +83,7 @@ namespace FastCSV
         /// <returns>A document with the specified header and record.</returns>
         public static CsvDocument FromRaw(CsvHeader header, IEnumerable<CsvRecord> records, bool flexible = false)
         {
-            List<CsvRecord> result = new List<CsvRecord>();
+            List<CsvRecord> result = new();
 
             foreach (CsvRecord record in records)
             {
@@ -120,13 +117,13 @@ namespace FastCSV
         /// <returns>A csv document from the given data.</returns>
         public static CsvDocument<T> FromCsv<T>(ReadOnlySpan<char> csv, CsvConverterOptions? options = null)
         {
-            List<T> list = new List<T>();
+            List<T> list = new();
             Stream memory = StreamHelper.CreateStreamFromString(csv);
 
             options ??= CsvConverterOptions.Default;
             CsvFormat format = options.Format;
 
-            using (CsvReader reader = new CsvReader(memory, format))
+            using (CsvReader reader = new(memory, format))
             {
                 foreach (CsvRecord record in reader.ReadAll(format))
                 {
@@ -139,19 +136,17 @@ namespace FastCSV
         }
 
         /// <summary>
-        /// Creates a <see cref="CsvDocument{T}"/> from a csv file at the given path.
+        /// Creates a <see cref="CsvDocument{T}"/> from a csv file at the given stream.
         /// </summary>
-        /// <param name="path">The path of the csv file.</param>
+        /// <param name="stream">The source stream of the csv file.</param>
         /// <param name="format">The format.</param>
         /// <param name="parser">The parser.</param>
         /// <returns>A csv document from the file at the given path.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static CsvDocument<T> FromPath<T>(string path, CsvConverterOptions? options = null)
+        public static CsvDocument<T> FromStream<T>(Stream stream, CsvConverterOptions? options = null)
         {
-            using (StreamReader streamReader = new StreamReader(path))
-            {
-                return FromCsv<T>(streamReader.ReadToEnd(), options);
-            }
+            using StreamReader streamReader = new(stream);
+            return FromCsv<T>(streamReader.ReadToEnd(), options);
         }
     }
 }
