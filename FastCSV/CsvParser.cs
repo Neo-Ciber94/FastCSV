@@ -30,7 +30,7 @@ namespace FastCSV
         /// </summary>
         /// <param name="csv">The csv to parse.</param>
         /// <param name="format">The csv format.</param>
-        public CsvParser(string csv, CsvFormat? format = null) 
+        public CsvParser(string csv, CsvFormat? format = null)
             : this(new StreamReader(StreamHelper.CreateStreamFromString(csv)), format) { }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace FastCSV
         /// <summary>
         /// Whether if this parser had consume all the characters.
         /// </summary>
-        public bool IsDone => _reader?.EndOfStream?? true;
+        public bool IsDone => _reader?.EndOfStream ?? true;
 
         /// <summary>
         /// Gets the source <see cref="Stream"/>.
@@ -303,6 +303,7 @@ namespace FastCSV
                         case QuoteStyle.Never:
                             break;
                         case QuoteStyle.WhenNeeded:
+                        case QuoteStyle.Maintain:
                             if (!_lineParser.HasNext() || !_lineParser.TrimStart().CanConsume(delimiter))
                             {
                                 _currentField.Append(quote);
@@ -331,6 +332,7 @@ namespace FastCSV
                     case QuoteStyle.Never:
                         break;
                     case QuoteStyle.WhenNeeded:
+                    case QuoteStyle.Maintain:
                         _currentField.Append(quote);
                         break;
                 }
@@ -370,10 +372,27 @@ namespace FastCSV
                     }
                     break;
                 case QuoteStyle.WhenNeeded:
+                    {
+                        // Quotes are maintained if the field doesn't contain a delimiter or quote
+                        bool containsQuote = _currentField.Contains(quote);
+                        bool containsDelimiter = _currentField.Contains(delimiter);
+
+                        if (containsQuote || containsDelimiter)
+                        {
+                            if (_currentField.StartsWith(quote) && _currentField.EndsWith(quote))
+                            {
+                                _currentField.TrimStartOnce(quote);
+                                _currentField.TrimEndOnce(quote);
+                            }
+                        }
+                    }
+                    break;
+                // Keep the quotes in how they are
+                case QuoteStyle.Maintain:
                     break;
             }
 
-            if (_currentField.Contains(quote) || _currentField.Contains(delimiter) || _currentField.Contains('\n'))
+            if (style !=  QuoteStyle.WhenNeeded && (_currentField.Contains(quote) || _currentField.Contains(delimiter) || _currentField.Contains('\n')))
             {
                 if (!_currentField.StartsWithIgnoreWhiteSpace(quote) || !_currentField.EndsWithIgnoreWhiteSpace(quote))
                 {

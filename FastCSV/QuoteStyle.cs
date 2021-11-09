@@ -6,16 +6,23 @@
     public enum QuoteStyle
     {
         /// <summary>
-        /// The always add quotes to the values.
+        /// Always add quotes to the values.
         /// </summary>
         Always,
+
         /// <summary>
-        /// The never add quotes to the values and if any, will be ignored.
+        /// Never adds quotes to the values and if any will be ignored.
         /// </summary>
         Never,
+
         /// <summary>
         /// Add quotes only when needed.
         /// </summary>
-        WhenNeeded
+        WhenNeeded,
+
+        /// <summary>
+        /// Keeps the quotes as they come from the source.
+        /// </summary>
+        Maintain,
     }
 }

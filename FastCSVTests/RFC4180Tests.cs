@@ -16,7 +16,11 @@ namespace FastCSV
     [TestFixture]
     public class RFC4180Tests
     {
-        private static readonly CsvFormat RFC4180Format = new CsvFormat(ignoreNewLine: false, ignoreWhitespaces: false);
+        private static readonly CsvFormat RFC4180Format = new CsvFormat(
+            ignoreNewLine: false, 
+            ignoreWhitespaces: false,
+            style: QuoteStyle.Maintain
+            );
 
         [Test]
         public void RecordsSeparatedByNewLine_ReadTests()
