@@ -287,14 +287,38 @@ namespace FastCSV
             }
             else
             {
-                List<string> result = new List<string>();
-                IEnumerable<CsvNode> nodes = GetCsvNodes(type, options, PropertyAccesor.Getter, value).Where(e => !e.Info.Ignore);
+                List<string> result = new();
+                List<CsvNode> nodes = new();
 
-                foreach(CsvNode node in nodes)
+                IEnumerable<CsvNode> validNodes = GetCsvNodes(type, options, PropertyAccesor.Getter, value).Where(e => !e.Info.Ignore);
+
+                if (options.NestedObjectHandling != null)
                 {
-                    result.Add(ConvertObject(node.Info.Type, node.Value, options));
-                }
+                    foreach (CsvNode node in validNodes)
+                    {
+                        if (node.Children.Count > 0)
+                        {
+                            nodes.AddRange(node.Children);
+                        }
+                        else
+                        {
+                            nodes.Add(node);
+                        }
+                    }
 
+                    foreach (CsvNode node in nodes)
+                    {
+                        result.Add(ConvertObject(node.Info.Type, node.Value, options));
+                    }
+                }
+                else
+                {
+                    foreach (CsvNode node in validNodes)
+                    {
+                        result.Add(ConvertObject(node.Info.Type, node.Value, options));
+                    }
+                }
+                
                 return result.ToArray();
             }
 
@@ -308,6 +332,8 @@ namespace FastCSV
                 CsvSerializeState state = new(options, obj, new List<string>());
                 ValueToString(type, ref state);
                 return state.GetSerializedValue(0);
+
+                //return Serialize(obj, type, options);
             }
         }
 
@@ -773,13 +799,13 @@ namespace FastCSV
             return record.AsSpan().Slice(startIndex, count);
         }
 
-        private static IReadOnlyList<CsvNode> GetCsvNodes(Type type, CsvConverterOptions options, PropertyAccesor accesor, object? instance, CsvNode? parent = null)
+        private static List<CsvNode> GetCsvNodes(Type type, CsvConverterOptions options, PropertyAccesor accesor, object? instance, CsvNode? parent = null)
         {
             int maxDepth = options.NestedObjectHandling?.MaxDepth ?? 0;
             return GetCsvNodesInternal(type, options, accesor, instance, 0, maxDepth, parent);
         }
 
-        private static IReadOnlyList<CsvNode> GetCsvNodesInternal(Type type, CsvConverterOptions options, PropertyAccesor accesor, object? instance, int depth, int maxDepth, CsvNode? parent)
+        private static List<CsvNode> GetCsvNodesInternal(Type type, CsvConverterOptions options, PropertyAccesor accesor, object? instance, int depth, int maxDepth, CsvNode? parent)
         {
             // Check depth
             if (options.NestedObjectHandling != null && depth > maxDepth)
@@ -945,7 +971,7 @@ namespace FastCSV
             // Prioritize custom converters
             if (options.Converters.Any())
             {
-                foreach(ICsvValueConverter customConverter in options.Converters)
+                foreach (ICsvValueConverter customConverter in options.Converters)
                 {
                     if (customConverter.CanConvert(elementType))
                     {
