@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -130,7 +131,7 @@ namespace FastCSV.Utils
         {
             return sb.PadLeft(1, other);
         }
-        
+
         public static StringBuilder PadLeft(this StringBuilder sb, int count, ReadOnlySpan<char> other)
         {
             if (count < 0)
@@ -333,7 +334,6 @@ namespace FastCSV.Utils
             return sb.EndsWith(sb.Length, other);
         }
 
-
         public static bool EndsWith(this StringBuilder sb, int startIndex, ReadOnlySpan<char> other)
         {
             if (startIndex < 0 || startIndex > sb.Length)
@@ -407,5 +407,53 @@ namespace FastCSV.Utils
 
             return sb.EndsWith(startIndex, other);
         }
+
+        public static StringBuilderEnumerator AsEnumerable(this StringBuilder sb)
+        {
+            return new StringBuilderEnumerator(sb);
+        }
+    }
+
+    internal struct StringBuilderEnumerator : IEnumerator<char>, IEnumerable<char>
+    {
+        private readonly StringBuilder _sb;
+        private int _index;
+
+        public StringBuilderEnumerator(StringBuilder sb)
+        {
+            _sb = sb;
+            _index = -1;
+        }
+
+        public char Current => _sb[_index];
+
+        object IEnumerator.Current => Current;
+
+        public bool MoveNext()
+        {
+            _index += 1;
+
+            if (_index >= _sb.Length)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public void Reset()
+        {
+            _index = -1;
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public StringBuilderEnumerator GetEnumerator() => this;
+
+        IEnumerator<char> IEnumerable<char>.GetEnumerator() => GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
