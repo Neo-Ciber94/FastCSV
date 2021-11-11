@@ -18,8 +18,8 @@ namespace FastCSV
     {
         private static readonly CsvFormat RFC4180Format = new CsvFormat(
             ignoreNewLine: false, 
-            ignoreWhitespaces: false,
-            style: QuoteStyle.Maintain
+            ignoreWhitespaces: false
+            //style: QuoteStyle.Maintain
             );
 
         [Test]
@@ -150,9 +150,9 @@ Table,2450";
 
             using var reader = new CsvReader(StreamHelper.CreateStreamFromString(csv), RFC4180Format);
 
-            CollectionAssert.AreEqual(new string[] { "\"Id,Identifier\"", "\"name,alias\"" }, reader.Header);
-            CollectionAssert.AreEqual(new string[] { "01", "\"Mouse RGB, 256 colors\"" }, reader.Read());
-            CollectionAssert.AreEqual(new string[] { "03", "\"Keyboard, Black\"" }, reader.Read());
+            CollectionAssert.AreEqual(new string[] { "Id,Identifier", "name,alias" }, reader.Header);
+            CollectionAssert.AreEqual(new string[] { "01", "Mouse RGB, 256 colors" }, reader.Read());
+            CollectionAssert.AreEqual(new string[] { "03", "Keyboard, Black" }, reader.Read());
             Assert.Null(reader.Read());
         }
 
@@ -187,9 +187,9 @@ Table,2450";
 
             using var reader = new CsvReader(StreamHelper.CreateStreamFromString(csv), RFC4180Format);
 
-            CollectionAssert.AreEqual(new string[] { "\"String \"name\"\"","\" Number \"age\"\"" }, reader.Header);
-            CollectionAssert.AreEqual(new string[] { "\"Marie \"The Red\" Jhonson\"", "\" 21 \"two digits\"\"" }, reader.Read());
-            CollectionAssert.AreEqual(new string[] { "\"\"J\"jane\"", "\" 19 \"two digits\"\"" }, reader.Read());
+            CollectionAssert.AreEqual(new string[] { "String \"name\""," Number \"age\"" }, reader.Header);
+            CollectionAssert.AreEqual(new string[] { "Marie \"The Red\" Jhonson", " 21 \"two digits\"" }, reader.Read());
+            CollectionAssert.AreEqual(new string[] { "\"J\"jane", " 19 \"two digits\"" }, reader.Read());
             Assert.Null(reader.Read());
         }
 
@@ -230,11 +230,11 @@ when you're busy making other plans""";
             string newLine = Environment.NewLine;
             CollectionAssert.AreEqual(
                 new string[] { 
-                    @"Nelson Mandela", $"\"The greatest glory in living lies not in never falling, {newLine}but in rising every time we fall\"" 
+                    @"Nelson Mandela", $"The greatest glory in living lies not in never falling, {newLine}but in rising every time we fall" 
                 }, reader.Read());
 
             CollectionAssert.AreEqual(new string[] { 
-                @"Jhon Lennon", $"\"Life is what happens {newLine}when you're busy making other plans\"" 
+                @"Jhon Lennon", $"Life is what happens {newLine}when you're busy making other plans" 
             }, reader.Read());
 
             Assert.Null(reader.Read());

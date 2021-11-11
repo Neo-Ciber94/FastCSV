@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using FastCSV.Collections;
+using FastCSV.Extensions;
 using FastCSV.Utils;
 
 namespace FastCSV
@@ -284,7 +285,7 @@ namespace FastCSV
             {
                 // If the next char is a quote, the current is an escape so ignore it and append the next char
                 // Example: ""red"",other => "red",other
-                if (_lineParser.Slice(quote.Length).CanConsume(quote) && _lineParser.Consume(quote) > 0)
+                if (_lineParser[quote.Length..].CanConsume(quote) && _lineParser.Consume(quote) > 0)
                 {
                     MoveToNextChar();
 
@@ -295,26 +296,15 @@ namespace FastCSV
                 }
                 else
                 {
-                    switch (style)
+                    if (style != QuoteStyle.Never)
                     {
-                        case QuoteStyle.Always:
-                            _currentField.Append(quote);
-                            break;
-                        case QuoteStyle.Never:
-                            break;
-                        case QuoteStyle.WhenNeeded:
-                        case QuoteStyle.Maintain:
-                            if (!_lineParser.HasNext() || !_lineParser.TrimStart().CanConsume(delimiter))
-                            {
-                                _currentField.Append(quote);
-                            }
-                            break;
+                        _currentField.Append(quote);
                     }
 
                     // Quote is close if there is no more elements or the next charater is a delimiter:
                     // "Field", "Field"
                     //       ^--end   ^--end                 
-                    TextParser slice = _lineParser.Slice(quote.Length).TrimStart();
+                    TextParser slice = _lineParser[quote.Length..].TrimStart();
 
                     if (!slice.HasNext() || slice.CanConsume(delimiter))
                     {
@@ -324,17 +314,9 @@ namespace FastCSV
             }
             else
             {
-                switch (style)
+                if (style != QuoteStyle.Never)
                 {
-                    case QuoteStyle.Always:
-                        _currentField.Append(quote);
-                        break;
-                    case QuoteStyle.Never:
-                        break;
-                    case QuoteStyle.WhenNeeded:
-                    case QuoteStyle.Maintain:
-                        _currentField.Append(quote);
-                        break;
+                    _currentField.Append(quote);
                 }
 
                 quotePosition = currentPosition;
@@ -374,10 +356,15 @@ namespace FastCSV
                 case QuoteStyle.WhenNeeded:
                     {
                         // Quotes are maintained if the field doesn't contain a delimiter or quote
-                        bool containsQuote = _currentField.Contains(quote);
                         bool containsDelimiter = _currentField.Contains(delimiter);
+                        bool enclosedWithQuote = _currentField.StartsWith(quote) && _currentField.EndsWith(quote);
+                        bool containsNewLine = _currentField.Contains('\n') || _currentField.Contains('\r') || _currentField.Contains("\r\n");
+                        bool containsQuote = _currentField.AsEnumerable()
+                            .Skip(quote.Length)
+                            .SkipLast(quote.Length)
+                            .ContainsSequence(quote);
 
-                        if (containsQuote || containsDelimiter)
+                        if (enclosedWithQuote && (containsDelimiter || containsNewLine || containsQuote))
                         {
                             if (_currentField.StartsWith(quote) && _currentField.EndsWith(quote))
                             {
@@ -392,7 +379,7 @@ namespace FastCSV
                     break;
             }
 
-            if (style !=  QuoteStyle.WhenNeeded && (_currentField.Contains(quote) || _currentField.Contains(delimiter) || _currentField.Contains('\n')))
+            if (style != QuoteStyle.WhenNeeded && (_currentField.Contains(quote) || _currentField.Contains(delimiter) || _currentField.Contains('\n')))
             {
                 if (!_currentField.StartsWithIgnoreWhiteSpace(quote) || !_currentField.EndsWithIgnoreWhiteSpace(quote))
                 {
