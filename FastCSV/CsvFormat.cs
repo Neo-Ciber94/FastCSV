@@ -13,7 +13,7 @@ namespace FastCSV
     {
         public const string DefaultDelimiter = ",";
 
-        public const string DefautlQuote = "\"";
+        public const string DefaultQuote = "\"";
 
         public const QuoteStyle DefaultStyle = QuoteStyle.WhenNeeded;
 
@@ -34,7 +34,7 @@ namespace FastCSV
         /// <param name="ignoreWhitespaces">if set to <c>true</c> leading and trailing whitespaces will be ignored.</param>
         /// <exception cref="ArgumentException">If the delimiter is equals to the quote</exception>
         public CsvFormat(string delimiter = DefaultDelimiter,
-                         string quote = DefautlQuote,
+                         string quote = DefaultQuote,
                          QuoteStyle style = QuoteStyle.WhenNeeded,
                          bool ignoreWhitespaces = true,
                          bool ignoreNewLine = true)
