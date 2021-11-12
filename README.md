@@ -812,3 +812,16 @@ enum CryptoShortName
     USDT
 }
 ```
+### Reflection Provider
+
+Most of the reflection operations are performed using the ``IReflector`` interface, which can be provided in the ``CsvConverterOptions.ReflectionProvider``, currently there are 2 implementations available:
+
+- ``ForwardReflector`` which just forwards all the calls to a simple reflection call.
+- ``CachedReflector`` which caches the results of reflection operations. (This is used by default).
+
+Here some benchmarks of each implementation:
+
+|                     Method |     Mean |    Error |   StdDev |      Max |      Min | Ratio | RatioSD |     Gen 0 | Gen 1 | Gen 2 | Allocated |  
+|--------------------------- |---------:|---------:|---------:|---------:|---------:|------:|--------:|----------:|------:|------:|----------:|  
+| ForwardReflectorReflection | 38.44 ms | 0.666 ms | 0.556 ms | 39.90 ms | 37.83 ms |  1.00 |    0.00 | 7538.4615 |     - |     - |  30.27 MB |  
+|  CachedReflectorReflection | 26.65 ms | 0.441 ms | 0.633 ms | 28.63 ms | 26.09 ms |  0.70 |    0.02 | 4125.0000 |     - |     - |  16.49 MB |  
