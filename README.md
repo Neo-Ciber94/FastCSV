@@ -745,3 +745,70 @@ class PointConverter : ICsvValueConverter<Point>
     }
 }
 ```
+
+### Type Guesser
+
+When deserializing a value from a ``string`` to ``object`` the type of the resulting value
+must be determined.
+
+By default ``numbers``, ``booleans``, ``date``, ``timespan``, ``guid``, ``version`` and ``ip address`` are guessed to the most close type, or fallback to ``string`` if cannot determine the type. You can provide your own type guesser by implementing ``ITypeGuesser`` and provided it to the ``CsvConverterOptions.TypeGuessers``.
+
+```csharp
+using System;
+using FastCSV;
+using FastCSV.Utils;
+
+var csv = @"
+Price,ShortName
+""65,127"",BTC
+""4,735"",ETH
+631,BNB
+1,USDT
+".Trim();
+
+var options = new CsvConverterOptions
+{
+    TypeGuessers = new []{ new CryptoTypeGuesser() }
+};
+
+var stream = StreamHelper.CreateStreamFromString(csv);
+using var reader = new CsvReader(stream);
+
+foreach(var e in reader.ReadAllAs<Cryptocurrency>(options))
+{
+    Console.WriteLine($"{e.Price, -5} {e.Price.GetType()} {e.ShortName, 10} {e.ShortName.GetType()}");
+}
+
+record Cryptocurrency(object Price, object ShortName);
+
+class CryptoTypeGuesser : ITypeGuesser
+{
+    public Type? GetTypeFromString(ReadOnlySpan<char> s)
+    {
+        if (decimal.TryParse(s, out var _))
+        {
+            return typeof(decimal);
+        }
+
+        if (s.Length <= 4)
+        {
+            string enumValue = s.ToString().ToLower();
+
+            if (Enum.TryParse(typeof(CryptoShortName), enumValue, ignoreCase: true, out object? _))
+            {
+                return typeof(CryptoShortName);
+            }
+        }
+
+        return null;
+    }
+}
+
+enum CryptoShortName
+{
+    BTC,
+    ETH,
+    BNB,
+    USDT
+}
+```
