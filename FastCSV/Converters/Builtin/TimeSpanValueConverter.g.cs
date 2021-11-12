@@ -1,22 +1,27 @@
 ////////////////// GENERATED CODE, DO NOT EDIT //////////////////
 
 #nullable enable
+        
+using System;
+using System.Numerics;
 
 namespace FastCSV.Converters.Builtin
 {
     /// <summary>
-    /// A value converter for <see cref="System.TimeSpan"/>.
+    /// A value converter for <see cref="TimeSpan"/>.
     /// </summary>
-    public class TimeSpanValueConverter : ICsvCustomConverter<System.TimeSpan>
+    internal class TimeSpanValueConverter : ICsvValueConverter<TimeSpan>
     {
-        public string? ConvertFrom(System.TimeSpan value)
+        public bool TrySerialize(TimeSpan value, ref CsvSerializeState state)
         {
-            return value.ToString();
+            state.Write(value.ToString());
+            return true;
         }
 
-        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.TimeSpan value)
+        public bool TryDeserialize(out TimeSpan value, ref CsvDeserializeState state)
         {
-            return System.TimeSpan.TryParse(s, out value!);
+            ReadOnlySpan<char> s = state.Read();
+            return TimeSpan.TryParse(s, out value!);
         }
     }
 }

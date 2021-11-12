@@ -1,22 +1,28 @@
 ////////////////// GENERATED CODE, DO NOT EDIT //////////////////
 
 #nullable enable
+        
+using System;
+using System.Numerics;
+using System.Net;
 
 namespace FastCSV.Converters.Builtin
 {
     /// <summary>
-    /// A value converter for <see cref="System.Net.IPAddress"/>.
+    /// A value converter for <see cref="IPAddress"/>.
     /// </summary>
-    public class IPAddressValueConverter : ICsvCustomConverter<System.Net.IPAddress>
+    internal class IPAddressValueConverter : ICsvValueConverter<IPAddress>
     {
-        public string? ConvertFrom(System.Net.IPAddress value)
+        public bool TrySerialize(IPAddress value, ref CsvSerializeState state)
         {
-            return value.ToString();
+            state.Write(value.ToString());
+            return true;
         }
 
-        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Net.IPAddress value)
+        public bool TryDeserialize(out IPAddress value, ref CsvDeserializeState state)
         {
-            return System.Net.IPAddress.TryParse(s, out value!);
+            ReadOnlySpan<char> s = state.Read();
+            return IPAddress.TryParse(s, out value!);
         }
     }
 }

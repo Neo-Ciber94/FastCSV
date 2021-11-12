@@ -1,22 +1,27 @@
 ////////////////// GENERATED CODE, DO NOT EDIT //////////////////
 
 #nullable enable
+        
+using System;
+using System.Numerics;
 
 namespace FastCSV.Converters.Builtin
 {
     /// <summary>
-    /// A value converter for <see cref="System.Numerics.BigInteger"/>.
+    /// A value converter for <see cref="BigInteger"/>.
     /// </summary>
-    public class BigIntegerValueConverter : ICsvCustomConverter<System.Numerics.BigInteger>
+    internal class BigIntegerValueConverter : ICsvValueConverter<BigInteger>
     {
-        public string? ConvertFrom(System.Numerics.BigInteger value)
+        public bool TrySerialize(BigInteger value, ref CsvSerializeState state)
         {
-            return value.ToString();
+            state.Write(value.ToString());
+            return true;
         }
 
-        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Numerics.BigInteger value)
+        public bool TryDeserialize(out BigInteger value, ref CsvDeserializeState state)
         {
-            return System.Numerics.BigInteger.TryParse(s, out value!);
+            ReadOnlySpan<char> s = state.Read();
+            return BigInteger.TryParse(s, out value!);
         }
     }
 }

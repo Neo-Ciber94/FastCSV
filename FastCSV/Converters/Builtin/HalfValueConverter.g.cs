@@ -1,22 +1,26 @@
 ////////////////// GENERATED CODE, DO NOT EDIT //////////////////
 
 #nullable enable
+        
+using System;
 
 namespace FastCSV.Converters.Builtin
 {
     /// <summary>
-    /// A value converter for <see cref="System.Half"/>.
+    /// A value converter for <see cref="Half"/>.
     /// </summary>
-    public class HalfValueConverter : ICsvCustomConverter<System.Half>
+    internal class HalfValueConverter : ICsvValueConverter<Half>
     {
-        public string? ConvertFrom(System.Half value)
+        public bool TrySerialize(Half value, ref CsvSerializeState state)
         {
-            return value.ToString();
+            state.Write(value.ToString());
+            return true;
         }
 
-        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Half value)
+        public bool TryDeserialize(out Half value, ref CsvDeserializeState state)
         {
-            return System.Half.TryParse(s, out value!);
+            ReadOnlySpan<char> s = state.Read();
+            return Half.TryParse(s, out value!);
         }
     }
 }

@@ -1,22 +1,26 @@
 ////////////////// GENERATED CODE, DO NOT EDIT //////////////////
 
 #nullable enable
+        
+using System;
 
 namespace FastCSV.Converters.Builtin
 {
     /// <summary>
-    /// A value converter for <see cref="System.Int32"/>.
+    /// A value converter for <see cref="Int32"/>.
     /// </summary>
-    public class IntValueConverter : ICsvCustomConverter<System.Int32>
+    internal class IntValueConverter : ICsvValueConverter<Int32>
     {
-        public string? ConvertFrom(System.Int32 value)
+        public bool TrySerialize(Int32 value, ref CsvSerializeState state)
         {
-            return value.ToString();
+            state.Write(value.ToString());
+            return true;
         }
 
-        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Int32 value)
+        public bool TryDeserialize(out Int32 value, ref CsvDeserializeState state)
         {
-            return System.Int32.TryParse(s, out value!);
+            ReadOnlySpan<char> s = state.Read();
+            return Int32.TryParse(s, out value!);
         }
     }
 }

@@ -1,22 +1,27 @@
 ////////////////// GENERATED CODE, DO NOT EDIT //////////////////
 
 #nullable enable
+        
+using System;
+using System.Numerics;
 
 namespace FastCSV.Converters.Builtin
 {
     /// <summary>
-    /// A value converter for <see cref="System.Version"/>.
+    /// A value converter for <see cref="Version"/>.
     /// </summary>
-    public class VersionValueConverter : ICsvCustomConverter<System.Version>
+    internal class VersionValueConverter : ICsvValueConverter<Version>
     {
-        public string? ConvertFrom(System.Version value)
+        public bool TrySerialize(Version value, ref CsvSerializeState state)
         {
-            return value.ToString();
+            state.Write(value.ToString());
+            return true;
         }
 
-        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Version value)
+        public bool TryDeserialize(out Version value, ref CsvDeserializeState state)
         {
-            return System.Version.TryParse(s, out value!);
+            ReadOnlySpan<char> s = state.Read();
+            return Version.TryParse(s, out value!);
         }
     }
 }

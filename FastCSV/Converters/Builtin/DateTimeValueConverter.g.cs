@@ -1,22 +1,26 @@
 ////////////////// GENERATED CODE, DO NOT EDIT //////////////////
 
 #nullable enable
+        
+using System;
 
 namespace FastCSV.Converters.Builtin
 {
     /// <summary>
-    /// A value converter for <see cref="System.DateTime"/>.
+    /// A value converter for <see cref="DateTime"/>.
     /// </summary>
-    public class DateTimeValueConverter : ICsvCustomConverter<System.DateTime>
+    internal class DateTimeValueConverter : ICsvValueConverter<DateTime>
     {
-        public string? ConvertFrom(System.DateTime value)
+        public bool TrySerialize(DateTime value, ref CsvSerializeState state)
         {
-            return value.ToString();
+            state.Write(value.ToString());
+            return true;
         }
 
-        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.DateTime value)
+        public bool TryDeserialize(out DateTime value, ref CsvDeserializeState state)
         {
-            return System.DateTime.TryParse(s, out value!);
+            ReadOnlySpan<char> s = state.Read();
+            return DateTime.TryParse(s, out value!);
         }
     }
 }

@@ -1,22 +1,28 @@
 ////////////////// GENERATED CODE, DO NOT EDIT //////////////////
 
 #nullable enable
+        
+using System;
+using System.Numerics;
+using System.Net;
 
 namespace FastCSV.Converters.Builtin
 {
     /// <summary>
-    /// A value converter for <see cref="System.Net.IPEndPoint"/>.
+    /// A value converter for <see cref="IPEndPoint"/>.
     /// </summary>
-    public class IPEndPointValueConverter : ICsvCustomConverter<System.Net.IPEndPoint>
+    internal class IPEndPointValueConverter : ICsvValueConverter<IPEndPoint>
     {
-        public string? ConvertFrom(System.Net.IPEndPoint value)
+        public bool TrySerialize(IPEndPoint value, ref CsvSerializeState state)
         {
-            return value.ToString();
+            state.Write(value.ToString());
+            return true;
         }
 
-        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Net.IPEndPoint value)
+        public bool TryDeserialize(out IPEndPoint value, ref CsvDeserializeState state)
         {
-            return System.Net.IPEndPoint.TryParse(s, out value!);
+            ReadOnlySpan<char> s = state.Read();
+            return IPEndPoint.TryParse(s, out value!);
         }
     }
 }

@@ -1,26 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace FastCSVCodeGen
 {
     public class CsvConverterCodeGenerator
     {
         private const string Template = @"#nullable enable
+        
+{imports}
 
 namespace FastCSV.Converters.Builtin
 {
     /// <summary>
     /// A value converter for <see cref=""{1}""/>.
     /// </summary>
-    public class {0}ValueConverter : ICsvCustomConverter<{1}>
+    internal class {0}ValueConverter : ICsvValueConverter<{1}>
     {
-        public string? ConvertFrom({1} value)
+        public bool TrySerialize({1} value, ref CsvSerializeState state)
         {
-            return {2};
+            state.Write({2});
+            return true;
         }
 
-        public bool ConvertTo(System.ReadOnlySpan<char> s, out {1} value)
+        public bool TryDeserialize(out {1} value, ref CsvDeserializeState state)
         {
+            ReadOnlySpan<char> s = state.Read();
             return {1}.TryParse({3}, out value!);
         }
     }
@@ -28,16 +33,28 @@ namespace FastCSV.Converters.Builtin
 ";
         public static void WriteTo(string path, IReadOnlyDictionary<Type, string> types)
         {
-            foreach(var (type, name) in types)
+            var imports = new HashSet<string>
             {
-                if (type == typeof(string))
+                "System"
+            };
+
+            foreach (var (type, name) in types)
+            {
+                if (type == typeof(string) || type == typeof(object))
                 {
                     continue;
                 }
 
+                string fullTypeName = type.FullName!;
+                int namespaceIdx = fullTypeName.LastIndexOf('.');
+                string @namespace = fullTypeName[..namespaceIdx];
+                string typeName = fullTypeName[(namespaceIdx + 1)..];
+
+                imports.Add(@namespace);
+
                 string contents = Template
                     .Replace("{0}", name)
-                    .Replace("{1}", type.FullName);
+                    .Replace("{1}", typeName);
 
                 string valueToString = type switch
                 {
@@ -55,6 +72,9 @@ namespace FastCSV.Converters.Builtin
                 {
                     contents = contents.Replace("{3}", "s");
                 }
+
+                string importsString = string.Join("\r\n", imports.Select(i => $"using {i};"));
+                contents = contents.Replace("{imports}", importsString);
 
                 CodeGenerator.WriteToFile(contents, path, $"{name}ValueConverter", overwrite: true);
             }

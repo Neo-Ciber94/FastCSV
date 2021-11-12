@@ -1,22 +1,26 @@
 ////////////////// GENERATED CODE, DO NOT EDIT //////////////////
 
 #nullable enable
+        
+using System;
 
 namespace FastCSV.Converters.Builtin
 {
     /// <summary>
-    /// A value converter for <see cref="System.Boolean"/>.
+    /// A value converter for <see cref="Boolean"/>.
     /// </summary>
-    public class BoolValueConverter : ICsvCustomConverter<System.Boolean>
+    internal class BoolValueConverter : ICsvValueConverter<Boolean>
     {
-        public string? ConvertFrom(System.Boolean value)
+        public bool TrySerialize(Boolean value, ref CsvSerializeState state)
         {
-            return value? "true": "false";
+            state.Write(value? "true": "false");
+            return true;
         }
 
-        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Boolean value)
+        public bool TryDeserialize(out Boolean value, ref CsvDeserializeState state)
         {
-            return System.Boolean.TryParse(s, out value!);
+            ReadOnlySpan<char> s = state.Read();
+            return Boolean.TryParse(s, out value!);
         }
     }
 }

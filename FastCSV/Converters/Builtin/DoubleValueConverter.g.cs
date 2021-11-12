@@ -1,23 +1,26 @@
 ////////////////// GENERATED CODE, DO NOT EDIT //////////////////
 
 #nullable enable
+        
+using System;
 
 namespace FastCSV.Converters.Builtin
 {
     /// <summary>
-    /// A value converter for <see cref="System.Double"/>.
+    /// A value converter for <see cref="Double"/>.
     /// </summary>
-    public class DoubleValueConverter : ICsvCustomConverter<System.Double>
+    internal class DoubleValueConverter : ICsvValueConverter<Double>
     {
-        public string? ConvertFrom(System.Double value)
+        public bool TrySerialize(Double value, ref CsvSerializeState state)
         {
-            return value.ToString();
+            state.Write(value.ToString());
+            return true;
         }
 
-        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Double value)
+        public bool TryDeserialize(out Double value, ref CsvDeserializeState state)
         {
-            var result = System.Double.TryParse(s, out value!);
-            return result;
+            ReadOnlySpan<char> s = state.Read();
+            return Double.TryParse(s, out value!);
         }
     }
 }

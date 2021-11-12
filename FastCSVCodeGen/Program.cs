@@ -23,6 +23,7 @@ namespace FastCSVCodeGen
             { typeof(ulong), "ULong" },
             { typeof(decimal), "Decimal" },
             { typeof(string), "String" },
+            { typeof(object), "Object"},
             { typeof(Half), nameof(Half) },
             { typeof(DateTime), nameof(DateTime) },
             { typeof(DateTimeOffset), nameof(DateTimeOffset) },
@@ -45,10 +46,7 @@ namespace FastCSVCodeGen
             string convertersBuiltinPath = @$"{convertersPath}\\Builtin";
 
             CsvConverterCodeGenerator.WriteTo(convertersBuiltinPath, Types);
-            BuiltInTypeCodeGenerator.WriteTo_DefaultValueConverterProviderBuiltInTypes(convertersPath, Types);
             BuiltInTypeCodeGenerator.WriteTo_CsvConverterIsBuiltInType(path, Types);
-
-            Console.ReadKey();
         }
     }
 }

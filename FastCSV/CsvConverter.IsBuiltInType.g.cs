@@ -21,9 +21,9 @@ namespace FastCSV
 			
 			return type.IsPrimitive
 				|| type.IsEnum
-				|| type == typeof(object)
 				|| type == typeof(System.Decimal)
 				|| type == typeof(System.String)
+				|| type == typeof(System.Object)
 				|| type == typeof(System.Half)
 				|| type == typeof(System.DateTime)
 				|| type == typeof(System.DateTimeOffset)

@@ -1,22 +1,27 @@
 ////////////////// GENERATED CODE, DO NOT EDIT //////////////////
 
 #nullable enable
+        
+using System;
+using System.Numerics;
 
 namespace FastCSV.Converters.Builtin
 {
     /// <summary>
-    /// A value converter for <see cref="System.Guid"/>.
+    /// A value converter for <see cref="Guid"/>.
     /// </summary>
-    public class GuidValueConverter : ICsvCustomConverter<System.Guid>
+    internal class GuidValueConverter : ICsvValueConverter<Guid>
     {
-        public string? ConvertFrom(System.Guid value)
+        public bool TrySerialize(Guid value, ref CsvSerializeState state)
         {
-            return value.ToString();
+            state.Write(value.ToString());
+            return true;
         }
 
-        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Guid value)
+        public bool TryDeserialize(out Guid value, ref CsvDeserializeState state)
         {
-            return System.Guid.TryParse(s, out value!);
+            ReadOnlySpan<char> s = state.Read();
+            return Guid.TryParse(s, out value!);
         }
     }
 }

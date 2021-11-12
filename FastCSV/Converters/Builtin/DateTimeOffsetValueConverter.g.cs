@@ -1,22 +1,26 @@
 ////////////////// GENERATED CODE, DO NOT EDIT //////////////////
 
 #nullable enable
+        
+using System;
 
 namespace FastCSV.Converters.Builtin
 {
     /// <summary>
-    /// A value converter for <see cref="System.DateTimeOffset"/>.
+    /// A value converter for <see cref="DateTimeOffset"/>.
     /// </summary>
-    public class DateTimeOffsetValueConverter : ICsvCustomConverter<System.DateTimeOffset>
+    internal class DateTimeOffsetValueConverter : ICsvValueConverter<DateTimeOffset>
     {
-        public string? ConvertFrom(System.DateTimeOffset value)
+        public bool TrySerialize(DateTimeOffset value, ref CsvSerializeState state)
         {
-            return value.ToString();
+            state.Write(value.ToString());
+            return true;
         }
 
-        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.DateTimeOffset value)
+        public bool TryDeserialize(out DateTimeOffset value, ref CsvDeserializeState state)
         {
-            return System.DateTimeOffset.TryParse(s, out value!);
+            ReadOnlySpan<char> s = state.Read();
+            return DateTimeOffset.TryParse(s, out value!);
         }
     }
 }

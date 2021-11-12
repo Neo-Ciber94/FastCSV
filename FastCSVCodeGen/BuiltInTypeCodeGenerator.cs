@@ -6,32 +6,6 @@ namespace FastCSVCodeGen
 {
     public static class BuiltInTypeCodeGenerator
     {
-        const string ClassName = "CsvDefaultValueConverterProvider";
-
-        public static void WriteTo_DefaultValueConverterProviderBuiltInTypes(string path, IReadOnlyDictionary<Type, string> types)
-        {
-            var codeGen = new CodeGenerator();
-            codeGen.WriteLine("using FastCSV.Converters.Builtin;\n");
-
-            codeGen.Open("namespace FastCSV.Converters", b =>
-            {
-                b.Open($"internal partial class {ClassName}", b =>
-                {
-                    b.Open("private partial void Initialize()", b =>
-                    {
-                        foreach (var (type, name) in types)
-                        {
-                            var typeOf = $"typeof({type})";
-                            var converter = $"new {name}ValueConverter()";
-                            b.WriteLine($"_converters.Add({typeOf, -40}, {converter});");
-                        }
-                    });
-                });
-            });
-
-            codeGen.WriteTo(path, $"{ClassName}.BuiltinTypes", overwrite: true);
-        }
-
         public static void WriteTo_CsvConverterIsBuiltInType(string path, IReadOnlyDictionary<Type, string> types)
         {
             var codeGen = new CodeGenerator();

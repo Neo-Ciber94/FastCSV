@@ -1,22 +1,26 @@
 ////////////////// GENERATED CODE, DO NOT EDIT //////////////////
 
 #nullable enable
+        
+using System;
 
 namespace FastCSV.Converters.Builtin
 {
     /// <summary>
-    /// A value converter for <see cref="System.SByte"/>.
+    /// A value converter for <see cref="SByte"/>.
     /// </summary>
-    public class SByteValueConverter : ICsvCustomConverter<System.SByte>
+    internal class SByteValueConverter : ICsvValueConverter<SByte>
     {
-        public string? ConvertFrom(System.SByte value)
+        public bool TrySerialize(SByte value, ref CsvSerializeState state)
         {
-            return value.ToString();
+            state.Write(value.ToString());
+            return true;
         }
 
-        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.SByte value)
+        public bool TryDeserialize(out SByte value, ref CsvDeserializeState state)
         {
-            return System.SByte.TryParse(s, out value!);
+            ReadOnlySpan<char> s = state.Read();
+            return SByte.TryParse(s, out value!);
         }
     }
 }

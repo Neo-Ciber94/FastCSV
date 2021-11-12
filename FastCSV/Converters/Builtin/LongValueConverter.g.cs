@@ -1,22 +1,26 @@
 ////////////////// GENERATED CODE, DO NOT EDIT //////////////////
 
 #nullable enable
+        
+using System;
 
 namespace FastCSV.Converters.Builtin
 {
     /// <summary>
-    /// A value converter for <see cref="System.Int64"/>.
+    /// A value converter for <see cref="Int64"/>.
     /// </summary>
-    public class LongValueConverter : ICsvCustomConverter<System.Int64>
+    internal class LongValueConverter : ICsvValueConverter<Int64>
     {
-        public string? ConvertFrom(System.Int64 value)
+        public bool TrySerialize(Int64 value, ref CsvSerializeState state)
         {
-            return value.ToString();
+            state.Write(value.ToString());
+            return true;
         }
 
-        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Int64 value)
+        public bool TryDeserialize(out Int64 value, ref CsvDeserializeState state)
         {
-            return System.Int64.TryParse(s, out value!);
+            ReadOnlySpan<char> s = state.Read();
+            return Int64.TryParse(s, out value!);
         }
     }
 }

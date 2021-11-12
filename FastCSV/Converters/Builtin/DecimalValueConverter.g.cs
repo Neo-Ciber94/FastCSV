@@ -1,22 +1,26 @@
 ////////////////// GENERATED CODE, DO NOT EDIT //////////////////
 
 #nullable enable
+        
+using System;
 
 namespace FastCSV.Converters.Builtin
 {
     /// <summary>
-    /// A value converter for <see cref="System.Decimal"/>.
+    /// A value converter for <see cref="Decimal"/>.
     /// </summary>
-    public class DecimalValueConverter : ICsvCustomConverter<System.Decimal>
+    internal class DecimalValueConverter : ICsvValueConverter<Decimal>
     {
-        public string? ConvertFrom(System.Decimal value)
+        public bool TrySerialize(Decimal value, ref CsvSerializeState state)
         {
-            return value.ToString();
+            state.Write(value.ToString());
+            return true;
         }
 
-        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Decimal value)
+        public bool TryDeserialize(out Decimal value, ref CsvDeserializeState state)
         {
-            return System.Decimal.TryParse(s, out value!);
+            ReadOnlySpan<char> s = state.Read();
+            return Decimal.TryParse(s, out value!);
         }
     }
 }

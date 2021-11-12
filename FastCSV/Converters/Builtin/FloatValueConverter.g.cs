@@ -1,22 +1,26 @@
 ////////////////// GENERATED CODE, DO NOT EDIT //////////////////
 
 #nullable enable
+        
+using System;
 
 namespace FastCSV.Converters.Builtin
 {
     /// <summary>
-    /// A value converter for <see cref="System.Single"/>.
+    /// A value converter for <see cref="Single"/>.
     /// </summary>
-    public class FloatValueConverter : ICsvCustomConverter<System.Single>
+    internal class FloatValueConverter : ICsvValueConverter<Single>
     {
-        public string? ConvertFrom(System.Single value)
+        public bool TrySerialize(Single value, ref CsvSerializeState state)
         {
-            return value.ToString("G");
+            state.Write(value.ToString());
+            return true;
         }
 
-        public bool ConvertTo(System.ReadOnlySpan<char> s, out System.Single value)
+        public bool TryDeserialize(out Single value, ref CsvDeserializeState state)
         {
-            return System.Single.TryParse(s, out value!);
+            ReadOnlySpan<char> s = state.Read();
+            return Single.TryParse(s, out value!);
         }
     }
 }
