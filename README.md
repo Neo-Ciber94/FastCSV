@@ -531,8 +531,8 @@ class Node
 
 ### Collections
 
-Using the ``CollectionHandling`` you can allow serialize/deserialize collections,
-inline in the csv.
+Using the ``CollectionHandling`` you can serialize/deserialize collections,
+inline in the csv. Types that implements `IEnumerable` or Tuples are supported.
 
 The way this is done is using a ``tag`` which identifies the items with a name and index,
 starting at 1. The default tag when using ``CollectionHandling.Default`` is ``"item"``.
