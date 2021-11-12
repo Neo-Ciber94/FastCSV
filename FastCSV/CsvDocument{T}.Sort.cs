@@ -76,15 +76,9 @@ namespace FastCSV
 
             private readonly IComparer<T> _comparer;
 
-            public TypedRecordComparer(IComparer<T> comparer)
-            {
-                _comparer = comparer;
-            }
+            public TypedRecordComparer(IComparer<T> comparer) => _comparer = comparer;
 
-            public int Compare(TypedRecord x, TypedRecord y)
-            {
-                return _comparer.Compare(x.Value, y.Value);
-            }
+            public int Compare(TypedRecord x, TypedRecord y) => _comparer.Compare(x.Value, y.Value);
         }
     }
 }
