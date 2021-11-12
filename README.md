@@ -2,13 +2,15 @@
 
 A CSharp library for read and write csv documents.
 
-## Features
+# Features
+
 - Read csv documents using ``CsvReader``.
 - Write csv documents using ``CsvWriter`` and ``CsvDocument``.
 - Parse objects to csv using ``CsvConverter``.
 - Changed the format of read/write using ``CsvFormat``.
 
-## Table of contents
+# Table of contents
+
 - [Read CSV](#read-csv)
   - [Read from file](#read-file)
   - [Read from string](#read-string)
@@ -34,11 +36,12 @@ A CSharp library for read and write csv documents.
   - [Type Guesser](#csv-converter-options-type-guesser)
   - [Reflection Provider](#csv-converter-options-reflection)
 
-
 > The examples are written using C# 'top-level statements'
+
 ## Read CSV
 
-###  Read from file
+### Read from file
+
 ```csharp
 using FastCSV;
 using System;
@@ -62,7 +65,8 @@ while (true)
 }
 ```
 
-###  Read from string
+### Read from string
+
 ```csharp
 using FastCSV;
 using FastCSV.Utils;
@@ -97,6 +101,7 @@ while (true)
 ```
 
 **Output**
+
 ```bash
 id,name,age
 1,Alan,20
@@ -104,7 +109,8 @@ id,name,age
 3,Karen,34
 ```
 
-###  Iterate over records
+### Iterate over records
+
 ```csharp
 using FastCSV;
 using System;
@@ -118,7 +124,8 @@ foreach(CsvRecord record in reader.ReadAll())
 }
 ```
 
-###  Read typed data
+### Read typed data
+
 ```csharp
 using FastCSV;
 using System;
@@ -160,7 +167,8 @@ record Person
 }
 ```
 
-###  Read typed using a naming convention
+### Read typed using a naming convention
+
 ```csharp
 using FastCSV;
 using System;
@@ -184,10 +192,12 @@ enum BinaryGender { Male, Female }
 record Person(string? Id, string? FirstName, string? LastName, int Age, BinaryGender Gender, string? Email, IPAddress? IpAddress);
 ```
 
-###  Read Asynchronously
+### Read Asynchronously
+
 **FastCSV** also provides support for ``async-await``
 
 #### Read from file async
+
 ```csharp
 using FastCSV;
 using System;
@@ -209,6 +219,7 @@ while (true)
 ```
 
 #### Iterate asynchronously
+
 ```csharp
 using FastCSV;
 using System;
@@ -224,7 +235,8 @@ await foreach(CsvRecord record in reader.ReadAllAsync())
 
 ## Write CSV
 
-###  Write to file
+### Write to file
+
 ```csharp
 using FastCSV;
 
@@ -245,7 +257,8 @@ writer.WriteValue(new Product(4, "RGB Mouse", 2500m));
 record Product(int Id, string Name, decimal Price);
 ```
 
-###  Write to Stream
+### Write to Stream
+
 ```csharp
 using FastCSV;
 using System;
@@ -277,6 +290,7 @@ record Product(int Id, string Name, decimal Price);
 ```
 
 **Output**
+
 ```bash
 Id,Name,Value
 1,Baseball,500
@@ -285,7 +299,8 @@ Id,Name,Value
 4,RGB Mouse,2500
 ```
 
-### CsvDocument
+## CsvDocument
+
 ```CsvDocument``` is an in-memory csv document and allows add, update and remove the values.
 
 ```csharp
@@ -317,6 +332,7 @@ record Product(int Id, string? Name, decimal Price);
 ```
 
 **Output**
+
 ```bash
 id,name,price
 1,Keyboard,2500.99
@@ -329,11 +345,13 @@ id,name,price
 ```CsvWriter``` only allow write to a ```Stream``` which can be a file, but
 ```CsvDocument``` allow to write, read and update which is more versatile.
 
-### CsvDocument\<T\>
+## CsvDocument\<T\>
+
 ```CsvDocument<T>``` is an in-mermory csv document that allows to write, read, updates and remove typed data from a csv,
 also provides operations to query over the document.
 
-#### Write into CsvDocument\<T\>
+### Write into CsvDocument\<T\>
+
 ```csharp
 using FastCSV;
 using System;
@@ -356,7 +374,8 @@ await document.CopyToFileAsync("mydata.csv");
 record Product(int Id, string? Name, decimal Price);
 ```
 
-#### Read csv from file
+### Read csv from file
+
 You can also read csv documents from files into a typed ``CsvDocument<T>``
 
 ```csharp
@@ -380,7 +399,7 @@ foreach(Person e in document.Values)
 record Person(int Id, string? FirstName, string? LastName, int Age);
 ```
 
-#### Read and query from file
+### Read and query from file
 
 ```csharp
 using System;
@@ -462,6 +481,7 @@ ID,NAME,PRICE
 ```
 
 ### Nested Objects
+
 When serializing or deserializing objects we will try to get a converter to transform a value from an specify type into
 a collection of fields to the csv and if a converter is not found for a type an exception will be throw.
 
@@ -488,6 +508,7 @@ record ProductInfo(string Name, decimal Price);
 ```
 
 *output.csv*
+
 ```bash
 Id,Quantity,Name,Price
 1,12,Apple,20
@@ -509,6 +530,7 @@ class Node
 ```
 
 ### Collections
+
 Using the ``CollectionHandling`` you can allow serialize/deserialize collections,
 inline in the csv.
 
@@ -652,6 +674,7 @@ class PointConverter : ICsvCustomConverter<Point>
 ```
 
 **Output**
+
 ```bash
 Data { Id = 1, Position = Point { X = 20, Y = -34 } }
 Data { Id = 2, Position = Point { X = 1, Y = 3 } }
@@ -812,6 +835,7 @@ enum CryptoShortName
     USDT
 }
 ```
+
 ### Reflection Provider
 
 Most of the reflection operations are performed using the ``IReflector`` interface, which can be provided in the ``CsvConverterOptions.ReflectionProvider``, currently there are 2 implementations available:
