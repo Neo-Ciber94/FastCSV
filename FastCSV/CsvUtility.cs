@@ -472,24 +472,6 @@ namespace FastCSV
 
             format ??= CsvFormat.Default;
 
-            // Helper local function to add quotes
-            static string AddQuote(CsvFormat format, string s)
-            {
-                int length = s.Length + (format.Quote.Length * 2);
-
-                return string.Create(length, (format.Quote, s), static (span, state) =>
-                {
-                    int quoteLength = state.Quote.Length;
-                    int lastQuoteIndex = span.Length - quoteLength;
-                    ReadOnlySpan<char> quote = state.Quote;
-                    string stringValue = state.s;
-
-                    quote.CopyTo(span);
-                    quote.CopyTo(span[lastQuoteIndex..]);
-                    stringValue.AsSpan().CopyTo(span[quoteLength..lastQuoteIndex]);
-                });
-            }
-
             using var stringBuilder = new ValueStringBuilder(stackalloc char[128]);
             var enumerator = values.GetEnumerator();
             QuoteStyle style = format.Style;
@@ -552,6 +534,24 @@ namespace FastCSV
             }
 
             return stringBuilder.ToString();
+
+            // Helper local function to add quotes
+            static string AddQuote(CsvFormat format, string s)
+            {
+                int length = s.Length + (format.Quote.Length * 2);
+
+                return string.Create(length, (format.Quote, s), static (span, state) =>
+                {
+                    int quoteLength = state.Quote.Length;
+                    int lastQuoteIndex = span.Length - quoteLength;
+                    ReadOnlySpan<char> quote = state.Quote;
+                    string stringValue = state.s;
+
+                    quote.CopyTo(span);
+                    quote.CopyTo(span[lastQuoteIndex..]);
+                    stringValue.AsSpan().CopyTo(span[quoteLength..lastQuoteIndex]);
+                });
+            }
         }
 
         /// <summary>
@@ -641,7 +641,7 @@ namespace FastCSV
                                          .Replace("\n", string.Empty);
                             break;
                         case QuoteStyle.WhenNeeded:
-                            // Field is formatted before
+                        case QuoteStyle.Maintain:
                             break;
                     }
 
