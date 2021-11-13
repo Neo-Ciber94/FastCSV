@@ -1,4 +1,5 @@
 # FastCSV
+[![NeoCiber.FastCSV](https://img.shields.io/badge/nuget-v2.0.0-blue)](https://www.nuget.org/packages/NeoCiber.FastCSV/)
 
 A CSharp library for read and write csv documents.
 
